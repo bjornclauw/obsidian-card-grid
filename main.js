@@ -10,16 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const obsidian_1 = require("obsidian");
-/**
- * IMAGE PICKER
- */
+/* =========================
+   IMAGE PICKER
+========================= */
 class ImagePickerModal extends obsidian_1.FuzzySuggestModal {
     constructor(app, onSelect) {
         super(app);
         this.onSelect = onSelect;
     }
     getItems() {
-        return this.app.vault.getFiles().filter((f) => ["png", "jpg", "jpeg", "webp"].includes(f.extension.toLowerCase()));
+        return this.app.vault.getFiles().filter((f) => ["png", "jpg", "jpeg", "webp", "gif"].includes(f.extension.toLowerCase()));
     }
     getItemText(item) {
         return item.path;
@@ -28,33 +28,41 @@ class ImagePickerModal extends obsidian_1.FuzzySuggestModal {
         this.onSelect(item);
     }
 }
-/**
- * COLOR PICKER (native browser)
- */
-function openColorPicker(initial, onChange) {
+/* =========================
+   COLOR PICKER (cursor)
+========================= */
+function openColorPickerAtCursor(e, initial, onChange) {
     const input = document.createElement("input");
     input.type = "color";
     input.value = initial || "#e91e63";
+    // IMPORTANT: must be visible for Electron focus handling
     input.style.position = "fixed";
-    input.style.zIndex = "9999";
-    input.style.left = "20px";
-    input.style.top = "20px";
+    input.style.left = `${e.clientX}px`;
+    input.style.top = `${e.clientY}px`;
+    input.style.width = "20px";
+    input.style.height = "20px";
+    input.style.opacity = "0.01"; // NOT 0
+    input.style.zIndex = "999999";
+    document.body.appendChild(input);
     input.oninput = () => onChange(input.value);
     input.onchange = () => input.remove();
-    document.body.appendChild(input);
-    input.click();
+    // delay helps Obsidian/Electron register focus
+    setTimeout(() => {
+        input.click();
+        input.focus();
+    }, 0);
 }
 class CardGridPlugin extends obsidian_1.Plugin {
     onload() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Card Grid PRO loaded");
+            console.log("Card Grid FULL FIXED loaded");
             this.registerMarkdownCodeBlockProcessor("card-grid", (source, el, ctx) => {
                 try {
                     const cleaned = this.clean(source);
                     const data = (0, obsidian_1.parseYaml)(cleaned);
                     if (!data || typeof data !== "object")
                         return;
-                    this.render(el, data, source, ctx.sourcePath);
+                    this.render(el, data, ctx.sourcePath);
                 }
                 catch (err) {
                     el.createEl("pre", { text: "YAML Error: " + err });
@@ -62,18 +70,18 @@ class CardGridPlugin extends obsidian_1.Plugin {
             });
         });
     }
-    /**
-     * CLEAN INPUT (copy-paste safe)
-     */
+    /* =========================
+       CLEAN INPUT
+    ========================= */
     clean(source) {
         return source
             .replace(/\u00A0/g, " ")
             .replace(/\t/g, "  ")
             .replace(/[^\S\r\n]+$/gm, "");
     }
-    /**
-     * RESOLVE IMAGE PATH
-     */
+    /* =========================
+       IMAGE RESOLVE
+    ========================= */
     resolveImage(path) {
         const file = this.app.vault.getAbstractFileByPath(path);
         if (file instanceof obsidian_1.TFile) {
@@ -81,31 +89,91 @@ class CardGridPlugin extends obsidian_1.Plugin {
         }
         return path;
     }
-    /**
-     * OPEN IMAGE PICKER
-     */
+    /* =========================
+       IMAGE PICKER
+    ========================= */
     pickImage(callback) {
         new ImagePickerModal(this.app, callback).open();
     }
-    /**
-     * UPDATE YAML BLOCK SAFELY
-     */
-    updateFile(sourcePath, updatedData) {
+    /* =========================
+       UPDATE FILE (SOURCE OF TRUTH)
+    ========================= */
+    updateFile(sourcePath, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const file = this.app.vault.getAbstractFileByPath(sourcePath);
             if (!(file instanceof obsidian_1.TFile))
                 return;
             const raw = yield this.app.vault.read(file);
-            const updatedYaml = (0, obsidian_1.stringifyYaml)(updatedData);
-            const newContent = raw.replace(/```card-grid[\s\S]*?```/, "```card-grid\n" + updatedYaml + "\n```");
-            yield this.app.vault.modify(file, newContent);
+            const yaml = (0, obsidian_1.stringifyYaml)(data);
+            const updated = raw.replace(/```card-grid[\s\S]*?```/, "```card-grid\n" + yaml + "\n```");
+            yield this.app.vault.modify(file, updated);
         });
     }
-    /**
-     * RENDER GRID
-     */
-    render(el, data, rawSource, sourcePath) {
+    /* =========================
+       FULL REFRESH (CRITICAL FIX)
+    ========================= */
+    refresh(el, data, sourcePath) {
+        this.render(el, data, sourcePath);
+    }
+    /* =========================
+       CONTEXT MENU
+    ========================= */
+    buildMenu(card, index, data, sourcePath, el, e) {
+        const menu = new obsidian_1.Menu();
+        menu.addItem((item) => item.setTitle("🎨 Change color").setIcon("palette").onClick(() => {
+            openColorPickerAtCursor(e, card.color || "#e91e63", (color) => __awaiter(this, void 0, void 0, function* () {
+                card.color = color;
+                yield this.updateFile(sourcePath, data);
+                this.refresh(el, data, sourcePath);
+            }));
+        }));
+        menu.addItem((item) => item.setTitle("🖼️ Change image").setIcon("image").onClick(() => {
+            this.pickImage((file) => __awaiter(this, void 0, void 0, function* () {
+                card.image = file.path;
+                yield this.updateFile(sourcePath, data);
+                this.refresh(el, data, sourcePath);
+            }));
+        }));
+        menu.addItem((item) => item.setTitle("✏️ Edit title").setIcon("heading").onClick(() => __awaiter(this, void 0, void 0, function* () {
+            const value = prompt("Edit title:", card.title || "");
+            if (value === null)
+                return;
+            card.title = value;
+            yield this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+        })));
+        menu.addItem((item) => item.setTitle("📝 Edit text").setIcon("document").onClick(() => __awaiter(this, void 0, void 0, function* () {
+            const value = prompt("Edit text:", card.text || "");
+            if (value === null)
+                return;
+            card.text = value;
+            yield this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+        })));
+        menu.addSeparator();
+        menu.addItem((item) => item.setTitle("➕ Add card").setIcon("plus").onClick(() => __awaiter(this, void 0, void 0, function* () {
+            data.cards.splice(index + 1, 0, {
+                title: "New card",
+                color: "#cccccc",
+                text: "",
+                image: ""
+            });
+            yield this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+        })));
+        menu.addItem((item) => item.setTitle("🗑️ Delete card").setIcon("trash").onClick(() => __awaiter(this, void 0, void 0, function* () {
+            data.cards.splice(index, 1);
+            yield this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+        })));
+        menu.showAtMouseEvent(e);
+    }
+    /* =========================
+       RENDER GRID
+    ========================= */
+    render(el, data, sourcePath) {
         var _a;
+        el.empty();
         const container = el.createDiv();
         container.addClass("card-grid-container");
         if (data.columns) {
@@ -119,12 +187,11 @@ class CardGridPlugin extends obsidian_1.Plugin {
             const box = container.createDiv();
             box.addClass("card-grid-card");
             box.style.border = `2px solid ${card.color || "#ccc"}`;
-            /**
-             * IMAGE
-             */
+            /* IMAGE */
             const img = box.createEl("img");
-            img.src = card.image ? this.resolveImage(card.image)
-                : "https://via.placeholder.com/300x200?text=Add+Image";
+            img.src = card.image
+                ? this.resolveImage(card.image)
+                : "https://via.placeholder.com/300x200?text=Click+to+add";
             img.style.width = "100%";
             img.style.height = "200px";
             img.style.objectFit = "cover";
@@ -133,33 +200,34 @@ class CardGridPlugin extends obsidian_1.Plugin {
             img.onclick = () => {
                 this.pickImage((file) => __awaiter(this, void 0, void 0, function* () {
                     card.image = file.path;
-                    img.src = this.app.vault.getResourcePath(file);
                     yield this.updateFile(sourcePath, data);
+                    this.refresh(el, data, sourcePath);
                 }));
             };
-            /**
-             * TITLE + COLOR PICKER
-             */
+            /* TITLE */
             const title = box.createEl("h4", {
                 text: card.title || "No title"
             });
             title.style.cursor = "pointer";
-            title.onclick = () => {
-                openColorPicker(card.color || "#e91e63", (color) => __awaiter(this, void 0, void 0, function* () {
+            title.onclick = (e) => {
+                openColorPickerAtCursor(e, card.color || "#e91e63", (color) => __awaiter(this, void 0, void 0, function* () {
                     card.color = color;
-                    title.style.backgroundColor = color;
                     yield this.updateFile(sourcePath, data);
+                    this.refresh(el, data, sourcePath);
                 }));
             };
             if (card.color) {
                 title.style.backgroundColor = card.color;
             }
-            /**
-             * TEXT
-             */
+            /* TEXT */
             if (card.text) {
                 box.createEl("p", { text: card.text });
             }
+            /* RIGHT CLICK MENU */
+            box.oncontextmenu = (e) => {
+                e.preventDefault();
+                this.buildMenu(card, index, data, sourcePath, el, e);
+            };
         });
     }
 }

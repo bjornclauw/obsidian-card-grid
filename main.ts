@@ -3,12 +3,13 @@ import {
   parseYaml,
   stringifyYaml,
   TFile,
-  FuzzySuggestModal
+  FuzzySuggestModal,
+  Menu
 } from "obsidian";
 
-/**
- * IMAGE PICKER
- */
+/* =========================
+   IMAGE PICKER
+========================= */
 class ImagePickerModal extends FuzzySuggestModal<TFile> {
   onSelect: (file: TFile) => void;
 
@@ -19,7 +20,7 @@ class ImagePickerModal extends FuzzySuggestModal<TFile> {
 
   getItems(): TFile[] {
     return this.app.vault.getFiles().filter((f: TFile) =>
-      ["png", "jpg", "jpeg", "webp"].includes(f.extension.toLowerCase())
+      ["png", "jpg", "jpeg", "webp", "gif"].includes(f.extension.toLowerCase())
     );
   }
 
@@ -32,30 +33,44 @@ class ImagePickerModal extends FuzzySuggestModal<TFile> {
   }
 }
 
-/**
- * COLOR PICKER (native browser)
- */
-function openColorPicker(initial: string, onChange: (color: string) => void) {
+/* =========================
+   COLOR PICKER (cursor)
+========================= */
+function openColorPickerAtCursor(
+  e: MouseEvent,
+  initial: string,
+  onChange: (color: string) => void
+) {
   const input = document.createElement("input");
   input.type = "color";
   input.value = initial || "#e91e63";
 
+  // IMPORTANT: must be visible for Electron focus handling
   input.style.position = "fixed";
-  input.style.zIndex = "9999";
-  input.style.left = "20px";
-  input.style.top = "20px";
+  input.style.left = `${e.clientX}px`;
+  input.style.top = `${e.clientY}px`;
+
+  input.style.width = "20px";
+  input.style.height = "20px";
+  input.style.opacity = "0.01"; // NOT 0
+  input.style.zIndex = "999999";
+
+  document.body.appendChild(input);
 
   input.oninput = () => onChange(input.value);
   input.onchange = () => input.remove();
 
-  document.body.appendChild(input);
-  input.click();
+  // delay helps Obsidian/Electron register focus
+  setTimeout(() => {
+    input.click();
+    input.focus();
+  }, 0);
 }
 
 export default class CardGridPlugin extends Plugin {
 
   async onload() {
-    console.log("Card Grid PRO loaded");
+    console.log("Card Grid FULL FIXED loaded");
 
     this.registerMarkdownCodeBlockProcessor(
       "card-grid",
@@ -66,7 +81,7 @@ export default class CardGridPlugin extends Plugin {
 
           if (!data || typeof data !== "object") return;
 
-          this.render(el, data, source, ctx.sourcePath);
+          this.render(el, data, ctx.sourcePath);
         } catch (err) {
           el.createEl("pre", { text: "YAML Error: " + err });
         }
@@ -74,9 +89,9 @@ export default class CardGridPlugin extends Plugin {
     );
   }
 
-  /**
-   * CLEAN INPUT (copy-paste safe)
-   */
+  /* =========================
+     CLEAN INPUT
+  ========================= */
   clean(source: string) {
     return source
       .replace(/\u00A0/g, " ")
@@ -84,9 +99,9 @@ export default class CardGridPlugin extends Plugin {
       .replace(/[^\S\r\n]+$/gm, "");
   }
 
-  /**
-   * RESOLVE IMAGE PATH
-   */
+  /* =========================
+     IMAGE RESOLVE
+  ========================= */
   resolveImage(path: string): string {
     const file = this.app.vault.getAbstractFileByPath(path);
     if (file instanceof TFile) {
@@ -95,36 +110,131 @@ export default class CardGridPlugin extends Plugin {
     return path;
   }
 
-  /**
-   * OPEN IMAGE PICKER
-   */
+  /* =========================
+     IMAGE PICKER
+  ========================= */
   pickImage(callback: (file: TFile) => void) {
     new ImagePickerModal(this.app, callback).open();
   }
 
-  /**
-   * UPDATE YAML BLOCK SAFELY
-   */
-  async updateFile(sourcePath: string, updatedData: any) {
+  /* =========================
+     UPDATE FILE (SOURCE OF TRUTH)
+  ========================= */
+  async updateFile(sourcePath: string, data: any) {
     const file = this.app.vault.getAbstractFileByPath(sourcePath);
     if (!(file instanceof TFile)) return;
 
     const raw = await this.app.vault.read(file);
+    const yaml = stringifyYaml(data);
 
-    const updatedYaml = stringifyYaml(updatedData);
-
-    const newContent = raw.replace(
+    const updated = raw.replace(
       /```card-grid[\s\S]*?```/,
-      "```card-grid\n" + updatedYaml + "\n```"
+      "```card-grid\n" + yaml + "\n```"
     );
 
-    await this.app.vault.modify(file, newContent);
+    await this.app.vault.modify(file, updated);
   }
 
-  /**
-   * RENDER GRID
-   */
-  render(el: HTMLElement, data: any, rawSource: string, sourcePath: string) {
+  /* =========================
+     FULL REFRESH (CRITICAL FIX)
+  ========================= */
+  refresh(el: HTMLElement, data: any, sourcePath: string) {
+    this.render(el, data, sourcePath);
+  }
+
+  /* =========================
+     CONTEXT MENU
+  ========================= */
+  buildMenu(
+    card: any,
+    index: number,
+    data: any,
+    sourcePath: string,
+    el: HTMLElement,
+    e: MouseEvent
+  ) {
+    const menu = new Menu();
+
+    menu.addItem((item) =>
+      item.setTitle("🎨 Change color").setIcon("palette").onClick(() => {
+        openColorPickerAtCursor(
+          e,
+          card.color || "#e91e63",
+          async (color) => {
+            card.color = color;
+            await this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+          }
+        );
+      })
+    );
+
+    menu.addItem((item) =>
+      item.setTitle("🖼️ Change image").setIcon("image").onClick(() => {
+        this.pickImage(async (file) => {
+          card.image = file.path;
+          await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
+        });
+      })
+    );
+
+    menu.addItem((item) =>
+      item.setTitle("✏️ Edit title").setIcon("heading").onClick(async () => {
+        const value = prompt("Edit title:", card.title || "");
+        if (value === null) return;
+
+        card.title = value;
+        await this.updateFile(sourcePath, data);
+        this.refresh(el, data, sourcePath);
+      })
+    );
+
+    menu.addItem((item) =>
+      item.setTitle("📝 Edit text").setIcon("document").onClick(async () => {
+        const value = prompt("Edit text:", card.text || "");
+        if (value === null) return;
+
+        card.text = value;
+        await this.updateFile(sourcePath, data);
+        this.refresh(el, data, sourcePath);
+      })
+    );
+
+    menu.addSeparator();
+
+    menu.addItem((item) =>
+      item.setTitle("➕ Add card").setIcon("plus").onClick(async () => {
+        data.cards.splice(index + 1, 0, {
+          title: "New card",
+          color: "#cccccc",
+          text: "",
+          image: ""
+        });
+
+        await this.updateFile(sourcePath, data);
+        this.refresh(el, data, sourcePath);
+      })
+    );
+
+    menu.addItem((item) =>
+      item.setTitle("🗑️ Delete card").setIcon("trash").onClick(async () => {
+        data.cards.splice(index, 1);
+
+        await this.updateFile(sourcePath, data);
+        this.refresh(el, data, sourcePath);
+      })
+    );
+
+    menu.showAtMouseEvent(e);
+  }
+
+  /* =========================
+     RENDER GRID
+  ========================= */
+  render(el: HTMLElement, data: any, sourcePath: string) {
+    el.empty();
+
     const container = el.createDiv();
     container.addClass("card-grid-container");
 
@@ -144,12 +254,11 @@ export default class CardGridPlugin extends Plugin {
 
       box.style.border = `2px solid ${card.color || "#ccc"}`;
 
-      /**
-       * IMAGE
-       */
+      /* IMAGE */
       const img = box.createEl("img");
-      img.src = card.image ? this.resolveImage(card.image)
-        : "https://via.placeholder.com/300x200?text=Add+Image";
+      img.src = card.image
+        ? this.resolveImage(card.image)
+        : "https://via.placeholder.com/300x200?text=Click+to+add";
 
       img.style.width = "100%";
       img.style.height = "200px";
@@ -160,41 +269,44 @@ export default class CardGridPlugin extends Plugin {
       img.onclick = () => {
         this.pickImage(async (file) => {
           card.image = file.path;
-
-          img.src = this.app.vault.getResourcePath(file);
-
           await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
         });
       };
 
-      /**
-       * TITLE + COLOR PICKER
-       */
+      /* TITLE */
       const title = box.createEl("h4", {
         text: card.title || "No title"
       });
 
       title.style.cursor = "pointer";
 
-      title.onclick = () => {
-        openColorPicker(card.color || "#e91e63", async (color) => {
-          card.color = color;
-          title.style.backgroundColor = color;
-
-          await this.updateFile(sourcePath, data);
-        });
+      title.onclick = (e: MouseEvent) => {
+        openColorPickerAtCursor(
+          e,
+          card.color || "#e91e63",
+          async (color) => {
+            card.color = color;
+            await this.updateFile(sourcePath, data);
+            this.refresh(el, data, sourcePath);
+          }
+        );
       };
 
       if (card.color) {
         title.style.backgroundColor = card.color;
       }
 
-      /**
-       * TEXT
-       */
+      /* TEXT */
       if (card.text) {
         box.createEl("p", { text: card.text });
       }
+
+      /* RIGHT CLICK MENU */
+      box.oncontextmenu = (e: MouseEvent) => {
+        e.preventDefault();
+        this.buildMenu(card, index, data, sourcePath, el, e);
+      };
     });
   }
 }
