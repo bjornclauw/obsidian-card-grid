@@ -29,7 +29,7 @@ class ImagePickerModal extends obsidian_1.FuzzySuggestModal {
     }
 }
 /* =========================
-   COLOR PICKER
+   UTIL
 ========================= */
 function openColorPickerAtCursor(e, initial, onChange) {
     const input = document.createElement("input");
@@ -45,9 +45,6 @@ function openColorPickerAtCursor(e, initial, onChange) {
     input.onchange = () => input.remove();
     setTimeout(() => input.click(), 0);
 }
-/* =========================
-   INLINE TEXT EDITOR
-========================= */
 function makeEditable(el, initial, onSave) {
     el.contentEditable = "true";
     el.spellcheck = false;
@@ -57,26 +54,44 @@ function makeEditable(el, initial, onSave) {
     });
 }
 /* =========================
+   GRID KEY (MULTI BLOCK SAFE)
+========================= */
+function getGridKey(sourcePath, sectionInfo, el) {
+    var _a;
+    const line = (_a = sectionInfo === null || sectionInfo === void 0 ? void 0 : sectionInfo.lineStart) !== null && _a !== void 0 ? _a : crypto.randomUUID();
+    const key = `${sourcePath}::${line}`;
+    el.dataset.gridKey = key;
+    return key;
+}
+/* =========================
    PLUGIN
 ========================= */
 class CardGridPlugin extends obsidian_1.Plugin {
     constructor() {
         super(...arguments);
-        this.cardEls = new Map();
-        this.dragFrom = null;
-        this.saveTimeout = null;
+        this.saveTimers = new Map();
     }
     onload() {
         this.registerMarkdownCodeBlockProcessor("card-grid", (source, el, ctx) => {
-            try {
-                const data = (0, obsidian_1.parseYaml)(this.clean(source));
-                if (!data || typeof data !== "object")
-                    return;
-                this.render(el, data, ctx.sourcePath);
-            }
-            catch (e) {
-                el.createEl("pre", { text: String(e) });
-            }
+            var _a, _b, _c;
+            const data = (0, obsidian_1.parseYaml)(this.clean(source));
+            if (!data || typeof data !== "object")
+                return;
+            const sectionInfo = (_a = ctx.getSectionInfo) === null || _a === void 0 ? void 0 : _a.call(ctx, el);
+            const gridKey = getGridKey(ctx.sourcePath, sectionInfo, el);
+            const normalized = {
+                columns: Number((_b = data.columns) !== null && _b !== void 0 ? _b : 3),
+                gap: Number((_c = data.gap) !== null && _c !== void 0 ? _c : 10),
+                cards: Array.isArray(data.cards) ? data.cards : []
+            };
+            const context = {
+                el,
+                data: normalized,
+                sourcePath: ctx.sourcePath,
+                cardDOM: new Map(),
+                sectionInfo
+            };
+            this.render(context);
         });
     }
     /* =========================
@@ -89,154 +104,196 @@ class CardGridPlugin extends obsidian_1.Plugin {
             .replace(/[^\S\r\n]+$/gm, "");
     }
     /* =========================
-       IMAGE RESOLVE
+       SAVE (SECTION SAFE, MULTI GRID SAFE)
     ========================= */
-    resolveImage(path) {
-        const file = this.app.vault.getAbstractFileByPath(path);
-        if (file instanceof obsidian_1.TFile) {
-            return this.app.vault.getResourcePath(file);
+    debouncedSave(ctx) {
+        const key = ctx.el.dataset.gridKey;
+        if (!key)
+            return;
+        if (this.saveTimers.has(key)) {
+            window.clearTimeout(this.saveTimers.get(key));
         }
-        return path;
-    }
-    /* =========================
-       IMAGE PICKER
-    ========================= */
-    pickImage(cb) {
-        new ImagePickerModal(this.app, cb).open();
-    }
-    /* =========================
-       SAVE (DEBOUNCED)
-    ========================= */
-    debouncedSave(sourcePath, data) {
-        if (this.saveTimeout)
-            window.clearTimeout(this.saveTimeout);
-        this.saveTimeout = window.setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-            const file = this.app.vault.getAbstractFileByPath(sourcePath);
+        const t = window.setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+            const file = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
             if (!(file instanceof obsidian_1.TFile))
                 return;
             const raw = yield this.app.vault.read(file);
-            const yaml = (0, obsidian_1.stringifyYaml)(data);
-            const updated = raw.replace(/```card-grid[\s\S]*?```/, "```card-grid\n" + yaml + "\n```");
-            yield this.app.vault.modify(file, updated);
-        }), 400);
+            const section = ctx.sectionInfo;
+            if (!section)
+                return;
+            const lines = raw.split("\n");
+            const block = lines.slice(section.lineStart, section.lineEnd + 1).join("\n");
+            const match = block.match(/```card-grid([\s\S]*?)```/);
+            if (!match)
+                return;
+            const parsed = (0, obsidian_1.parseYaml)(this.clean(match[1]));
+            if (!parsed)
+                return;
+            parsed.cards = ctx.data.cards;
+            parsed.columns = ctx.data.columns;
+            parsed.gap = ctx.data.gap;
+            const newBlock = "```card-grid\n" + (0, obsidian_1.stringifyYaml)(parsed) + "\n```";
+            const newLines = [
+                ...lines.slice(0, section.lineStart),
+                newBlock,
+                ...lines.slice(section.lineEnd + 1)
+            ];
+            yield this.app.vault.modify(file, newLines.join("\n"));
+        }), 250);
+        this.saveTimers.set(key, t);
     }
     /* =========================
        RENDER
     ========================= */
-    render(el, data, sourcePath) {
-        el.empty();
-        this.cardEls.clear();
-        const container = el.createDiv("card-grid-container");
-        const cards = Array.isArray(data.cards) ? data.cards : [];
+    render(ctx) {
+        var _a;
+        let container = ctx.el.querySelector(".card-grid-container");
+        if (!container) {
+            container = ctx.el.createDiv("card-grid-container");
+        }
         container.style.display = "grid";
-        container.style.gridTemplateColumns =
-            `repeat(${data.columns || 3}, minmax(200px, 1fr))`;
-        container.style.gap = `${data.gap || 10}px`;
-        cards.forEach((card, index) => {
-            const box = this.createCard(card, index, data, sourcePath);
-            container.appendChild(box);
-            this.cardEls.set(String(index), box);
-        });
+        container.style.gridTemplateColumns = `repeat(${ctx.data.columns}, minmax(200px, 1fr))`;
+        container.style.gap = `${ctx.data.gap}px`;
+        const existing = new Set(ctx.cardDOM.keys());
+        for (const card of ctx.data.cards) {
+            if (!card.id)
+                card.id = crypto.randomUUID();
+            let node = ctx.cardDOM.get(card.id);
+            if (!node) {
+                node = this.createCard(card, ctx);
+                ctx.cardDOM.set(card.id, node);
+            }
+            container.appendChild(node);
+            this.syncCard(node, card);
+            existing.delete(card.id);
+        }
+        for (const id of existing) {
+            (_a = ctx.cardDOM.get(id)) === null || _a === void 0 ? void 0 : _a.remove();
+            ctx.cardDOM.delete(id);
+        }
     }
     /* =========================
-       CARD CREATION
+       CARD
     ========================= */
-    createCard(card, index, data, sourcePath) {
+    createCard(card, ctx) {
         const box = document.createElement("div");
         box.className = "card-grid-card";
         box.style.border = `2px solid ${card.color || "#ccc"}`;
-        box.draggable = true;
-        /* ================= IMAGE (optional) ================= */
-        if (card.image && card.image.trim() !== "") {
+        if (card.image && card.imageEnabled !== false) {
             const img = box.createEl("img");
             img.src = this.resolveImage(card.image);
             img.style.width = "100%";
             img.style.height = "180px";
             img.style.objectFit = "cover";
-            img.onclick = () => {
-                this.pickImage((file) => {
-                    card.image = file.path;
-                    this.debouncedSave(sourcePath, data);
-                    this.updateCard(box, card);
-                });
-            };
         }
-        /* ================= TITLE ================= */
         const title = box.createEl("h4");
-        makeEditable(title, card.title || "Untitled", (val) => {
-            card.title = val;
-            this.debouncedSave(sourcePath, data);
+        makeEditable(title, card.title || "Untitled", (v) => {
+            card.title = v;
+            this.debouncedSave(ctx);
         });
-        title.style.background = card.color || "";
-        /* ================= TEXT ================= */
         const text = box.createEl("p");
-        makeEditable(text, card.text || "", (val) => {
-            card.text = val;
-            this.debouncedSave(sourcePath, data);
+        makeEditable(text, card.text || "", (v) => {
+            card.text = v;
+            this.debouncedSave(ctx);
         });
-        /* ================= IMAGE ADD (if missing) ================= */
-        if (!card.image) {
-            const addImg = box.createDiv();
-            addImg.textContent = "+ add image";
-            addImg.style.cursor = "pointer";
-            addImg.style.opacity = "0.6";
-            addImg.onclick = () => {
-                this.pickImage((file) => {
-                    card.image = file.path;
-                    this.debouncedSave(sourcePath, data);
-                    this.render(box.parentElement, data, sourcePath);
-                });
-            };
-        }
-        /* ================= DRAG ================= */
-        box.addEventListener("dragstart", () => {
-            this.dragFrom = index;
-            box.classList.add("dragging");
-        });
-        box.addEventListener("dragend", () => {
-            box.classList.remove("dragging");
-        });
-        box.addEventListener("dragover", (e) => e.preventDefault());
-        box.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const from = this.dragFrom;
-            const to = index;
-            if (from === null || from === to)
-                return;
-            const cards = data.cards;
-            const moved = cards.splice(from, 1)[0];
-            cards.splice(to, 0, moved);
-            this.debouncedSave(sourcePath, data);
-            this.render(box.parentElement, data, sourcePath);
-        });
-        /* ================= CONTEXT MENU ================= */
+        /* =========================
+           RIGHT CLICK MENU (FULL CONTROL)
+        ========================= */
         box.oncontextmenu = (e) => {
             e.preventDefault();
             const menu = new obsidian_1.Menu();
-            menu.addItem((i) => i.setTitle("Delete").onClick(() => {
-                data.cards.splice(index, 1);
-                this.debouncedSave(sourcePath, data);
-                this.render(box.parentElement, data, sourcePath);
+            /* ADD CARD */
+            menu.addItem((i) => i.setTitle("➕ Add card").onClick(() => {
+                ctx.data.cards.push({
+                    id: crypto.randomUUID(),
+                    title: "New card",
+                    text: "",
+                    color: "#ccc",
+                    image: "",
+                    imageEnabled: true
+                });
+                this.debouncedSave(ctx);
+                this.render(ctx);
             }));
-            menu.addItem((i) => i.setTitle("Change color").onClick(() => {
+            /* REMOVE */
+            menu.addItem((i) => i.setTitle("🗑 Remove this card").onClick(() => {
+                const idx = ctx.data.cards.findIndex((c) => c.id === card.id);
+                if (idx !== -1)
+                    ctx.data.cards.splice(idx, 1);
+                this.debouncedSave(ctx);
+                this.render(ctx);
+            }));
+            /* COLOR */
+            menu.addItem((i) => i.setTitle("🎨 Change color").onClick(() => {
                 openColorPickerAtCursor(e, card.color || "#ccc", (c) => {
                     card.color = c;
-                    this.debouncedSave(sourcePath, data);
-                    this.render(box.parentElement, data, sourcePath);
+                    this.debouncedSave(ctx);
+                    this.render(ctx);
                 });
+            }));
+            /* IMAGE */
+            menu.addItem((i) => i.setTitle("🖼 Change image").onClick(() => {
+                new ImagePickerModal(this.app, (file) => {
+                    card.image = file.path;
+                    card.imageEnabled = true;
+                    this.debouncedSave(ctx);
+                    this.render(ctx);
+                }).open();
+            }));
+            /* TOGGLE IMAGE */
+            menu.addItem((i) => i.setTitle(card.imageEnabled === false ? "Enable image" : "Disable image")
+                .onClick(() => {
+                card.imageEnabled = !(card.imageEnabled !== false);
+                this.debouncedSave(ctx);
+                this.render(ctx);
+            }));
+            /* MOVE UP */
+            menu.addItem((i) => i.setTitle("⬆ Move up").onClick(() => {
+                const arr = ctx.data.cards;
+                const idx = arr.findIndex((c) => c.id === card.id);
+                if (idx > 0) {
+                    [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+                    this.debouncedSave(ctx);
+                    this.render(ctx);
+                }
+            }));
+            /* MOVE DOWN */
+            menu.addItem((i) => i.setTitle("⬇ Move down").onClick(() => {
+                const arr = ctx.data.cards;
+                const idx = arr.findIndex((c) => c.id === card.id);
+                if (idx !== -1 && idx < arr.length - 1) {
+                    [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+                    this.debouncedSave(ctx);
+                    this.render(ctx);
+                }
             }));
             menu.showAtMouseEvent(e);
         };
         return box;
     }
     /* =========================
-       UPDATE SINGLE CARD (future use)
+       SYNC
     ========================= */
-    updateCard(el, card) {
+    syncCard(el, card) {
         const img = el.querySelector("img");
-        if (img && card.image) {
-            img.src = this.resolveImage(card.image);
+        if (img) {
+            if (card.image && card.imageEnabled !== false) {
+                img.src = this.resolveImage(card.image);
+                img.style.display = "";
+            }
+            else {
+                img.style.display = "none";
+            }
         }
+        const h4 = el.querySelector("h4");
+        if (h4)
+            h4.style.background = card.color || "";
+    }
+    resolveImage(path) {
+        const file = this.app.vault.getAbstractFileByPath(path);
+        if (file instanceof obsidian_1.TFile)
+            return this.app.vault.getResourcePath(file);
+        return path;
     }
 }
 exports.default = CardGridPlugin;
