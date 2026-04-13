@@ -69,7 +69,8 @@ function makeEditable(
   el.textContent = initial;
 
   el.addEventListener("blur", () => {
-    onSave(el.textContent || "");
+    const value = (el.innerText || "").replace(/\r/g, "");
+    onSave(value);
   });
 }
 
@@ -162,7 +163,7 @@ export default class CardGridPlugin extends Plugin {
   }
 
   /* =========================
-     SAVE (SECTION SAFE)
+     SAVE
   ========================= */
   debouncedSave(ctx: GridContext) {
     const key = (ctx.el as any).dataset.gridKey;
@@ -250,7 +251,6 @@ export default class CardGridPlugin extends Plugin {
       ctx.cardDOM.delete(id);
     }
 
-    /* FORCE STYLE REFRESH */
     for (const card of ctx.data.cards) {
       const node = ctx.cardDOM.get(card.id);
       if (!node) continue;
@@ -281,7 +281,9 @@ export default class CardGridPlugin extends Plugin {
       this.debouncedSave(ctx);
     });
 
-    const text = box.createEl("p");
+    const text = box.createDiv("card-text");
+    text.style.whiteSpace = "pre-wrap";
+
     makeEditable(text, card.text || "", (v) => {
       card.text = v;
       this.debouncedSave(ctx);

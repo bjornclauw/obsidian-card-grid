@@ -50,7 +50,8 @@ function makeEditable(el, initial, onSave) {
     el.spellcheck = false;
     el.textContent = initial;
     el.addEventListener("blur", () => {
-        onSave(el.textContent || "");
+        const value = (el.innerText || "").replace(/\r/g, "");
+        onSave(value);
     });
 }
 /* =========================
@@ -123,7 +124,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
             .replace(/[^\S\r\n]+$/gm, "");
     }
     /* =========================
-       SAVE (SECTION SAFE)
+       SAVE
     ========================= */
     debouncedSave(ctx) {
         const key = ctx.el.dataset.gridKey;
@@ -195,7 +196,6 @@ class CardGridPlugin extends obsidian_1.Plugin {
             (_a = ctx.cardDOM.get(id)) === null || _a === void 0 ? void 0 : _a.remove();
             ctx.cardDOM.delete(id);
         }
-        /* FORCE STYLE REFRESH */
         for (const card of ctx.data.cards) {
             const node = ctx.cardDOM.get(card.id);
             if (!node)
@@ -222,7 +222,8 @@ class CardGridPlugin extends obsidian_1.Plugin {
             card.title = v;
             this.debouncedSave(ctx);
         });
-        const text = box.createEl("p");
+        const text = box.createDiv("card-text");
+        text.style.whiteSpace = "pre-wrap";
         makeEditable(text, card.text || "", (v) => {
             card.text = v;
             this.debouncedSave(ctx);
