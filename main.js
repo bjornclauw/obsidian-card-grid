@@ -54,7 +54,7 @@ function makeEditable(el, initial, onSave) {
     });
 }
 /* =========================
-   GRID KEY (MULTI BLOCK SAFE)
+   GRID KEY
 ========================= */
 function getGridKey(sourcePath, sectionInfo, el) {
     var _a;
@@ -62,6 +62,21 @@ function getGridKey(sourcePath, sectionInfo, el) {
     const key = `${sourcePath}::${line}`;
     el.dataset.gridKey = key;
     return key;
+}
+/* =========================
+   IMAGE STYLE
+========================= */
+function applyImageStyle(img, card, grid) {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    const fit = (_b = (_a = card.imageFit) !== null && _a !== void 0 ? _a : grid === null || grid === void 0 ? void 0 : grid.imageFit) !== null && _b !== void 0 ? _b : "cover";
+    const height = (_d = (_c = card.imageHeight) !== null && _c !== void 0 ? _c : grid === null || grid === void 0 ? void 0 : grid.imageHeight) !== null && _d !== void 0 ? _d : 180;
+    const position = (_f = (_e = card.imagePosition) !== null && _e !== void 0 ? _e : grid === null || grid === void 0 ? void 0 : grid.imagePosition) !== null && _f !== void 0 ? _f : "center";
+    const radius = (_h = (_g = card.imageRadius) !== null && _g !== void 0 ? _g : grid === null || grid === void 0 ? void 0 : grid.imageRadius) !== null && _h !== void 0 ? _h : 0;
+    img.style.objectFit = fit;
+    img.style.height = `${height}px`;
+    img.style.objectPosition = position;
+    img.style.borderRadius = `${radius}px`;
+    img.style.width = "100%";
 }
 /* =========================
    PLUGIN
@@ -73,7 +88,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
     }
     onload() {
         this.registerMarkdownCodeBlockProcessor("card-grid", (source, el, ctx) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d, _e, _f, _g;
             const data = (0, obsidian_1.parseYaml)(this.clean(source));
             if (!data || typeof data !== "object")
                 return;
@@ -82,6 +97,10 @@ class CardGridPlugin extends obsidian_1.Plugin {
             const normalized = {
                 columns: Number((_b = data.columns) !== null && _b !== void 0 ? _b : 3),
                 gap: Number((_c = data.gap) !== null && _c !== void 0 ? _c : 10),
+                imageFit: (_d = data.imageFit) !== null && _d !== void 0 ? _d : "cover",
+                imageHeight: (_e = data.imageHeight) !== null && _e !== void 0 ? _e : 180,
+                imagePosition: (_f = data.imagePosition) !== null && _f !== void 0 ? _f : "center",
+                imageRadius: (_g = data.imageRadius) !== null && _g !== void 0 ? _g : 0,
                 cards: Array.isArray(data.cards) ? data.cards : []
             };
             const context = {
@@ -104,7 +123,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
             .replace(/[^\S\r\n]+$/gm, "");
     }
     /* =========================
-       SAVE (SECTION SAFE, MULTI GRID SAFE)
+       SAVE (SECTION SAFE)
     ========================= */
     debouncedSave(ctx) {
         const key = ctx.el.dataset.gridKey;
@@ -132,6 +151,10 @@ class CardGridPlugin extends obsidian_1.Plugin {
             parsed.cards = ctx.data.cards;
             parsed.columns = ctx.data.columns;
             parsed.gap = ctx.data.gap;
+            parsed.imageFit = ctx.data.imageFit;
+            parsed.imageHeight = ctx.data.imageHeight;
+            parsed.imagePosition = ctx.data.imagePosition;
+            parsed.imageRadius = ctx.data.imageRadius;
             const newBlock = "```card-grid\n" + (0, obsidian_1.stringifyYaml)(parsed) + "\n```";
             const newLines = [
                 ...lines.slice(0, section.lineStart),
@@ -154,6 +177,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
         container.style.display = "grid";
         container.style.gridTemplateColumns = `repeat(${ctx.data.columns}, minmax(200px, 1fr))`;
         container.style.gap = `${ctx.data.gap}px`;
+        container._gridData = ctx.data;
         const existing = new Set(ctx.cardDOM.keys());
         for (const card of ctx.data.cards) {
             if (!card.id)
@@ -164,12 +188,21 @@ class CardGridPlugin extends obsidian_1.Plugin {
                 ctx.cardDOM.set(card.id, node);
             }
             container.appendChild(node);
-            this.syncCard(node, card);
+            this.syncCard(node, card, ctx.data);
             existing.delete(card.id);
         }
         for (const id of existing) {
             (_a = ctx.cardDOM.get(id)) === null || _a === void 0 ? void 0 : _a.remove();
             ctx.cardDOM.delete(id);
+        }
+        /* FORCE STYLE REFRESH */
+        for (const card of ctx.data.cards) {
+            const node = ctx.cardDOM.get(card.id);
+            if (!node)
+                continue;
+            const img = node.querySelector("img");
+            if (img)
+                applyImageStyle(img, card, ctx.data);
         }
     }
     /* =========================
@@ -182,9 +215,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
         if (card.image && card.imageEnabled !== false) {
             const img = box.createEl("img");
             img.src = this.resolveImage(card.image);
-            img.style.width = "100%";
-            img.style.height = "180px";
-            img.style.objectFit = "cover";
+            applyImageStyle(img, card, ctx.data);
         }
         const title = box.createEl("h4");
         makeEditable(title, card.title || "Untitled", (v) => {
@@ -196,13 +227,9 @@ class CardGridPlugin extends obsidian_1.Plugin {
             card.text = v;
             this.debouncedSave(ctx);
         });
-        /* =========================
-           RIGHT CLICK MENU (FULL CONTROL)
-        ========================= */
         box.oncontextmenu = (e) => {
             e.preventDefault();
             const menu = new obsidian_1.Menu();
-            /* ADD CARD */
             menu.addItem((i) => i.setTitle("➕ Add card").onClick(() => {
                 ctx.data.cards.push({
                     id: crypto.randomUUID(),
@@ -215,7 +242,6 @@ class CardGridPlugin extends obsidian_1.Plugin {
                 this.debouncedSave(ctx);
                 this.render(ctx);
             }));
-            /* REMOVE */
             menu.addItem((i) => i.setTitle("🗑 Remove this card").onClick(() => {
                 const idx = ctx.data.cards.findIndex((c) => c.id === card.id);
                 if (idx !== -1)
@@ -223,7 +249,6 @@ class CardGridPlugin extends obsidian_1.Plugin {
                 this.debouncedSave(ctx);
                 this.render(ctx);
             }));
-            /* COLOR */
             menu.addItem((i) => i.setTitle("🎨 Change color").onClick(() => {
                 openColorPickerAtCursor(e, card.color || "#ccc", (c) => {
                     card.color = c;
@@ -231,7 +256,6 @@ class CardGridPlugin extends obsidian_1.Plugin {
                     this.render(ctx);
                 });
             }));
-            /* IMAGE */
             menu.addItem((i) => i.setTitle("🖼 Change image").onClick(() => {
                 new ImagePickerModal(this.app, (file) => {
                     card.image = file.path;
@@ -240,14 +264,12 @@ class CardGridPlugin extends obsidian_1.Plugin {
                     this.render(ctx);
                 }).open();
             }));
-            /* TOGGLE IMAGE */
             menu.addItem((i) => i.setTitle(card.imageEnabled === false ? "Enable image" : "Disable image")
                 .onClick(() => {
                 card.imageEnabled = !(card.imageEnabled !== false);
                 this.debouncedSave(ctx);
                 this.render(ctx);
             }));
-            /* MOVE UP */
             menu.addItem((i) => i.setTitle("⬆ Move up").onClick(() => {
                 const arr = ctx.data.cards;
                 const idx = arr.findIndex((c) => c.id === card.id);
@@ -257,7 +279,6 @@ class CardGridPlugin extends obsidian_1.Plugin {
                     this.render(ctx);
                 }
             }));
-            /* MOVE DOWN */
             menu.addItem((i) => i.setTitle("⬇ Move down").onClick(() => {
                 const arr = ctx.data.cards;
                 const idx = arr.findIndex((c) => c.id === card.id);
@@ -274,11 +295,12 @@ class CardGridPlugin extends obsidian_1.Plugin {
     /* =========================
        SYNC
     ========================= */
-    syncCard(el, card) {
+    syncCard(el, card, grid) {
         const img = el.querySelector("img");
         if (img) {
             if (card.image && card.imageEnabled !== false) {
                 img.src = this.resolveImage(card.image);
+                applyImageStyle(img, card, grid);
                 img.style.display = "";
             }
             else {

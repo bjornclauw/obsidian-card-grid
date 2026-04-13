@@ -85,13 +85,29 @@ type GridContext = {
 };
 
 /* =========================
-   GRID KEY (MULTI BLOCK SAFE)
+   GRID KEY
 ========================= */
 function getGridKey(sourcePath: string, sectionInfo: any, el: HTMLElement) {
   const line = sectionInfo?.lineStart ?? crypto.randomUUID();
   const key = `${sourcePath}::${line}`;
   el.dataset.gridKey = key;
   return key;
+}
+
+/* =========================
+   IMAGE STYLE
+========================= */
+function applyImageStyle(img: HTMLImageElement, card: any, grid: any) {
+  const fit = card.imageFit ?? grid?.imageFit ?? "cover";
+  const height = card.imageHeight ?? grid?.imageHeight ?? 180;
+  const position = card.imagePosition ?? grid?.imagePosition ?? "center";
+  const radius = card.imageRadius ?? grid?.imageRadius ?? 0;
+
+  img.style.objectFit = fit;
+  img.style.height = `${height}px`;
+  img.style.objectPosition = position;
+  img.style.borderRadius = `${radius}px`;
+  img.style.width = "100%";
 }
 
 /* =========================
@@ -113,6 +129,12 @@ export default class CardGridPlugin extends Plugin {
         const normalized = {
           columns: Number(data.columns ?? 3),
           gap: Number(data.gap ?? 10),
+
+          imageFit: data.imageFit ?? "cover",
+          imageHeight: data.imageHeight ?? 180,
+          imagePosition: data.imagePosition ?? "center",
+          imageRadius: data.imageRadius ?? 0,
+
           cards: Array.isArray(data.cards) ? data.cards : []
         };
 
@@ -140,7 +162,7 @@ export default class CardGridPlugin extends Plugin {
   }
 
   /* =========================
-     SAVE (SECTION SAFE, MULTI GRID SAFE)
+     SAVE (SECTION SAFE)
   ========================= */
   debouncedSave(ctx: GridContext) {
     const key = (ctx.el as any).dataset.gridKey;
@@ -171,6 +193,11 @@ export default class CardGridPlugin extends Plugin {
       parsed.columns = ctx.data.columns;
       parsed.gap = ctx.data.gap;
 
+      parsed.imageFit = ctx.data.imageFit;
+      parsed.imageHeight = ctx.data.imageHeight;
+      parsed.imagePosition = ctx.data.imagePosition;
+      parsed.imageRadius = ctx.data.imageRadius;
+
       const newBlock = "```card-grid\n" + stringifyYaml(parsed) + "\n```";
 
       const newLines = [
@@ -199,6 +226,8 @@ export default class CardGridPlugin extends Plugin {
     container.style.gridTemplateColumns = `repeat(${ctx.data.columns}, minmax(200px, 1fr))`;
     container.style.gap = `${ctx.data.gap}px`;
 
+    (container as any)._gridData = ctx.data;
+
     const existing = new Set(ctx.cardDOM.keys());
 
     for (const card of ctx.data.cards) {
@@ -212,13 +241,22 @@ export default class CardGridPlugin extends Plugin {
       }
 
       container.appendChild(node);
-      this.syncCard(node, card);
+      this.syncCard(node, card, ctx.data);
       existing.delete(card.id);
     }
 
     for (const id of existing) {
       ctx.cardDOM.get(id)?.remove();
       ctx.cardDOM.delete(id);
+    }
+
+    /* FORCE STYLE REFRESH */
+    for (const card of ctx.data.cards) {
+      const node = ctx.cardDOM.get(card.id);
+      if (!node) continue;
+
+      const img = node.querySelector("img") as HTMLImageElement;
+      if (img) applyImageStyle(img, card, ctx.data);
     }
   }
 
@@ -231,16 +269,11 @@ export default class CardGridPlugin extends Plugin {
 
     box.style.border = `2px solid ${card.color || "#ccc"}`;
 
-
     if (card.image && card.imageEnabled !== false) {
       const img = box.createEl("img");
       img.src = this.resolveImage(card.image);
-      img.style.width = "100%";
-      img.style.height = "180px";
-      img.style.objectFit = "cover";
+      applyImageStyle(img, card, ctx.data);
     }
-
-
 
     const title = box.createEl("h4");
     makeEditable(title, card.title || "Untitled", (v) => {
@@ -254,17 +287,11 @@ export default class CardGridPlugin extends Plugin {
       this.debouncedSave(ctx);
     });
 
-
-
-    /* =========================
-       RIGHT CLICK MENU (FULL CONTROL)
-    ========================= */
     box.oncontextmenu = (e) => {
       e.preventDefault();
 
       const menu = new Menu();
 
-      /* ADD CARD */
       menu.addItem((i) =>
         i.setTitle("➕ Add card").onClick(() => {
           ctx.data.cards.push({
@@ -280,7 +307,6 @@ export default class CardGridPlugin extends Plugin {
         })
       );
 
-      /* REMOVE */
       menu.addItem((i) =>
         i.setTitle("🗑 Remove this card").onClick(() => {
           const idx = ctx.data.cards.findIndex((c: any) => c.id === card.id);
@@ -290,7 +316,6 @@ export default class CardGridPlugin extends Plugin {
         })
       );
 
-      /* COLOR */
       menu.addItem((i) =>
         i.setTitle("🎨 Change color").onClick(() => {
           openColorPickerAtCursor(e, card.color || "#ccc", (c) => {
@@ -301,11 +326,6 @@ export default class CardGridPlugin extends Plugin {
         })
       );
 
-
-
-
-
-      /* IMAGE */
       menu.addItem((i) =>
         i.setTitle("🖼 Change image").onClick(() => {
           new ImagePickerModal(this.app, (file) => {
@@ -317,7 +337,6 @@ export default class CardGridPlugin extends Plugin {
         })
       );
 
-      /* TOGGLE IMAGE */
       menu.addItem((i) =>
         i.setTitle(card.imageEnabled === false ? "Enable image" : "Disable image")
           .onClick(() => {
@@ -327,7 +346,6 @@ export default class CardGridPlugin extends Plugin {
           })
       );
 
-      /* MOVE UP */
       menu.addItem((i) =>
         i.setTitle("⬆ Move up").onClick(() => {
           const arr = ctx.data.cards;
@@ -340,7 +358,6 @@ export default class CardGridPlugin extends Plugin {
         })
       );
 
-      /* MOVE DOWN */
       menu.addItem((i) =>
         i.setTitle("⬇ Move down").onClick(() => {
           const arr = ctx.data.cards;
@@ -362,12 +379,13 @@ export default class CardGridPlugin extends Plugin {
   /* =========================
      SYNC
   ========================= */
-  syncCard(el: HTMLElement, card: any) {
+  syncCard(el: HTMLElement, card: any, grid: any) {
     const img = el.querySelector("img") as HTMLImageElement;
 
     if (img) {
       if (card.image && card.imageEnabled !== false) {
         img.src = this.resolveImage(card.image);
+        applyImageStyle(img, card, grid);
         img.style.display = "";
       } else {
         img.style.display = "none";
