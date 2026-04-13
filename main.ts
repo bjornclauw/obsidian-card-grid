@@ -34,7 +34,7 @@ class ImagePickerModal extends FuzzySuggestModal<TFile> {
 }
 
 /* =========================
-   COLOR PICKER (cursor)
+   COLOR PICKER
 ========================= */
 function openColorPickerAtCursor(
   e: MouseEvent,
@@ -45,14 +45,12 @@ function openColorPickerAtCursor(
   input.type = "color";
   input.value = initial || "#e91e63";
 
-  // IMPORTANT: must be visible for Electron focus handling
   input.style.position = "fixed";
   input.style.left = `${e.clientX}px`;
   input.style.top = `${e.clientY}px`;
-
   input.style.width = "20px";
   input.style.height = "20px";
-  input.style.opacity = "0.01"; // NOT 0
+  input.style.opacity = "0.01";
   input.style.zIndex = "999999";
 
   document.body.appendChild(input);
@@ -60,13 +58,58 @@ function openColorPickerAtCursor(
   input.oninput = () => onChange(input.value);
   input.onchange = () => input.remove();
 
-  // delay helps Obsidian/Electron register focus
   setTimeout(() => {
     input.click();
     input.focus();
   }, 0);
 }
 
+/* =========================
+   TEXT EDITOR (NEW)
+========================= */
+function openTextEditorAtCursor(
+  e: MouseEvent,
+  initial: string,
+  onChange: (value: string) => void
+) {
+  const input = document.createElement("input");
+
+  input.type = "text";
+  input.value = initial || "";
+
+  input.style.position = "fixed";
+  input.style.left = `${e.clientX}px`;
+  input.style.top = `${e.clientY}px`;
+  input.style.minWidth = "140px";
+  input.style.padding = "6px 8px";
+  input.style.fontSize = "14px";
+  input.style.border = "1px solid var(--background-modifier-border)";
+  input.style.borderRadius = "6px";
+  input.style.zIndex = "999999";
+  input.style.background = "var(--background-primary)";
+  input.style.color = "var(--text-normal)";
+
+  document.body.appendChild(input);
+
+  input.focus();
+  input.select();
+
+  const save = () => {
+    onChange(input.value);
+    input.remove();
+  };
+
+  input.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") save();
+    if (ev.key === "Escape") input.remove();
+  });
+
+  input.addEventListener("blur", save);
+}
+
+/* =========================
+   PLUGIN
+========================= */
 export default class CardGridPlugin extends Plugin {
 
   async onload() {
@@ -118,7 +161,7 @@ export default class CardGridPlugin extends Plugin {
   }
 
   /* =========================
-     UPDATE FILE (SOURCE OF TRUTH)
+     UPDATE FILE
   ========================= */
   async updateFile(sourcePath: string, data: any) {
     const file = this.app.vault.getAbstractFileByPath(sourcePath);
@@ -135,9 +178,6 @@ export default class CardGridPlugin extends Plugin {
     await this.app.vault.modify(file, updated);
   }
 
-  /* =========================
-     FULL REFRESH (CRITICAL FIX)
-  ========================= */
   refresh(el: HTMLElement, data: any, sourcePath: string) {
     this.render(el, data, sourcePath);
   }
@@ -145,27 +185,16 @@ export default class CardGridPlugin extends Plugin {
   /* =========================
      CONTEXT MENU
   ========================= */
-  buildMenu(
-    card: any,
-    index: number,
-    data: any,
-    sourcePath: string,
-    el: HTMLElement,
-    e: MouseEvent
-  ) {
+  buildMenu(card: any, index: number, data: any, sourcePath: string, el: HTMLElement, e: MouseEvent) {
     const menu = new Menu();
 
     menu.addItem((item) =>
       item.setTitle("🎨 Change color").setIcon("palette").onClick(() => {
-        openColorPickerAtCursor(
-          e,
-          card.color || "#e91e63",
-          async (color) => {
-            card.color = color;
-            await this.updateFile(sourcePath, data);
-            this.refresh(el, data, sourcePath);
-          }
-        );
+        openColorPickerAtCursor(e, card.color || "#e91e63", async (color) => {
+          card.color = color;
+          await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
+        });
       })
     );
 
@@ -180,24 +209,22 @@ export default class CardGridPlugin extends Plugin {
     );
 
     menu.addItem((item) =>
-      item.setTitle("✏️ Edit title").setIcon("heading").onClick(async () => {
-        const value = prompt("Edit title:", card.title || "");
-        if (value === null) return;
-
-        card.title = value;
-        await this.updateFile(sourcePath, data);
-        this.refresh(el, data, sourcePath);
+      item.setTitle("✏️ Edit title").setIcon("heading").onClick(() => {
+        openTextEditorAtCursor(e, card.title || "", async (value) => {
+          card.title = value;
+          await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
+        });
       })
     );
 
     menu.addItem((item) =>
-      item.setTitle("📝 Edit text").setIcon("document").onClick(async () => {
-        const value = prompt("Edit text:", card.text || "");
-        if (value === null) return;
-
-        card.text = value;
-        await this.updateFile(sourcePath, data);
-        this.refresh(el, data, sourcePath);
+      item.setTitle("📝 Edit text").setIcon("document").onClick(() => {
+        openTextEditorAtCursor(e, card.text || "", async (value) => {
+          card.text = value;
+          await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
+        });
       })
     );
 
@@ -230,7 +257,7 @@ export default class CardGridPlugin extends Plugin {
   }
 
   /* =========================
-     RENDER GRID
+     RENDER
   ========================= */
   render(el: HTMLElement, data: any, sourcePath: string) {
     el.empty();
@@ -282,15 +309,11 @@ export default class CardGridPlugin extends Plugin {
       title.style.cursor = "pointer";
 
       title.onclick = (e: MouseEvent) => {
-        openColorPickerAtCursor(
-          e,
-          card.color || "#e91e63",
-          async (color) => {
-            card.color = color;
-            await this.updateFile(sourcePath, data);
-            this.refresh(el, data, sourcePath);
-          }
-        );
+        openTextEditorAtCursor(e, card.title || "", async (value) => {
+          card.title = value;
+          await this.updateFile(sourcePath, data);
+          this.refresh(el, data, sourcePath);
+        });
       };
 
       if (card.color) {
@@ -302,7 +325,7 @@ export default class CardGridPlugin extends Plugin {
         box.createEl("p", { text: card.text });
       }
 
-      /* RIGHT CLICK MENU */
+      /* MENU */
       box.oncontextmenu = (e: MouseEvent) => {
         e.preventDefault();
         this.buildMenu(card, index, data, sourcePath, el, e);
