@@ -255,6 +255,7 @@ class CardGridPlugin extends obsidian_1.Plugin {
                     title: "New card",
                     text: "",
                     color: "#ccc",
+                    titleColor: "#000000",
                     image: "",
                     imageEnabled: true
                 });
@@ -271,6 +272,13 @@ class CardGridPlugin extends obsidian_1.Plugin {
             menu.addItem((i) => i.setTitle("🎨 Change color").onClick(() => {
                 openColorPickerAtCursor(e, card.color || "#ccc", (c) => {
                     card.color = c;
+                    this.debouncedSave(ctx);
+                    this.render(ctx);
+                });
+            }));
+            menu.addItem((i) => i.setTitle("🎨 Change title color").onClick(() => {
+                openColorPickerAtCursor(e, card.titleColor || "#000000", (c) => {
+                    card.titleColor = c;
                     this.debouncedSave(ctx);
                     this.render(ctx);
                 });
@@ -327,8 +335,10 @@ class CardGridPlugin extends obsidian_1.Plugin {
             }
         }
         const h4 = el.querySelector("h4");
-        if (h4)
+        if (h4) {
             h4.style.background = card.color || "";
+            h4.style.color = card.titleColor || "#000000";
+        }
     }
     resolveImage(path) {
         const file = this.app.vault.getAbstractFileByPath(path);
