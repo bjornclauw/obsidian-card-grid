@@ -262,6 +262,12 @@ class CardGridPlugin extends obsidian_1.Plugin {
                 this.debouncedSave(ctx);
                 this.render(ctx);
             }));
+            menu.addItem((i) => i.setTitle("📋 Clone this card").onClick(() => {
+                const clonedCard = Object.assign(Object.assign({}, card), { id: crypto.randomUUID(), title: "New card", text: "", image: "", imageEnabled: true });
+                ctx.data.cards.push(clonedCard);
+                this.debouncedSave(ctx);
+                this.render(ctx);
+            }));
             menu.addItem((i) => i.setTitle("🗑 Remove this card").onClick(() => {
                 const idx = ctx.data.cards.findIndex((c) => c.id === card.id);
                 if (idx !== -1)
