@@ -288,7 +288,7 @@ export default class CardGridPlugin extends Plugin {
     const box = document.createElement("div");
     box.className = "card-grid-card";
 
-    box.style.border = `2px solid ${card.color || "#ccc"}`;
+    box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
 
     if (card.image && card.imageEnabled !== false) {
       const img = box.createEl("img");
@@ -320,8 +320,8 @@ export default class CardGridPlugin extends Plugin {
             id: crypto.randomUUID(),
             title: "New card",
             text: "",
-            color: "#ccc",
-            titleColor: "#000000",
+            backgroundColor: "#ccc",
+            textColor: "#000000",
             image: "",
             imageEnabled: true
           });
@@ -340,9 +340,9 @@ export default class CardGridPlugin extends Plugin {
       );
 
       menu.addItem((i) =>
-        i.setTitle("🎨 Change color").onClick(() => {
-          openColorPickerAtCursor(e, card.color || "#ccc", (c) => {
-            card.color = c;
+        i.setTitle("🎨 Change background color").onClick(() => {
+          openColorPickerAtCursor(e, card.backgroundColor || "#ccc", (c) => {
+            card.backgroundColor = c;
             this.debouncedSave(ctx);
             this.render(ctx);
           });
@@ -350,9 +350,9 @@ export default class CardGridPlugin extends Plugin {
       );
 
       menu.addItem((i) =>
-        i.setTitle("🎨 Change title color").onClick(() => {
-          openColorPickerAtCursor(e, card.titleColor || "#000000", (c) => {
-            card.titleColor = c;
+        i.setTitle("🎨 Change text color").onClick(() => {
+          openColorPickerAtCursor(e, card.textColor || "#000000", (c) => {
+            card.textColor = c;
             this.debouncedSave(ctx);
             this.render(ctx);
           });
@@ -427,8 +427,8 @@ export default class CardGridPlugin extends Plugin {
 
     const h4 = el.querySelector("h4") as HTMLElement;
     if (h4) {
-      h4.style.background = card.color || "";
-      h4.style.color = card.titleColor || "#000000";
+      h4.style.background = card.backgroundColor || "";
+      h4.style.color = card.textColor || "#000000";
     }
   }
 

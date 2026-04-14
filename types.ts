@@ -1,7 +1,7 @@
 export interface CardData {
     title?: string;
-    color?: string;
-    titleColor?: string;
+    backgroundColor?: string;
+    textColor?: string;
     text?: string;
     image?: string;
 }
