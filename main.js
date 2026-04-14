@@ -45,15 +45,6 @@ function openColorPickerAtCursor(e, initial, onChange) {
     input.onchange = () => input.remove();
     setTimeout(() => input.click(), 0);
 }
-function makeEditable(el, initial, onSave) {
-    el.contentEditable = "true";
-    el.spellcheck = false;
-    el.textContent = initial;
-    el.addEventListener("blur", () => {
-        const value = (el.innerText || "").replace(/\r/g, "");
-        onSave(value);
-    });
-}
 /* =========================
    GRID KEY
 ========================= */
@@ -206,6 +197,34 @@ class CardGridPlugin extends obsidian_1.Plugin {
         }
     }
     /* =========================
+       EDITABLE
+    ========================= */
+    makeEditable(el, initial, ctx, onSave) {
+        return __awaiter(this, void 0, void 0, function* () {
+            el.contentEditable = "true";
+            el.spellcheck = false;
+            let rawValue = initial;
+            const render = () => __awaiter(this, void 0, void 0, function* () {
+                if (document.activeElement === el)
+                    return;
+                el.empty();
+                yield obsidian_1.MarkdownRenderer.render(this.app, rawValue || " ", el, ctx.sourcePath, this);
+            });
+            el.addEventListener("focus", () => {
+                el.addClass("is-editing");
+                el.textContent = rawValue;
+            });
+            el.addEventListener("blur", () => {
+                const value = (el.innerText || "").replace(/\r/g, "");
+                el.removeClass("is-editing");
+                rawValue = value;
+                onSave(rawValue);
+                render();
+            });
+            render();
+        });
+    }
+    /* =========================
        CARD
     ========================= */
     createCard(card, ctx) {
@@ -218,13 +237,12 @@ class CardGridPlugin extends obsidian_1.Plugin {
             applyImageStyle(img, card, ctx.data);
         }
         const title = box.createEl("h4");
-        makeEditable(title, card.title || "Untitled", (v) => {
+        this.makeEditable(title, card.title || "Untitled", ctx, (v) => {
             card.title = v;
             this.debouncedSave(ctx);
         });
         const text = box.createDiv("card-text");
-        text.style.whiteSpace = "pre-wrap";
-        makeEditable(text, card.text || "", (v) => {
+        this.makeEditable(text, card.text || "", ctx, (v) => {
             card.text = v;
             this.debouncedSave(ctx);
         });
