@@ -1,4 +1,4 @@
-/* Handle white-space transitions during inline editing */
+/* Card content is rendered as Markdown preview; editing happens in a modal. */
 .card-grid-card h4,
 .card-grid-card .card-text {
   white-space: normal;
@@ -7,7 +7,6 @@
 
 .card-grid-card h4 {
   margin: 4px 0 10px 0;
-  /* Reduced top margin to be closer to image */
   padding: 4px 4px;
   display: flex;
   flex-direction: column;
@@ -16,29 +15,19 @@
   min-height: 1.5em;
 }
 
-.card-grid-card h4.is-editing,
-.card-grid-card .card-text.is-editing {
-  white-space: pre-wrap;
-  outline: none;
-}
-
-/* Reset margins for block elements (p, h1-h6, ul, ol, blockquote) 
-   that are rendered inside the card title and text fields */
-.card-grid-card :is(h4, .card-text)> :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote) {
+/* Reset margins for block elements rendered inside card title/body. */
+.card-grid-card :is(h4, .card-text) > :is(p, h1, h2, h3, h4, h5, h6, ul, ol, blockquote) {
   margin-top: 0.2em;
   margin-bottom: 0.2em;
 }
 
-/* Ensure the first and last elements have no outer vertical margins to keep the card compact */
-.card-grid-card :is(h4, .card-text)>*:first-child {
+.card-grid-card :is(h4, .card-text) > *:first-child {
   margin-top: 0 !important;
 }
 
-.card-grid-card :is(h4, .card-text)>*:last-child {
+.card-grid-card :is(h4, .card-text) > *:last-child {
   margin-bottom: 0 !important;
 }
-
-
 
 .card-grid-container {
   display: grid;
@@ -61,21 +50,30 @@
   border-radius: 4px;
 }
 
+/* Editor modal */
+.card-grid-editor .setting-item-control {
+  flex-direction: column;
+  align-items: stretch;
+}
 
+.card-grid-md-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
 
+.card-grid-md-preview {
+  padding: 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+}
 
+.card-grid-suggest-sub {
+  font-size: var(--font-ui-smaller);
+  opacity: 0.75;
+}
 
-
-
-
-
-
-
-
-
-
-
-/* 🔥 PRINT FIXES */
+/* Print */
 @media print {
   .card-grid-container {
     break-inside: avoid !important;
@@ -87,3 +85,4 @@
     page-break-inside: avoid !important;
   }
 }
+

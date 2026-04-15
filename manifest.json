@@ -1,10 +1,11 @@
 {
-  "id": "card-grid-plugin",
+  "id": "obsidiabn-card-grid",
   "name": "Card Grid",
   "version": "1.0.0",
   "minAppVersion": "1.5.0",
   "description": "Render structured cards as responsive grid",
   "author": "Bjorn Clauw",
   "authorUrl": "",
-  "isDesktopOnly": false
+  "isDesktopOnly": false,
+  "main": "main.js"
 }
