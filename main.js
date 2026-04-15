@@ -266,10 +266,11 @@ function applyImageStyle(img, card, grid) {
   const position = (_f = (_e = card.imagePosition) != null ? _e : grid.imagePosition) != null ? _f : "center";
   const radius = (_h = (_g = card.imageRadius) != null ? _g : grid.imageRadius) != null ? _h : 0;
   img.style.objectFit = fit;
-  img.style.height = `${height}px`;
+  img.style.maxHeight = `${height}px`;
   img.style.objectPosition = position;
   img.style.borderRadius = `${radius}px`;
-  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.width = "auto";
 }
 
 // src/cards/types/imageCard.ts
