@@ -107,6 +107,7 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         }
 
         titleEl.style.color = card.textColor || "#000000";
+        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
         void renderMarkdown(titleEl, card.title || "Untitled");
         void renderMarkdown(textEl, card.text || "");
       }

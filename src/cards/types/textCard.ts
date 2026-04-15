@@ -65,6 +65,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
 
         titleEl.style.color = card.textColor || "#000000";
+        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
         void renderMarkdown(titleEl, card.title || "Untitled");
 
         // Text body renders as Markdown preview only (editing happens in a modal).

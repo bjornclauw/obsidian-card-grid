@@ -247,6 +247,7 @@ var textCardType = {
       update(card, viewCtx) {
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         titleEl.style.color = card.textColor || "#000000";
+        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
         void renderMarkdown(titleEl, card.title || "Untitled");
         void renderMarkdown(textEl, card.text || "");
       }
@@ -366,6 +367,7 @@ var imageCardType = {
           img.style.display = "none";
         }
         titleEl.style.color = card.textColor || "#000000";
+        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
         void renderMarkdown(titleEl, card.title || "Untitled");
         void renderMarkdown(textEl, card.text || "");
       }
@@ -749,6 +751,63 @@ function clone(value) {
   if (sc) return sc(value);
   return JSON.parse(JSON.stringify(value));
 }
+function injectStyles(container) {
+  if (container.querySelector("style[data-card-editor]")) return;
+  const style = document.createElement("style");
+  style.setAttribute("data-card-editor", "true");
+  style.textContent = `
+  .card-grid-editor .card-grid-preview-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-grid-editor .card-grid-preview-content {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+  .card-grid-editor .card-grid-md-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar {
+    display: flex;
+    gap: 6px;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar button {
+    flex: 1;
+    border-radius: 6px;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+  }
+
+  .card-grid-editor .card-grid-md-editor,
+  .card-grid-editor .card-grid-md-preview {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 10px;
+    background: var(--background-primary);
+    height: 200px;
+    overflow: auto;
+  }
+
+  .card-grid-editor textarea {
+    width: 100%;
+    resize: vertical;
+    background: transparent;
+  }
+  `;
+  container.appendChild(style);
+}
 var CardEditorModal = class extends import_obsidian8.Modal {
   constructor(app, plugin, sourcePath, def, card, onSubmit) {
     super(app);
@@ -763,6 +822,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("card-grid-editor");
+    injectStyles(contentEl);
     this.renderFields(this.def.editor, contentEl);
     new import_obsidian8.Setting(contentEl).addButton(
       (b) => b.setButtonText("Cancel").onClick(() => {
@@ -873,37 +933,40 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       const previewWrap = wrapper.createDiv("card-grid-md-preview");
       const textarea = new import_obsidian8.TextAreaComponent(editorWrap);
       textarea.inputEl.rows = 8;
-      textarea.setPlaceholder((_a = field.placeholder) != null ? _a : "");
       textarea.setValue(getString());
-      textarea.onChange((v) => {
-        setValue(v);
-      });
+      textarea.setPlaceholder((_a = field.placeholder) != null ? _a : "");
+      textarea.onChange((v) => setValue(v));
       let showingPreview = false;
       const renderPreview = () => __async(this, null, function* () {
         previewWrap.empty();
-        const md = getString();
+        const card = previewWrap.createDiv("card-grid-preview-card");
+        const content = card.createDiv("card-grid-preview-content");
         yield import_obsidian8.MarkdownRenderer.render(
           this.app,
-          md || " ",
-          previewWrap,
+          getString() || " ",
+          content,
           this.sourcePath,
           this.plugin
         );
       });
-      const updateVisibility = () => {
+      const update = () => {
         editorWrap.style.display = showingPreview ? "none" : "";
         previewWrap.style.display = showingPreview ? "" : "none";
       };
-      new import_obsidian8.ButtonComponent(toolbar).setButtonText("Edit").setCta().onClick(() => {
+      const editBtn = new import_obsidian8.ButtonComponent(toolbar).setButtonText("Edit").setCta().onClick(() => {
         showingPreview = false;
-        updateVisibility();
+        editBtn.setCta();
+        previewBtn.removeCta();
+        update();
       });
-      new import_obsidian8.ButtonComponent(toolbar).setButtonText("Preview").onClick(() => __async(this, null, function* () {
+      const previewBtn = new import_obsidian8.ButtonComponent(toolbar).setButtonText("Preview").onClick(() => __async(this, null, function* () {
         showingPreview = true;
-        updateVisibility();
+        previewBtn.setCta();
+        editBtn.removeCta();
+        update();
         yield renderPreview();
       }));
-      updateVisibility();
+      update();
       return;
     }
   }

@@ -19,7 +19,6 @@ import type {
 import { ImagePickerModal } from "./ImagePickerModal";
 
 function clone<T>(value: T): T {
-  // structuredClone exists in modern Obsidian (Electron). Keep a fallback for safety.
   const sc = (globalThis as unknown as { structuredClone?: <U>(v: U) => U })
     .structuredClone as ((v: T) => T) | undefined;
   if (sc) return sc(value);
@@ -27,6 +26,66 @@ function clone<T>(value: T): T {
 }
 
 type OnSubmit = (updated: CardInstance | null) => void;
+
+// ✅ Scoped styles (safe, minimal, no layout breaking)
+function injectStyles(container: HTMLElement) {
+  if (container.querySelector("style[data-card-editor]")) return;
+
+  const style = document.createElement("style");
+  style.setAttribute("data-card-editor", "true");
+  style.textContent = `
+  .card-grid-editor .card-grid-preview-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-grid-editor .card-grid-preview-content {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+  .card-grid-editor .card-grid-md-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar {
+    display: flex;
+    gap: 6px;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar button {
+    flex: 1;
+    border-radius: 6px;
+  }
+
+  .card-grid-editor .card-grid-md-toolbar button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+  }
+
+  .card-grid-editor .card-grid-md-editor,
+  .card-grid-editor .card-grid-md-preview {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 10px;
+    background: var(--background-primary);
+    height: 200px;
+    overflow: auto;
+  }
+
+  .card-grid-editor textarea {
+    width: 100%;
+    resize: vertical;
+    background: transparent;
+  }
+  `;
+  container.appendChild(style);
+}
 
 export class CardEditorModal<TCard extends CardInstance> extends Modal {
   private readonly plugin: Plugin;
@@ -57,26 +116,23 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     contentEl.empty();
     contentEl.addClass("card-grid-editor");
 
+    injectStyles(contentEl);
+
     this.renderFields(this.def.editor, contentEl);
 
     new Setting(contentEl)
       .addButton((b) =>
-        b
-          .setButtonText("Cancel")
-          .onClick(() => {
-            this.onSubmit(null);
-            this.close();
-          })
+        b.setButtonText("Cancel").onClick(() => {
+          this.onSubmit(null);
+          this.close();
+        })
       )
       .addButton((b) =>
-        b
-          .setCta()
-          .setButtonText("Save")
-          .onClick(() => {
-            const normalized = this.def.normalize(this.draft);
-            this.onSubmit(normalized);
-            this.close();
-          })
+        b.setCta().setButtonText("Save").onClick(() => {
+          const normalized = this.def.normalize(this.draft);
+          this.onSubmit(normalized);
+          this.close();
+        })
       );
   }
 
@@ -92,14 +148,19 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
 
   private renderField(field: CardEditorField, container: HTMLElement): void {
     const key = field.key;
+
     const getString = () =>
       typeof this.draft[key] === "string" ? (this.draft[key] as string) : "";
 
     const getNumber = () =>
-      typeof this.draft[key] === "number" ? (this.draft[key] as number) : undefined;
+      typeof this.draft[key] === "number"
+        ? (this.draft[key] as number)
+        : undefined;
 
     const getBoolean = () =>
-      typeof this.draft[key] === "boolean" ? (this.draft[key] as boolean) : undefined;
+      typeof this.draft[key] === "boolean"
+        ? (this.draft[key] as boolean)
+        : undefined;
 
     const setValue = (value: unknown) => {
       this.draft[key] = value;
@@ -168,6 +229,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     if (field.kind === "image-file") {
       const setting = new Setting(container).setName(field.label);
       const desc = setting.descEl;
+
       const renderDesc = () => {
         const v = getString();
         desc.setText(v ? v : "(none)");
@@ -192,7 +254,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
       return;
     }
 
-    // Markdown field: edit + preview toggle.
+    // ✨ Pretty markdown editor
     if (field.kind === "markdown") {
       const setting = new Setting(container).setName(field.label);
       const wrapper = setting.controlEl.createDiv("card-grid-md-field");
@@ -203,46 +265,54 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
 
       const textarea = new TextAreaComponent(editorWrap);
       textarea.inputEl.rows = 8;
-      textarea.setPlaceholder(field.placeholder ?? "");
       textarea.setValue(getString());
-      textarea.onChange((v) => {
-        setValue(v);
-      });
+      textarea.setPlaceholder(field.placeholder ?? "");
+      textarea.onChange((v) => setValue(v));
 
       let showingPreview = false;
 
       const renderPreview = async () => {
         previewWrap.empty();
-        const md = getString();
+
+        // Create same structure as real card
+        const card = previewWrap.createDiv("card-grid-preview-card");
+        const content = card.createDiv("card-grid-preview-content");
+
         await MarkdownRenderer.render(
           this.app,
-          md || " ",
-          previewWrap,
+          getString() || " ",
+          content,
           this.sourcePath,
           this.plugin
         );
       };
 
-      const updateVisibility = () => {
+      const update = () => {
         editorWrap.style.display = showingPreview ? "none" : "";
         previewWrap.style.display = showingPreview ? "" : "none";
       };
 
-      new ButtonComponent(toolbar)
+      const editBtn = new ButtonComponent(toolbar)
         .setButtonText("Edit")
         .setCta()
         .onClick(() => {
           showingPreview = false;
-          updateVisibility();
+          editBtn.setCta();
+          previewBtn.removeCta();
+          update();
         });
 
-      new ButtonComponent(toolbar).setButtonText("Preview").onClick(async () => {
-        showingPreview = true;
-        updateVisibility();
-        await renderPreview();
-      });
+      const previewBtn = new ButtonComponent(toolbar)
+        .setButtonText("Preview")
+        .onClick(async () => {
+          showingPreview = true;
+          previewBtn.setCta();
+          editBtn.removeCta();
+          update();
+          await renderPreview();
+        });
 
-      updateVisibility();
+      update();
       return;
     }
   }
