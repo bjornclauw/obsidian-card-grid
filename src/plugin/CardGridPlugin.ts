@@ -2,6 +2,7 @@ import { Plugin } from "obsidian";
 import { createDefaultRegistry } from "../cards";
 import { GridController } from "../controller/GridController";
 import { GridRenderChild } from "./GridRenderChild";
+import { ImagePickerModal } from "../ui/modals/ImagePickerModal";
 
 export default class CardGridPlugin extends Plugin {
   private readonly registry = createDefaultRegistry();
@@ -28,6 +29,15 @@ export default class CardGridPlugin extends Plugin {
 
       ctx.addChild(new GridRenderChild(el, controller));
     });
+
+    // Add ribbon button to open image picker
+    this.addRibbonIcon("image", "Pick Image", () => {
+      new ImagePickerModal(this.app, (file) => {
+        console.log("Selected image:", file.path);
+        // Do something with the selected image
+      }).open();
+    });
+
+
   }
 }
-

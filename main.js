@@ -723,6 +723,21 @@ var ImagePickerModal = class extends import_obsidian7.FuzzySuggestModal {
   getItemText(item) {
     return item.path;
   }
+  renderSuggestion(fuzzyMatch, el) {
+    const item = fuzzyMatch.item;
+    const container = el.createDiv({ cls: "image-picker-suggestion" });
+    const img = container.createEl("img", {
+      cls: "image-picker-preview",
+      attr: {
+        src: this.app.vault.getResourcePath(item),
+        alt: item.path
+      }
+    });
+    container.createDiv({
+      cls: "image-picker-filename",
+      text: item.path
+    });
+  }
   onChooseItem(item) {
     this.onSelectFile(item);
   }
@@ -1046,6 +1061,11 @@ var CardGridPlugin = class extends import_obsidian11.Plugin {
         codeBlockSource: source
       });
       ctx.addChild(new GridRenderChild(el, controller));
+    });
+    this.addRibbonIcon("image", "Pick Image", () => {
+      new ImagePickerModal(this.app, (file) => {
+        console.log("Selected image:", file.path);
+      }).open();
     });
   }
 };
