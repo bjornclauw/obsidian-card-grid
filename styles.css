@@ -10,7 +10,8 @@
 
 .card-grid-card h4 {
   margin: 8px 0 2px 0;
-  margin-top: 8px; margin-bottom: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   display: flex;
   flex-direction: column;
   justify-content: center;

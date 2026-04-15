@@ -11,7 +11,8 @@ export function applyImageStyle(
   const radius = card.imageRadius ?? grid.imageRadius ?? 0;
 
   img.style.objectFit = fit;
-  img.style.height = `${height}px`;
+  img.style.width = "100%";
+	img.style.maxHeight = `${height}px`;
   img.style.objectPosition = position;
   img.style.borderRadius = `${radius}px`;
   img.style.width = "100%";
