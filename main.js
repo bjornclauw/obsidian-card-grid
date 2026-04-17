@@ -1096,6 +1096,11 @@ var CardResizer = class {
     this.container.addEventListener("mousedown", (evt) => {
       const cardEl = evt.target.closest(".card-grid-card, .card-grid-spacer");
       if (!cardEl) return;
+      const rect = cardEl.getBoundingClientRect();
+      const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
+      if (!isNearRightEdge) {
+        return;
+      }
       const nextCardEl = cardEl.nextElementSibling;
       if (!nextCardEl || !nextCardEl.classList.contains("card-grid-card") && !nextCardEl.classList.contains("card-grid-spacer")) {
         return;

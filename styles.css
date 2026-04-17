@@ -45,7 +45,7 @@
   flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
   min-width: 0;
   position: relative;
-  transition: flex 0.05s ease;
+  transition: flex 0.1s ease;
   border-radius: 8px;
   padding: 10px;
   text-align: center;
@@ -58,7 +58,7 @@
 }
 
 /* Show resize cursor when hovering near card edge */
-.card-grid-card:not(:last-child)::after {
+:is(.card-grid-card, .card-grid-spacer):not(:last-child)::after {
   content: "";
   position: absolute;
   right: -10px;
@@ -73,11 +73,20 @@
 .card-grid-spacer {
   flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
   min-width: 0;
-  background: transparent;
-  border: none;
+  position: relative;
+  background: var(--background-secondary-alt);
+  opacity: 0.6;
+  border: 1px dotted var(--background-modifier-border);
+  transition: flex 0.1s ease;
   box-shadow: none;
-  pointer-events: none;
-  min-height: 0;
+  /*pointer-events: none;*/
+  min-height: 50px;
+}
+
+/* Disable transitions during active resizing to prevent "glitching" lag */
+.card-grid-resizing {
+  transition: none !important;
+  opacity: 0.8;
 }
 
 /* Image styling */

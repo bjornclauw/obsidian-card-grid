@@ -23,9 +23,14 @@ export class CardResizer {
 
             // Accept both card-grid-card and card-grid-spacer
             const cardEl = (evt.target as HTMLElement).closest(".card-grid-card, .card-grid-spacer") as HTMLElement;
-            //console.log("cardEl:", cardEl);
-
             if (!cardEl) return;
+
+            // Only start resize if clicking near the right edge (where the handle is)
+            const rect = cardEl.getBoundingClientRect();
+            const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
+            if (!isNearRightEdge) {
+                return;
+            }
 
             const nextCardEl = cardEl.nextElementSibling as HTMLElement;
             //console.log("nextCardEl:", nextCardEl);
