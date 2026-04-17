@@ -63,7 +63,8 @@ export class GridController {
         onCloneCard: (id) => this.cloneCard(id),
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
-        onChangeType: (id, type) => this.changeType(id, type as CardTypeId)
+        onChangeType: (id, type) => this.changeType(id, type as CardTypeId),
+        onResetGridWidths: () => this.resetAllWidths()
       },
       controller: this
     });
@@ -187,6 +188,12 @@ export class GridController {
       // Manually trigger the final update now that both cards are updated in state
       this.view.update(this.store.getState());
     }
+  }
+
+  public resetAllWidths(): void {
+    const state = this.store.getState();
+    const updates = state.cards.map(c => ({ id: c.id, width: 1 }));
+    this.updateCardWidths(updates);
   }
 
   public setResizing(resizing: boolean): void {

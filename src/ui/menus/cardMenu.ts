@@ -11,6 +11,7 @@ export type CardMenuHandlers = {
   onDeleteCard: (id: CardId) => void;
   onMoveCard: (id: CardId, direction: "up" | "down") => void;
   onChangeType: (id: CardId, type: string) => void;
+  onResetGridWidths?: () => void;
 };
 
 export function showCardMenu(
@@ -52,6 +53,15 @@ export function showCardMenu(
       }).open();
     })
   );
+
+  menu.addSeparator();
+  // Inside src/ui/menus/cardMenu.ts
+  menu.addItem((item) => {
+    item.setTitle("Reset all widths")
+      .setIcon("reset")
+      .onClick(() => handlers.onResetGridWidths?.());
+  });
+
 
   menu.showAtMouseEvent(evt);
 }

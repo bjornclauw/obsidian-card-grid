@@ -639,6 +639,13 @@ function showCardMenu(evt, app, grid, registry, cardId, handlers) {
       }).open();
     })
   );
+  menu.addSeparator();
+  menu.addItem((item) => {
+    item.setTitle("Reset all widths").setIcon("reset").onClick(() => {
+      var _a;
+      return (_a = handlers.onResetGridWidths) == null ? void 0 : _a.call(handlers);
+    });
+  });
   menu.showAtMouseEvent(evt);
 }
 
@@ -1186,7 +1193,8 @@ var GridController = class {
         onCloneCard: (id) => this.cloneCard(id),
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
-        onChangeType: (id, type) => this.changeType(id, type)
+        onChangeType: (id, type) => this.changeType(id, type),
+        onResetGridWidths: () => this.resetAllWidths()
       },
       controller: this
     });
@@ -1287,6 +1295,11 @@ var GridController = class {
       this.setResizing(false);
       this.view.update(this.store.getState());
     }
+  }
+  resetAllWidths() {
+    const state = this.store.getState();
+    const updates = state.cards.map((c) => ({ id: c.id, width: 1 }));
+    this.updateCardWidths(updates);
   }
   setResizing(resizing) {
     this.isResizing = resizing;
