@@ -236,8 +236,7 @@ var textCardType = {
       text: typeof raw.text === "string" ? raw.text : "",
       backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : void 0,
       textColor: typeof raw.textColor === "string" ? raw.textColor : void 0,
-      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
-      // Add this
+      width: typeof raw.width === "number" ? raw.width : 1
     };
   },
   createView(ctx) {
@@ -254,6 +253,9 @@ var textCardType = {
     return {
       el: box,
       update(card, viewCtx) {
+        box.style.setProperty("--card-width", String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         titleEl.style.color = card.textColor || "#000000";
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
@@ -350,7 +352,7 @@ var imageCardType = {
       imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : void 0,
       imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : void 0,
       imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : void 0,
-      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+      width: typeof raw.width === "number" ? raw.width : 1
     };
   },
   createView(ctx) {
@@ -375,6 +377,9 @@ var imageCardType = {
     return {
       el: box,
       update(card, viewCtx) {
+        box.style.setProperty("--card-width", String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         const enabled = card.imageEnabled !== false;
         if (enabled && card.image) {
@@ -419,7 +424,7 @@ var spacerCardType = {
     return {
       id,
       type: "spacer",
-      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+      width: typeof raw.width === "number" ? raw.width : 1
     };
   },
   createView(ctx) {
@@ -429,6 +434,9 @@ var spacerCardType = {
     return {
       el: box,
       update(card) {
+        box.style.setProperty("--card-width", String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
       }
     };
   }
@@ -457,10 +465,12 @@ var unknownCardType = {
     const obj = isRecord5(raw) ? raw : {};
     const id = typeof obj.id === "string" && obj.id.trim().length > 0 ? obj.id.trim() : createId("card");
     const type = typeof obj.type === "string" && obj.type.trim().length > 0 ? obj.type.trim() : "unknown";
+    const width = typeof obj.width === "number" ? obj.width : 1;
     return {
       id,
       type,
-      raw: obj
+      raw: obj,
+      width
     };
   },
   createView(ctx) {
@@ -473,6 +483,9 @@ var unknownCardType = {
     return {
       el: box,
       update(card, viewCtx) {
+        box.style.setProperty("--card-width", String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
         title.style.color = "#000000";
         box.style.border = "2px solid #ccc";
         title.setText(`Unknown card type: ${card.type}`);
@@ -668,7 +681,7 @@ var GridView = class {
       const entry = this.ensureCard(card, viewCtx);
       const cardWithWidth = card;
       const widthFraction = (_b = cardWithWidth.width) != null ? _b : 1;
-      entry.view.el.style.flex = `${widthFraction} 1 0%`;
+      entry.view.el.style.setProperty("--card-width", String(widthFraction));
       this.container.appendChild(entry.view.el);
       entry.view.update(card, viewCtx);
       existing.delete(card.id);
@@ -689,7 +702,7 @@ var GridView = class {
     view.el.dataset.cardId = card.id;
     const cardWithWidth = card;
     const widthFraction = (_a = cardWithWidth.width) != null ? _a : 1;
-    view.el.style.flex = `${widthFraction} 1 0%`;
+    view.el.style.setProperty("--card-width", String(widthFraction));
     view.el.dataset.widthFraction = String(widthFraction);
     view.el.style.minWidth = "0";
     view.el.addEventListener("contextmenu", (evt) => {
@@ -1086,13 +1099,23 @@ var CardResizer = class {
   onMouseMove(evt, card1El, card2El) {
     if (!this.isDragging) return;
     const deltaX = evt.clientX - this.startX;
-    const card1Rect = card1El.getBoundingClientRect();
-    const card1Width = card1Rect.width;
-    const widthDelta = deltaX / card1Width;
-    const newWidth1 = Math.max(0.5, this.startWidth1 + widthDelta);
-    const newWidth2 = Math.max(0.5, this.startWidth2 - widthDelta);
-    card1El.style.flex = String(newWidth1);
-    card2El.style.flex = String(newWidth2);
+    const containerRect = this.container.getBoundingClientRect();
+    const columns = parseFloat(getComputedStyle(this.container).getPropertyValue("--grid-columns") || "3");
+    const unitDelta = deltaX / containerRect.width * columns;
+    let w1 = this.startWidth1 + unitDelta;
+    let w2 = this.startWidth2 - unitDelta;
+    const totalWidth = this.startWidth1 + this.startWidth2;
+    const MIN_WIDTH = 0.3;
+    if (w1 < MIN_WIDTH) {
+      w1 = MIN_WIDTH;
+      w2 = totalWidth - MIN_WIDTH;
+    } else if (w2 < MIN_WIDTH) {
+      w2 = MIN_WIDTH;
+      w1 = totalWidth - MIN_WIDTH;
+    }
+    const round = (n) => Math.round(n * 1e3) / 1e3;
+    card1El.style.setProperty("--card-width", String(round(w1)));
+    card2El.style.setProperty("--card-width", String(round(w2)));
   }
   startResize(evt, card1El, card2El) {
     evt.preventDefault();
@@ -1117,10 +1140,12 @@ var CardResizer = class {
     this.controller.setResizing(false);
     card1El.classList.remove("card-grid-resizing");
     card2El.classList.remove("card-grid-resizing");
-    const newWidth1 = parseFloat(card1El.style.flex || "1");
-    const newWidth2 = parseFloat(card2El.style.flex || "1");
-    this.controller.updateCardWidth(this.card1Id, newWidth1);
-    this.controller.updateCardWidth(this.card2Id, newWidth2);
+    const newWidth1 = parseFloat(getComputedStyle(card1El).getPropertyValue("--card-width") || "1");
+    const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue("--card-width") || "1");
+    this.controller.updateCardWidths([
+      { id: this.card1Id, width: newWidth1 },
+      { id: this.card2Id, width: newWidth2 }
+    ]);
   }
   destroy() {
     this.isDragging = false;
@@ -1168,16 +1193,23 @@ var GridController = class {
     this.store.subscribe((next, prev) => {
       this.view.update(next);
       this.scheduleSave(next);
+      this.applyGridStyles(next);
     });
   }
   mount() {
     this.view.update(this.store.getState());
     new CardResizer(this.app, this.view.getContainer(), this);
+    this.applyGridStyles(this.store.getState());
   }
   destroy() {
     this.destroyed = true;
     if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
     this.view.destroy();
+  }
+  applyGridStyles(data) {
+    const container = this.view.getContainer();
+    container.style.setProperty("--grid-columns", String(data.columns));
+    container.style.setProperty("--grid-gap", `${data.gap}px`);
   }
   scheduleSave(state) {
     if (this.destroyed) return;
@@ -1240,13 +1272,21 @@ var GridController = class {
       this.store.dispatch({ type: "card/replace", card: updated });
     }).open();
   }
-  updateCardWidth(id, width) {
-    const card = this.findCard(id);
-    if (!card) return;
-    this.store.dispatch({
-      type: "card/replace",
-      card: __spreadProps(__spreadValues({}, card), { width: Math.round(width * 10) / 10 })
-    });
+  updateCardWidths(updates) {
+    this.setResizing(true);
+    try {
+      for (const update of updates) {
+        const card = this.findCard(update.id);
+        if (!card) continue;
+        this.store.dispatch({
+          type: "card/replace",
+          card: __spreadProps(__spreadValues({}, card), { width: Math.round(update.width * 1e3) / 1e3 })
+        });
+      }
+    } finally {
+      this.setResizing(false);
+      this.view.update(this.store.getState());
+    }
   }
   setResizing(resizing) {
     this.isResizing = resizing;

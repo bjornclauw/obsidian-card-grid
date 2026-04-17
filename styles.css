@@ -37,12 +37,12 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: var(--grid-gap, 20px);
 }
 
 /* Card base styles */
 .card-grid-card {
-  flex: 1 1 0%;
+  flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
   min-width: 0;
   position: relative;
   transition: flex 0.05s ease;
@@ -71,7 +71,7 @@
 
 /* Spacer card - invisible, non-interactive */
 .card-grid-spacer {
-  flex: 1 1 0%;
+  flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
   min-width: 0;
   background: transparent;
   border: none;

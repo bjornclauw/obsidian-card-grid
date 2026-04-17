@@ -74,7 +74,7 @@ export class GridView {
       // Update width on existing cards
       const cardWithWidth = card as any;
       const widthFraction = cardWithWidth.width ?? 1;
-      entry.view.el.style.flex = `${widthFraction} 1 0%`;
+      entry.view.el.style.setProperty('--card-width', String(widthFraction));
 
       this.container.appendChild(entry.view.el);
       entry.view.update(card as any, viewCtx);
@@ -102,7 +102,7 @@ export class GridView {
     // Apply flex-based width for resizing support
     const cardWithWidth = card as any;
     const widthFraction = cardWithWidth.width ?? 1;
-    view.el.style.flex = `${widthFraction} 1 0%`;
+    view.el.style.setProperty('--card-width', String(widthFraction));
     view.el.dataset.widthFraction = String(widthFraction);
     view.el.style.minWidth = "0";  // Important for flex overflow
 

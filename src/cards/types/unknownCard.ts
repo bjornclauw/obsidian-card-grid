@@ -30,10 +30,12 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
       typeof obj.type === "string" && obj.type.trim().length > 0
         ? obj.type.trim()
         : "unknown";
+    const width = typeof obj.width === "number" ? obj.width : 1;
     return {
       id,
       type,
-      raw: obj
+      raw: obj,
+      width
     };
   },
   createView(ctx: CardViewContext): CardView<UnknownCard> {
@@ -47,6 +49,9 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
     return {
       el: box,
       update(card: UnknownCard, viewCtx: CardViewContext) {
+        box.style.setProperty('--card-width', String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
         title.style.color = "#000000";
         box.style.border = "2px solid #ccc";
         title.setText(`Unknown card type: ${card.type}`);

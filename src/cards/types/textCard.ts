@@ -51,7 +51,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
       textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
-      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1  // Add this
+      width: typeof raw.width === "number" ? raw.width : 1
     };
   },
   createView(ctx: CardViewContext): CardView<TextCard> {
@@ -69,8 +69,11 @@ export const textCardType: CardTypeDefinition<TextCard> = {
     return {
       el: box,
       update(card: TextCard, viewCtx: CardViewContext) {
-        box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
+        box.style.setProperty('--card-width', String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
 
+        box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         titleEl.style.color = card.textColor || "#000000";
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
         void renderMarkdown(titleEl, card.title || "Untitled");

@@ -71,18 +71,26 @@ export class GridController {
     this.store.subscribe((next, prev) => {
       this.view.update(next);
       this.scheduleSave(next);
+      this.applyGridStyles(next);
     });
   }
 
   mount(): void {
     this.view.update(this.store.getState());
     new CardResizer(this.app, this.view.getContainer(), this);
+    this.applyGridStyles(this.store.getState());
   }
 
   destroy(): void {
     this.destroyed = true;
     if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
     this.view.destroy();
+  }
+
+  private applyGridStyles(data: CardGridData): void {
+    const container = this.view.getContainer();
+    container.style.setProperty("--grid-columns", String(data.columns));
+    container.style.setProperty("--grid-gap", `${data.gap}px`);
   }
 
   private scheduleSave(state: CardGridData): void {
@@ -160,14 +168,25 @@ export class GridController {
     }).open();
   }
 
-  public updateCardWidth(id: CardId, width: number): void {
-    const card = this.findCard(id);
-    if (!card) return;
+  public updateCardWidths(updates: { id: CardId; width: number }[]): void {
+    // Keep resizing flag true during dispatches to suppress intermediate renders
+    this.setResizing(true);
 
-    this.store.dispatch({
-      type: "card/replace",
-      card: { ...(card as any), width: Math.round(width * 10) / 10 }
-    });
+    try {
+      for (const update of updates) {
+        const card = this.findCard(update.id);
+        if (!card) continue;
+
+        this.store.dispatch({
+          type: "card/replace",
+          card: { ...(card as any), width: Math.round(update.width * 1000) / 1000 }
+        });
+      }
+    } finally {
+      this.setResizing(false);
+      // Manually trigger the final update now that both cards are updated in state
+      this.view.update(this.store.getState());
+    }
   }
 
   public setResizing(resizing: boolean): void {

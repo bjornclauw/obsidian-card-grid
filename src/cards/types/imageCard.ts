@@ -75,7 +75,7 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
       imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
       imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
       imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
-      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+      width: typeof raw.width === "number" ? raw.width : 1
     };
   },
   createView(ctx: CardViewContext): CardView<ImageCard> {
@@ -102,6 +102,9 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
     return {
       el: box,
       update(card: ImageCard, viewCtx: CardViewContext) {
+        box.style.setProperty('--card-width', String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
 
         const enabled = card.imageEnabled !== false;

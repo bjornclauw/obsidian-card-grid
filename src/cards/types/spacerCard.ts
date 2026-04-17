@@ -35,7 +35,7 @@ export const spacerCardType: CardTypeDefinition<SpacerCard> = {
         return {
             id,
             type: "spacer",
-            width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+            width: typeof raw.width === "number" ? raw.width : 1
         };
     },
     createView(ctx: CardViewContext): CardView<SpacerCard> {
@@ -46,6 +46,9 @@ export const spacerCardType: CardTypeDefinition<SpacerCard> = {
         return {
             el: box,
             update(card: SpacerCard) {
+                box.style.setProperty('--card-width', String(card.width || 1));
+                box.dataset.widthFraction = String(card.width || 1);
+                box.dataset.cardId = card.id;
                 // Spacer doesn't need updates, just stays empty
             }
         };

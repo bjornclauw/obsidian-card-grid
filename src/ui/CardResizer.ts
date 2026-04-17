@@ -45,18 +45,32 @@ export class CardResizer {
         if (!this.isDragging) return;
 
         const deltaX = evt.clientX - this.startX;
-        const card1Rect = card1El.getBoundingClientRect();
-        const card1Width = card1Rect.width;
 
-        const widthDelta = deltaX / card1Width;
+        // Calculate units based on container width and total columns for consistent sensitivity
+        const containerRect = this.container.getBoundingClientRect();
+        const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
+        const unitDelta = (deltaX / containerRect.width) * columns;
 
-        const newWidth1 = Math.max(0.5, this.startWidth1 + widthDelta);
-        const newWidth2 = Math.max(0.5, this.startWidth2 - widthDelta);
+        let w1 = this.startWidth1 + unitDelta;
+        let w2 = this.startWidth2 - unitDelta;
+        const totalWidth = this.startWidth1 + this.startWidth2;
 
-        //console.log("dragging", { deltaX, widthDelta, newWidth1, newWidth2 });
+        // Balanced clamping: if one card hits minimum, the other stops growing.
+        // This prevents the total row width from exceeding the grid capacity.
+        const MIN_WIDTH = 0.3;
+        if (w1 < MIN_WIDTH) {
+            w1 = MIN_WIDTH;
+            w2 = totalWidth - MIN_WIDTH;
+        } else if (w2 < MIN_WIDTH) {
+            w2 = MIN_WIDTH;
+            w1 = totalWidth - MIN_WIDTH;
+        }
 
-        card1El.style.flex = String(newWidth1);
-        card2El.style.flex = String(newWidth2);
+        // Round to 3 decimals to prevent floating point precision errors from causing row wraps
+        const round = (n: number) => Math.round(n * 1000) / 1000;
+
+        card1El.style.setProperty('--card-width', String(round(w1)));
+        card2El.style.setProperty('--card-width', String(round(w2)));
     }
 
     private startResize(evt: MouseEvent, card1El: HTMLElement, card2El: HTMLElement): void {
@@ -96,13 +110,15 @@ export class CardResizer {
         card1El.classList.remove("card-grid-resizing");
         card2El.classList.remove("card-grid-resizing");
 
-        const newWidth1 = parseFloat(card1El.style.flex || "1");
-        const newWidth2 = parseFloat(card2El.style.flex || "1");
+        const newWidth1 = parseFloat(getComputedStyle(card1El).getPropertyValue('--card-width') || "1");
+        const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue('--card-width') || "1");
 
         //console.log("resize finished", { newWidth1, newWidth2 });
 
-        this.controller.updateCardWidth(this.card1Id, newWidth1);
-        this.controller.updateCardWidth(this.card2Id, newWidth2);
+        this.controller.updateCardWidths([
+            { id: this.card1Id, width: newWidth1 },
+            { id: this.card2Id, width: newWidth2 }
+        ]);
     }
 
 
