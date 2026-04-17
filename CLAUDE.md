@@ -1,7 +1,7 @@
 # Obsidian Card Grid Plugin
 
 ## What This Is
-A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`), with features like multi-column layouts, image cards, resizing handles, and modal editing.
+A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, image/text card types with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
 - **Registry Pattern**: Built-in types (Text, Image, Spacer) + extensible via `cards/index.ts`
@@ -12,11 +12,12 @@ A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a cust
 ## Core Files to Know
 | File | Responsibility |
 |------|---------------|
-| `controller/GridController.ts` | Event orchestration, save debouncing |
-| `state/gridStore.ts` | Reducer with subscribe pattern |
-| `cards/registry.ts` | Abstract CardTypeDefinition interface |
-| `ui/GridView.ts` | Flexbox renderer with memoization |
-| `domain/types.ts` | Immutable data contracts |
+| `controller/GridController.ts` | Event orchestration, save debouncing, resize guards |
+| `state/gridStore.ts` | Reducer with subscribe pattern, skip-during-resize guard |
+| `cards/registry.ts` | Abstract CardTypeDefinition<TCard> interface |
+| `ui/GridView.ts` | Flexbox renderer, cardDom Map memoization, update dispatch |
+| `ui/CardResizer.ts` | Drag handles, flex basis adjustment (direct DOM manipulation) |
+| `domain/types.ts` | Immutable data contracts: CardGridData, BaseCard, BuiltInCard |
 
 ## Development Commands
 - `npm run dev` — Watch mode (hot-reload)
@@ -65,6 +66,14 @@ ui/
     ├── CardTypeSuggestModal.ts  # Type selection with suggestions
     └── ImagePickerModal.ts      // Native file picker integration
 ```
+
+## Recent Changes
+**Latest commits**:
+- **Interactive resizing**: Drag handles between cards with flex basis adjustment via direct DOM manipulation (`ui/CardResizer.ts`)—bypasses controller during drag for performance, dispatches on release
+- **GridController**: Central event orchestration, saveChain debouncing (250ms), resize guards to prevent flicker in `update()`
+- **CardEditorModal**: Dynamic field rendering from specs using builder pattern; supports text/image card types with rich editing
+- **Image/Text cards**: Added with specialized renderers—Markdown support in text cards, constraint-based styling inheritance (fit/position/radius) in image cards via shared module
+- **Refactoring**: Extracted image styling logic into `cards/shared/imageStyle.ts` for reuse across card types
 
 ## Development Commands
 - `npm run dev` — Watch mode (hot-reload)
