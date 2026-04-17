@@ -5,7 +5,8 @@ import type { CardTypeRegistry } from "../../cards/registry";
 import { CardTypeSuggestModal } from "../modals/CardTypeSuggestModal";
 
 export type CardMenuHandlers = {
-  onAddCard: (afterId?: CardId) => void;
+  onAddCardBefore: (id: CardId) => void;
+  onAddCardAfter: (id: CardId) => void;
   onEditCard: (id: CardId) => void;
   onCloneCard: (id: CardId) => void;
   onDeleteCard: (id: CardId) => void;
@@ -28,14 +29,20 @@ export function showCardMenu(
 
   menu.addItem((i) => i.setTitle("Edit").onClick(() => handlers.onEditCard(cardId)));
   menu.addItem((i) =>
-    i.setTitle("Add card after").onClick(() => handlers.onAddCard(cardId))
-  );
-  menu.addItem((i) =>
     i.setTitle("Clone").onClick(() => handlers.onCloneCard(cardId))
   );
   menu.addItem((i) =>
     i.setTitle("Remove").onClick(() => handlers.onDeleteCard(cardId))
   );
+  menu.addSeparator();
+  menu.addItem((i) =>
+    i.setTitle("Add card before").onClick(() => handlers.onAddCardBefore(cardId))
+  );
+  menu.addItem((i) =>
+    i.setTitle("Add card after").onClick(() => handlers.onAddCardAfter(cardId))
+  );
+
+
 
   menu.addSeparator();
 

@@ -58,7 +58,8 @@ export class GridController {
       sourcePath: this.ref.sourcePath,
       hostEl: opts.hostEl,
       onMenu: {
-        onAddCard: (afterId) => this.addCard(afterId),
+        onAddCardBefore: (id) => this.addCard(id, "before"),
+        onAddCardAfter: (id) => this.addCard(id, "after"),
         onEditCard: (id) => this.editCard(id),
         onCloneCard: (id) => this.cloneCard(id),
         onDeleteCard: (id) => this.deleteCard(id),
@@ -112,10 +113,20 @@ export class GridController {
     return this.store.getState().cards.find((c) => c.id === id) ?? null;
   }
 
-  private addCard(afterId?: CardId): void {
+  private addCard(pivotId?: CardId, mode: "before" | "after" | "end" = "end"): void {
     const state = this.store.getState();
-    const index =
-      afterId === undefined ? state.cards.length : state.cards.findIndex((c) => c.id === afterId) + 1;
+    let index: number;
+
+    if (mode === "end" || !pivotId) {
+      index = state.cards.length;
+    } else {
+      const pivotIndex = state.cards.findIndex((c) => c.id === pivotId);
+      if (pivotIndex === -1) {
+        index = state.cards.length;
+      } else {
+        index = mode === "before" ? pivotIndex : pivotIndex + 1;
+      }
+    }
 
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
       const def = this.registry.get(type);

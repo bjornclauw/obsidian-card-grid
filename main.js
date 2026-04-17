@@ -618,13 +618,17 @@ function showCardMenu(evt, app, grid, registry, cardId, handlers) {
   const menu = new import_obsidian4.Menu();
   menu.addItem((i) => i.setTitle("Edit").onClick(() => handlers.onEditCard(cardId)));
   menu.addItem(
-    (i) => i.setTitle("Add card after").onClick(() => handlers.onAddCard(cardId))
-  );
-  menu.addItem(
     (i) => i.setTitle("Clone").onClick(() => handlers.onCloneCard(cardId))
   );
   menu.addItem(
     (i) => i.setTitle("Remove").onClick(() => handlers.onDeleteCard(cardId))
+  );
+  menu.addSeparator();
+  menu.addItem(
+    (i) => i.setTitle("Add card before").onClick(() => handlers.onAddCardBefore(cardId))
+  );
+  menu.addItem(
+    (i) => i.setTitle("Add card after").onClick(() => handlers.onAddCardAfter(cardId))
   );
   menu.addSeparator();
   menu.addItem((i) => i.setTitle("Move up").onClick(() => handlers.onMoveCard(cardId, "up")));
@@ -1198,7 +1202,8 @@ var GridController = class {
       sourcePath: this.ref.sourcePath,
       hostEl: opts.hostEl,
       onMenu: {
-        onAddCard: (afterId) => this.addCard(afterId),
+        onAddCardBefore: (id) => this.addCard(id, "before"),
+        onAddCardAfter: (id) => this.addCard(id, "after"),
         onEditCard: (id) => this.editCard(id),
         onCloneCard: (id) => this.cloneCard(id),
         onDeleteCard: (id) => this.deleteCard(id),
@@ -1243,9 +1248,19 @@ var GridController = class {
     var _a;
     return (_a = this.store.getState().cards.find((c) => c.id === id)) != null ? _a : null;
   }
-  addCard(afterId) {
+  addCard(pivotId, mode = "end") {
     const state = this.store.getState();
-    const index = afterId === void 0 ? state.cards.length : state.cards.findIndex((c) => c.id === afterId) + 1;
+    let index;
+    if (mode === "end" || !pivotId) {
+      index = state.cards.length;
+    } else {
+      const pivotIndex = state.cards.findIndex((c) => c.id === pivotId);
+      if (pivotIndex === -1) {
+        index = state.cards.length;
+      } else {
+        index = mode === "before" ? pivotIndex : pivotIndex + 1;
+      }
+    }
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
