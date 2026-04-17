@@ -11,7 +11,14 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
   displayName: "Unknown card",
   editor: {
     title: "Unknown card",
-    fields: []
+    fields: [
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1 // Default to 1 column
+      }
+    ]
   },
   normalize(raw: unknown): UnknownCard {
     const obj = isRecord(raw) ? raw : {};

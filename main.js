@@ -214,6 +214,13 @@ var textCardType = {
         key: "textColor",
         label: "Title color",
         defaultValue: "#000000"
+      },
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1
+        // Default to 1 column
       }
     ]
   },
@@ -228,7 +235,9 @@ var textCardType = {
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
       backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : void 0,
-      textColor: typeof raw.textColor === "string" ? raw.textColor : void 0
+      textColor: typeof raw.textColor === "string" ? raw.textColor : void 0,
+      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+      // Add this
     };
   },
   createView(ctx) {
@@ -313,6 +322,13 @@ var imageCardType = {
         key: "textColor",
         label: "Title color",
         defaultValue: "#000000"
+      },
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1
+        // Default to 1 column
       }
     ]
   },
@@ -333,7 +349,8 @@ var imageCardType = {
       imageFit: typeof raw.imageFit === "string" ? raw.imageFit : void 0,
       imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : void 0,
       imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : void 0,
-      imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : void 0
+      imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : void 0,
+      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
     };
   },
   createView(ctx) {
@@ -376,8 +393,49 @@ var imageCardType = {
   }
 };
 
-// src/cards/types/unknownCard.ts
+// src/cards/types/spacerCard.ts
 function isRecord4(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+var spacerCardType = {
+  type: "spacer",
+  displayName: "Spacer card",
+  editor: {
+    title: "Edit spacer",
+    fields: [
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1
+      }
+    ]
+  },
+  normalize(raw) {
+    if (!isRecord4(raw)) {
+      return { id: createId("card"), type: "spacer" };
+    }
+    const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : createId("card");
+    return {
+      id,
+      type: "spacer",
+      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
+    };
+  },
+  createView(ctx) {
+    const box = document.createElement("div");
+    box.className = "card-grid-spacer";
+    box.addClass("card-grid-spacer-print-hide");
+    return {
+      el: box,
+      update(card) {
+      }
+    };
+  }
+};
+
+// src/cards/types/unknownCard.ts
+function isRecord5(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 var unknownCardType = {
@@ -385,10 +443,18 @@ var unknownCardType = {
   displayName: "Unknown card",
   editor: {
     title: "Unknown card",
-    fields: []
+    fields: [
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1
+        // Default to 1 column
+      }
+    ]
   },
   normalize(raw) {
-    const obj = isRecord4(raw) ? raw : {};
+    const obj = isRecord5(raw) ? raw : {};
     const id = typeof obj.id === "string" && obj.id.trim().length > 0 ? obj.id.trim() : createId("card");
     const type = typeof obj.type === "string" && obj.type.trim().length > 0 ? obj.type.trim() : "unknown";
     return {
@@ -422,6 +488,7 @@ function createDefaultRegistry() {
   registry.register(textCardType);
   registry.register(imageCardType);
   registry.register(unknownCardType);
+  registry.register(spacerCardType);
   return registry;
 }
 
@@ -572,6 +639,7 @@ var GridView = class {
     this.sourcePath = opts.sourcePath;
     this.hostEl = opts.hostEl;
     this.onMenu = opts.onMenu;
+    this.controller = opts.controller;
     this.container = this.hostEl.querySelector(".card-grid-container");
     if (!this.container) this.container = this.hostEl.createDiv("card-grid-container");
   }
@@ -580,9 +648,14 @@ var GridView = class {
     this.container.empty();
   }
   update(grid) {
-    this.container.style.display = "grid";
-    this.container.style.gridTemplateColumns = `repeat(${grid.columns}, minmax(200px, 1fr))`;
+    var _a, _b;
+    if ((_a = this.controller) == null ? void 0 : _a.isCurrentlyResizing()) {
+      return;
+    }
+    this.container.style.display = "flex";
+    this.container.style.flexDirection = "row";
     this.container.style.gap = `${grid.gap}px`;
+    this.container.style.flexWrap = "wrap";
     this.hostEl.dataset.cardGridId = grid.id;
     const viewCtx = {
       app: this.app,
@@ -593,6 +666,9 @@ var GridView = class {
     const existing = new Set(this.cardDom.keys());
     for (const card of grid.cards) {
       const entry = this.ensureCard(card, viewCtx);
+      const cardWithWidth = card;
+      const widthFraction = (_b = cardWithWidth.width) != null ? _b : 1;
+      entry.view.el.style.flex = `${widthFraction} 1 0%`;
       this.container.appendChild(entry.view.el);
       entry.view.update(card, viewCtx);
       existing.delete(card.id);
@@ -604,12 +680,18 @@ var GridView = class {
     }
   }
   ensureCard(card, ctx) {
+    var _a;
     const existing = this.cardDom.get(card.id);
     if (existing && existing.type === card.type) return existing;
     existing == null ? void 0 : existing.view.el.remove();
     const def = this.registry.get(card.type);
     const view = def.createView(ctx);
     view.el.dataset.cardId = card.id;
+    const cardWithWidth = card;
+    const widthFraction = (_a = cardWithWidth.width) != null ? _a : 1;
+    view.el.style.flex = `${widthFraction} 1 0%`;
+    view.el.dataset.widthFraction = String(widthFraction);
+    view.el.style.minWidth = "0";
     view.el.addEventListener("contextmenu", (evt) => {
       showCardMenu(
         evt,
@@ -623,6 +705,9 @@ var GridView = class {
     const entry = { type: card.type, view };
     this.cardDom.set(card.id, entry);
     return entry;
+  }
+  getContainer() {
+    return this.container;
   }
 };
 
@@ -973,6 +1058,75 @@ var CardEditorModal = class extends import_obsidian8.Modal {
   }
 };
 
+// src/ui/CardResizer.ts
+var CardResizer = class {
+  constructor(app, container, controller) {
+    this.app = app;
+    this.container = container;
+    this.controller = controller;
+    this.isDragging = false;
+    this.startX = 0;
+    this.startWidth1 = 0;
+    this.startWidth2 = 0;
+    this.card1Id = "";
+    this.card2Id = "";
+    this.setupDividerListeners();
+  }
+  setupDividerListeners() {
+    this.container.addEventListener("mousedown", (evt) => {
+      const cardEl = evt.target.closest(".card-grid-card, .card-grid-spacer");
+      if (!cardEl) return;
+      const nextCardEl = cardEl.nextElementSibling;
+      if (!nextCardEl || !nextCardEl.classList.contains("card-grid-card") && !nextCardEl.classList.contains("card-grid-spacer")) {
+        return;
+      }
+      this.startResize(evt, cardEl, nextCardEl);
+    });
+  }
+  onMouseMove(evt, card1El, card2El) {
+    if (!this.isDragging) return;
+    const deltaX = evt.clientX - this.startX;
+    const card1Rect = card1El.getBoundingClientRect();
+    const card1Width = card1Rect.width;
+    const widthDelta = deltaX / card1Width;
+    const newWidth1 = Math.max(0.5, this.startWidth1 + widthDelta);
+    const newWidth2 = Math.max(0.5, this.startWidth2 - widthDelta);
+    card1El.style.flex = String(newWidth1);
+    card2El.style.flex = String(newWidth2);
+  }
+  startResize(evt, card1El, card2El) {
+    evt.preventDefault();
+    this.isDragging = true;
+    this.controller.setResizing(true);
+    this.startX = evt.clientX;
+    this.card1Id = card1El.dataset.cardId || "";
+    this.card2Id = card2El.dataset.cardId || "";
+    this.startWidth1 = parseFloat(card1El.dataset.widthFraction || "1");
+    this.startWidth2 = parseFloat(card2El.dataset.widthFraction || "1");
+    card1El.classList.add("card-grid-resizing");
+    card2El.classList.add("card-grid-resizing");
+    const onMouseMove = (e) => this.onMouseMove(e, card1El, card2El);
+    const onMouseUp = () => this.onMouseUp(card1El, card2El, onMouseMove);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp, { once: true });
+  }
+  onMouseUp(card1El, card2El, onMouseMove) {
+    document.removeEventListener("mousemove", onMouseMove);
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    this.controller.setResizing(false);
+    card1El.classList.remove("card-grid-resizing");
+    card2El.classList.remove("card-grid-resizing");
+    const newWidth1 = parseFloat(card1El.style.flex || "1");
+    const newWidth2 = parseFloat(card2El.style.flex || "1");
+    this.controller.updateCardWidth(this.card1Id, newWidth1);
+    this.controller.updateCardWidth(this.card2Id, newWidth2);
+  }
+  destroy() {
+    this.isDragging = false;
+  }
+};
+
 // src/controller/GridController.ts
 function cloneCard(card, newId) {
   const anyCard = card;
@@ -986,6 +1140,7 @@ var GridController = class {
     this.saveTimer = null;
     this.saveChain = Promise.resolve();
     this.destroyed = false;
+    this.isResizing = false;
     this.app = opts.app;
     this.plugin = opts.plugin;
     this.registry = opts.registry;
@@ -1007,7 +1162,8 @@ var GridController = class {
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
         onChangeType: (id, type) => this.changeType(id, type)
-      }
+      },
+      controller: this
     });
     this.store.subscribe((next, prev) => {
       this.view.update(next);
@@ -1016,6 +1172,7 @@ var GridController = class {
   }
   mount() {
     this.view.update(this.store.getState());
+    new CardResizer(this.app, this.view.getContainer(), this);
   }
   destroy() {
     this.destroyed = true;
@@ -1082,6 +1239,20 @@ var GridController = class {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
     }).open();
+  }
+  updateCardWidth(id, width) {
+    const card = this.findCard(id);
+    if (!card) return;
+    this.store.dispatch({
+      type: "card/replace",
+      card: __spreadProps(__spreadValues({}, card), { width: Math.round(width * 10) / 10 })
+    });
+  }
+  setResizing(resizing) {
+    this.isResizing = resizing;
+  }
+  isCurrentlyResizing() {
+    return this.isResizing;
   }
 };
 

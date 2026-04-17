@@ -9,9 +9,9 @@ import { CardGridRepository } from "../infrastructure/CardGridRepository";
 import { parseYamlObject } from "../infrastructure/yaml";
 import { CardEditorModal } from "../ui/modals/CardEditorModal";
 import { CardTypeSuggestModal } from "../ui/modals/CardTypeSuggestModal";
+import { CardResizer } from "../ui/CardResizer";
 
 function cloneCard(card: CardInstance, newId: string): CardInstance {
-  // Keep existing fields but assign a new id.
   const anyCard = card as any;
   if (anyCard.raw && typeof anyCard.raw === "object") {
     return { ...anyCard, id: newId, raw: { ...(anyCard.raw as any), id: newId } };
@@ -31,6 +31,7 @@ export class GridController {
   private saveTimer: number | null = null;
   private saveChain: Promise<void> = Promise.resolve();
   private destroyed = false;
+  private isResizing = false;
 
   constructor(opts: {
     app: App;
@@ -63,7 +64,8 @@ export class GridController {
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
         onChangeType: (id, type) => this.changeType(id, type as CardTypeId)
-      }
+      },
+      controller: this
     });
 
     this.store.subscribe((next, prev) => {
@@ -74,6 +76,7 @@ export class GridController {
 
   mount(): void {
     this.view.update(this.store.getState());
+    new CardResizer(this.app, this.view.getContainer(), this);
   }
 
   destroy(): void {
@@ -87,7 +90,6 @@ export class GridController {
     if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
     this.saveTimer = window.setTimeout(async () => {
       this.saveTimer = null;
-      // Serialize saves to avoid race conditions when multiple edits happen quickly.
       const snapshot = state;
       this.saveChain = this.saveChain
         .then(() => this.repository.save(this.ref, snapshot))
@@ -156,5 +158,23 @@ export class GridController {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
     }).open();
+  }
+
+  public updateCardWidth(id: CardId, width: number): void {
+    const card = this.findCard(id);
+    if (!card) return;
+
+    this.store.dispatch({
+      type: "card/replace",
+      card: { ...(card as any), width: Math.round(width * 10) / 10 }
+    });
+  }
+
+  public setResizing(resizing: boolean): void {
+    this.isResizing = resizing;
+  }
+
+  public isCurrentlyResizing(): boolean {
+    return this.isResizing;
   }
 }

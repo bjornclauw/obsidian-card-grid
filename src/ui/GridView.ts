@@ -2,6 +2,7 @@ import type { App, Plugin } from "obsidian";
 import type { CardGridData, CardId, CardInstance } from "../domain/types";
 import type { CardTypeRegistry, CardView, CardViewContext } from "../cards/registry";
 import { showCardMenu, type CardMenuHandlers } from "./menus/cardMenu";
+import type { GridController } from "../controller/GridController";
 
 type CardDomEntry = {
   type: string;
@@ -15,6 +16,7 @@ export class GridView {
   private readonly sourcePath: string;
   private readonly hostEl: HTMLElement;
   private readonly onMenu: CardMenuHandlers;
+  private controller?: GridController;
 
   private container: HTMLElement;
   private cardDom = new Map<CardId, CardDomEntry>();
@@ -26,6 +28,7 @@ export class GridView {
     sourcePath: string;
     hostEl: HTMLElement;
     onMenu: CardMenuHandlers;
+    controller?: GridController;
   }) {
     this.app = opts.app;
     this.plugin = opts.plugin;
@@ -33,6 +36,7 @@ export class GridView {
     this.sourcePath = opts.sourcePath;
     this.hostEl = opts.hostEl;
     this.onMenu = opts.onMenu;
+    this.controller = opts.controller;
 
     this.container = this.hostEl.querySelector(".card-grid-container") as HTMLElement;
     if (!this.container) this.container = this.hostEl.createDiv("card-grid-container");
@@ -44,9 +48,15 @@ export class GridView {
   }
 
   update(grid: CardGridData): void {
-    this.container.style.display = "grid";
-    this.container.style.gridTemplateColumns = `repeat(${grid.columns}, minmax(200px, 1fr))`;
+    // Skip update if currently resizing
+    if (this.controller?.isCurrentlyResizing()) {
+      return;
+    }
+
+    this.container.style.display = "flex";
+    this.container.style.flexDirection = "row";
     this.container.style.gap = `${grid.gap}px`;
+    this.container.style.flexWrap = "wrap";
     this.hostEl.dataset.cardGridId = grid.id;
 
     const viewCtx: CardViewContext = {
@@ -60,6 +70,12 @@ export class GridView {
 
     for (const card of grid.cards) {
       const entry = this.ensureCard(card, viewCtx);
+
+      // Update width on existing cards
+      const cardWithWidth = card as any;
+      const widthFraction = cardWithWidth.width ?? 1;
+      entry.view.el.style.flex = `${widthFraction} 1 0%`;
+
       this.container.appendChild(entry.view.el);
       entry.view.update(card as any, viewCtx);
       existing.delete(card.id);
@@ -76,13 +92,20 @@ export class GridView {
     const existing = this.cardDom.get(card.id);
     if (existing && existing.type === card.type) return existing;
 
-    // Replace if type changes.
     existing?.view.el.remove();
 
     const def = this.registry.get(card.type);
     const view = def.createView(ctx);
 
     view.el.dataset.cardId = card.id;
+
+    // Apply flex-based width for resizing support
+    const cardWithWidth = card as any;
+    const widthFraction = cardWithWidth.width ?? 1;
+    view.el.style.flex = `${widthFraction} 1 0%`;
+    view.el.dataset.widthFraction = String(widthFraction);
+    view.el.style.minWidth = "0";  // Important for flex overflow
+
     view.el.addEventListener("contextmenu", (evt) => {
       showCardMenu(
         evt as MouseEvent,
@@ -97,5 +120,9 @@ export class GridView {
     const entry: CardDomEntry = { type: card.type, view };
     this.cardDom.set(card.id, entry);
     return entry;
+  }
+
+  getContainer(): HTMLElement {
+    return this.container;
   }
 }

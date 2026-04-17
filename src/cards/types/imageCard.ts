@@ -44,6 +44,12 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         key: "textColor",
         label: "Title color",
         defaultValue: "#000000"
+      },
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1 // Default to 1 column
       }
     ]
   },
@@ -68,7 +74,8 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
       imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as ImageCard["imageFit"],
       imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
       imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
-      imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined
+      imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
+      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1
     };
   },
   createView(ctx: CardViewContext): CardView<ImageCard> {

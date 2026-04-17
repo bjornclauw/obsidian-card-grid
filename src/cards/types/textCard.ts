@@ -26,6 +26,12 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         key: "textColor",
         label: "Title color",
         defaultValue: "#000000"
+      },
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1 // Default to 1 column
       }
     ]
   },
@@ -44,7 +50,8 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       text: typeof raw.text === "string" ? raw.text : "",
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
-      textColor: typeof raw.textColor === "string" ? raw.textColor : undefined
+      textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
+      width: typeof raw.width === "number" ? Math.max(1, raw.width) : 1  // Add this
     };
   },
   createView(ctx: CardViewContext): CardView<TextCard> {
