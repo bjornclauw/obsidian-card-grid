@@ -41,6 +41,13 @@ export class CardResizer {
                 return;
             }
 
+            // Verify that both cards are on the same row by checking their vertical position
+            const rectNext = nextCardEl.getBoundingClientRect();
+            if (Math.abs(rect.top - rectNext.top) > 10) {
+                // Cards are on different rows; resizing between them is not allowed.
+                return;
+            }
+
             //console.log("starting resize");
             this.startResize(evt as MouseEvent, cardEl, nextCardEl);
         });

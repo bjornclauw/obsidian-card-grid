@@ -689,6 +689,7 @@ var GridView = class {
       const cardWithWidth = card;
       const widthFraction = (_b = cardWithWidth.width) != null ? _b : 1;
       entry.view.el.style.setProperty("--card-width", String(widthFraction));
+      entry.view.el.dataset.widthFraction = String(widthFraction);
       this.container.appendChild(entry.view.el);
       entry.view.update(card, viewCtx);
       existing.delete(card.id);
@@ -1103,6 +1104,10 @@ var CardResizer = class {
       }
       const nextCardEl = cardEl.nextElementSibling;
       if (!nextCardEl || !nextCardEl.classList.contains("card-grid-card") && !nextCardEl.classList.contains("card-grid-spacer")) {
+        return;
+      }
+      const rectNext = nextCardEl.getBoundingClientRect();
+      if (Math.abs(rect.top - rectNext.top) > 10) {
         return;
       }
       this.startResize(evt, cardEl, nextCardEl);

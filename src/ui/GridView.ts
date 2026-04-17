@@ -75,6 +75,7 @@ export class GridView {
       const cardWithWidth = card as any;
       const widthFraction = cardWithWidth.width ?? 1;
       entry.view.el.style.setProperty('--card-width', String(widthFraction));
+      entry.view.el.dataset.widthFraction = String(widthFraction);
 
       this.container.appendChild(entry.view.el);
       entry.view.update(card as any, viewCtx);

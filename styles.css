@@ -42,7 +42,7 @@
 
 /* Card base styles */
 .card-grid-card {
-  flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
+  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
   min-width: 0;
   position: relative;
   transition: flex 0.1s ease;
@@ -71,7 +71,7 @@
 
 /* Spacer card - invisible, non-interactive */
 .card-grid-spacer {
-  flex: 0 1 calc((100% / var(--grid-columns, 3) * var(--card-width, 1)) - var(--grid-gap, 20px));
+  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
   min-width: 0;
   position: relative;
   background: var(--background-secondary-alt);
@@ -155,6 +155,7 @@
   }
 
   .card-grid-spacer-print-hide {
-    display: none;
+    background-color: transparent;
+    border: none;
   }
 }
