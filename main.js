@@ -2064,19 +2064,19 @@ function add_css(target) {
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[31] = list[i];
-  child_ctx[32] = list;
-  child_ctx[33] = i;
+  child_ctx[30] = list[i];
+  child_ctx[31] = list;
+  child_ctx[32] = i;
   return child_ctx;
 }
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[34] = list[i];
+  child_ctx[33] = list[i];
   return child_ctx;
 }
 function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[34] = list[i];
+  child_ctx[33] = list[i];
   return child_ctx;
 }
 function create_if_block_8(ctx) {
@@ -2088,7 +2088,7 @@ function create_if_block_8(ctx) {
     ctx[25].call(
       textarea,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   return {
@@ -2098,7 +2098,7 @@ function create_if_block_8(ctx) {
       attr(textarea, "class", "cge-textarea svelte-tao351");
       attr(textarea, "rows", "5");
       attr(textarea, "placeholder", textarea_placeholder_value = /*field*/
-      (_a = ctx[31].placeholder) != null ? _a : "Markdown\u2026");
+      (_a = ctx[30].placeholder) != null ? _a : "Markdown\u2026");
     },
     m(target, anchor) {
       insert(target, textarea, anchor);
@@ -2107,7 +2107,7 @@ function create_if_block_8(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
       if (!mounted) {
@@ -2120,7 +2120,7 @@ function create_if_block_8(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*def*/
       2 && textarea_placeholder_value !== (textarea_placeholder_value = /*field*/
-      (_a = ctx[31].placeholder) != null ? _a : "Markdown\u2026")) {
+      (_a = ctx[30].placeholder) != null ? _a : "Markdown\u2026")) {
         attr(textarea, "placeholder", textarea_placeholder_value);
       }
       if (dirty[0] & /*draft, def*/
@@ -2130,7 +2130,7 @@ function create_if_block_8(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2151,12 +2151,12 @@ function create_if_block_6(ctx) {
     /*draft*/
     (ctx[0][
       /*field*/
-      ctx[31].key
+      ctx[30].key
     ] ? (
       /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ].split("/").pop()
     ) : "None") + ""
   );
@@ -2171,7 +2171,7 @@ function create_if_block_6(ctx) {
       /*click_handler_4*/
       ctx[23](
         /*field*/
-        ctx[31]
+        ctx[30]
       )
     );
   }
@@ -2179,7 +2179,7 @@ function create_if_block_6(ctx) {
     /*draft*/
     ctx[0][
       /*field*/
-      ctx[31].key
+      ctx[30].key
     ] && create_if_block_7(ctx)
   );
   return {
@@ -2215,19 +2215,19 @@ function create_if_block_6(ctx) {
       3 && t0_value !== (t0_value = /*draft*/
       (ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ] ? (
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ].split("/").pop()
       ) : "None") + "")) set_data(t0, t0_value);
       if (
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       ) {
         if (if_block) {
@@ -2264,14 +2264,14 @@ function create_if_block_5(ctx) {
     ctx[21].call(
       input0,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   function input1_input_handler() {
     ctx[22].call(
       input1,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   return {
@@ -2290,7 +2290,7 @@ function create_if_block_5(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ] || "#cccccc"
       );
       attr(input1, "class", "cge-text-input cge-color-text svelte-tao351");
@@ -2308,7 +2308,7 @@ function create_if_block_5(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
       append(div, t);
@@ -2318,7 +2318,7 @@ function create_if_block_5(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
       if (!mounted) {
@@ -2338,7 +2338,7 @@ function create_if_block_5(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2350,7 +2350,7 @@ function create_if_block_5(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ] || "#cccccc"
         );
       }
@@ -2358,14 +2358,14 @@ function create_if_block_5(ctx) {
       3 && input1.value !== /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ]) {
         set_input_value(
           input1,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2384,7 +2384,7 @@ function create_if_block_3(ctx) {
   function select_block_type_1(ctx2, dirty) {
     if (
       /*field*/
-      ctx2[31].options.length <= 5
+      ctx2[30].options.length <= 5
     ) return create_if_block_4;
     return create_else_block;
   }
@@ -2428,7 +2428,7 @@ function create_if_block_2(ctx) {
     /*draft*/
     ctx[0][
       /*field*/
-      ctx[31].key
+      ctx[30].key
     ] ? "On" : "Off"
   );
   let t1;
@@ -2440,7 +2440,7 @@ function create_if_block_2(ctx) {
       /*click_handler_2*/
       ctx[17](
         /*field*/
-        ctx[31]
+        ctx[30]
       )
     );
   }
@@ -2449,7 +2449,7 @@ function create_if_block_2(ctx) {
       /*keydown_handler*/
       ctx[18](
         /*field*/
-        ctx[31],
+        ctx[30],
         ...args
       )
     );
@@ -2468,7 +2468,7 @@ function create_if_block_2(ctx) {
       attr(div1, "aria-checked", div1_aria_checked_value = /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ]);
       attr(div1, "tabindex", "0");
       toggle_class(
@@ -2477,7 +2477,7 @@ function create_if_block_2(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
     },
@@ -2501,13 +2501,13 @@ function create_if_block_2(ctx) {
       3 && t1_value !== (t1_value = /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ] ? "On" : "Off")) set_data(t1, t1_value);
       if (dirty[0] & /*draft, def*/
       3 && div1_aria_checked_value !== (div1_aria_checked_value = /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ])) {
         attr(div1, "aria-checked", div1_aria_checked_value);
       }
@@ -2519,7 +2519,7 @@ function create_if_block_2(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2549,7 +2549,7 @@ function create_if_block_1(ctx) {
       /*click_handler*/
       ctx[14](
         /*field*/
-        ctx[31]
+        ctx[30]
       )
     );
   }
@@ -2557,7 +2557,7 @@ function create_if_block_1(ctx) {
     ctx[15].call(
       input,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   function click_handler_1() {
@@ -2565,7 +2565,7 @@ function create_if_block_1(ctx) {
       /*click_handler_1*/
       ctx[16](
         /*field*/
-        ctx[31]
+        ctx[30]
       )
     );
   }
@@ -2584,9 +2584,9 @@ function create_if_block_1(ctx) {
       attr(input, "class", "cge-number-input svelte-tao351");
       attr(input, "type", "number");
       attr(input, "step", input_step_value = /*field*/
-      (_a = ctx[31].step) != null ? _a : 1);
+      (_a = ctx[30].step) != null ? _a : 1);
       attr(input, "min", input_min_value = /*field*/
-      (_b = ctx[31].min) != null ? _b : void 0);
+      (_b = ctx[30].min) != null ? _b : void 0);
       attr(button1, "class", "cge-stepper svelte-tao351");
       attr(div, "class", "cge-number-row svelte-tao351");
     },
@@ -2600,7 +2600,7 @@ function create_if_block_1(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
       append(div, t2);
@@ -2619,26 +2619,26 @@ function create_if_block_1(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*def*/
       2 && input_step_value !== (input_step_value = /*field*/
-      (_a = ctx[31].step) != null ? _a : 1)) {
+      (_a = ctx[30].step) != null ? _a : 1)) {
         attr(input, "step", input_step_value);
       }
       if (dirty[0] & /*def*/
       2 && input_min_value !== (input_min_value = /*field*/
-      (_b = ctx[31].min) != null ? _b : void 0)) {
+      (_b = ctx[30].min) != null ? _b : void 0)) {
         attr(input, "min", input_min_value);
       }
       if (dirty[0] & /*draft, def*/
       3 && to_number(input.value) !== /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ]) {
         set_input_value(
           input,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2661,7 +2661,7 @@ function create_if_block(ctx) {
     ctx[13].call(
       input,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   return {
@@ -2671,7 +2671,7 @@ function create_if_block(ctx) {
       attr(input, "class", "cge-text-input svelte-tao351");
       attr(input, "type", "text");
       attr(input, "placeholder", input_placeholder_value = /*field*/
-      (_a = ctx[31].placeholder) != null ? _a : "");
+      (_a = ctx[30].placeholder) != null ? _a : "");
     },
     m(target, anchor) {
       insert(target, input, anchor);
@@ -2680,7 +2680,7 @@ function create_if_block(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ]
       );
       if (!mounted) {
@@ -2693,21 +2693,21 @@ function create_if_block(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*def*/
       2 && input_placeholder_value !== (input_placeholder_value = /*field*/
-      (_a = ctx[31].placeholder) != null ? _a : "")) {
+      (_a = ctx[30].placeholder) != null ? _a : "")) {
         attr(input, "placeholder", input_placeholder_value);
       }
       if (dirty[0] & /*draft, def*/
       3 && input.value !== /*draft*/
       ctx[0][
         /*field*/
-        ctx[31].key
+        ctx[30].key
       ]) {
         set_input_value(
           input,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2730,7 +2730,7 @@ function create_if_block_7(ctx) {
       /*click_handler_5*/
       ctx[24](
         /*field*/
-        ctx[31]
+        ctx[30]
       )
     );
   }
@@ -2765,7 +2765,7 @@ function create_else_block(ctx) {
   let dispose;
   let each_value_2 = ensure_array_like(
     /*field*/
-    ctx[31].options
+    ctx[30].options
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_2.length; i += 1) {
@@ -2775,7 +2775,7 @@ function create_else_block(ctx) {
     ctx[20].call(
       select,
       /*field*/
-      ctx[31]
+      ctx[30]
     );
   }
   return {
@@ -2789,7 +2789,7 @@ function create_else_block(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ] === void 0
       ) add_render_callback(select_change_handler);
     },
@@ -2805,7 +2805,7 @@ function create_else_block(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ],
         true
       );
@@ -2820,7 +2820,7 @@ function create_else_block(ctx) {
       2) {
         each_value_2 = ensure_array_like(
           /*field*/
-          ctx[31].options
+          ctx[30].options
         );
         let i;
         for (i = 0; i < each_value_2.length; i += 1) {
@@ -2845,7 +2845,7 @@ function create_else_block(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ]
         );
       }
@@ -2864,7 +2864,7 @@ function create_if_block_4(ctx) {
   let div;
   let each_value_1 = ensure_array_like(
     /*field*/
-    ctx[31].options
+    ctx[30].options
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_1.length; i += 1) {
@@ -2891,7 +2891,7 @@ function create_if_block_4(ctx) {
       3) {
         each_value_1 = ensure_array_like(
           /*field*/
-          ctx2[31].options
+          ctx2[30].options
         );
         let i;
         for (i = 0; i < each_value_1.length; i += 1) {
@@ -2922,7 +2922,7 @@ function create_each_block_2(ctx) {
   let option;
   let t_value = (
     /*opt*/
-    ctx[34].label + ""
+    ctx[33].label + ""
   );
   let t;
   let option_value_value;
@@ -2931,7 +2931,7 @@ function create_each_block_2(ctx) {
       option = element("option");
       t = text(t_value);
       option.__value = option_value_value = /*opt*/
-      ctx[34].value;
+      ctx[33].value;
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -2941,10 +2941,10 @@ function create_each_block_2(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*def*/
       2 && t_value !== (t_value = /*opt*/
-      ctx2[34].label + "")) set_data(t, t_value);
+      ctx2[33].label + "")) set_data(t, t_value);
       if (dirty[0] & /*def*/
       2 && option_value_value !== (option_value_value = /*opt*/
-      ctx2[34].value)) {
+      ctx2[33].value)) {
         option.__value = option_value_value;
         set_input_value(option, option.__value);
       }
@@ -2960,7 +2960,7 @@ function create_each_block_1(ctx) {
   let button;
   let t_value = (
     /*opt*/
-    ctx[34].label + ""
+    ctx[33].label + ""
   );
   let t;
   let mounted;
@@ -2970,9 +2970,9 @@ function create_each_block_1(ctx) {
       /*click_handler_3*/
       ctx[19](
         /*field*/
-        ctx[31],
+        ctx[30],
         /*opt*/
-        ctx[34]
+        ctx[33]
       )
     );
   }
@@ -2987,9 +2987,9 @@ function create_each_block_1(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[31].key
+          ctx[30].key
         ] === /*opt*/
-        ctx[34].value
+        ctx[33].value
       );
     },
     m(target, anchor) {
@@ -3004,7 +3004,7 @@ function create_each_block_1(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*def*/
       2 && t_value !== (t_value = /*opt*/
-      ctx[34].label + "")) set_data(t, t_value);
+      ctx[33].label + "")) set_data(t, t_value);
       if (dirty[0] & /*draft, def*/
       3) {
         toggle_class(
@@ -3013,9 +3013,9 @@ function create_each_block_1(ctx) {
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[31].key
+            ctx[30].key
           ] === /*opt*/
-          ctx[34].value
+          ctx[33].value
         );
       }
     },
@@ -3033,7 +3033,7 @@ function create_each_block(ctx) {
   let div0;
   let t0_value = (
     /*field*/
-    ctx[31].label + ""
+    ctx[30].label + ""
   );
   let t0;
   let t1;
@@ -3042,31 +3042,31 @@ function create_each_block(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*field*/
-      ctx2[31].kind === "text"
+      ctx2[30].kind === "text"
     ) return create_if_block;
     if (
       /*field*/
-      ctx2[31].kind === "number"
+      ctx2[30].kind === "number"
     ) return create_if_block_1;
     if (
       /*field*/
-      ctx2[31].kind === "toggle"
+      ctx2[30].kind === "toggle"
     ) return create_if_block_2;
     if (
       /*field*/
-      ctx2[31].kind === "select"
+      ctx2[30].kind === "select"
     ) return create_if_block_3;
     if (
       /*field*/
-      ctx2[31].kind === "color"
+      ctx2[30].kind === "color"
     ) return create_if_block_5;
     if (
       /*field*/
-      ctx2[31].kind === "image-file"
+      ctx2[30].kind === "image-file"
     ) return create_if_block_6;
     if (
       /*field*/
-      ctx2[31].kind === "markdown"
+      ctx2[30].kind === "markdown"
     ) return create_if_block_8;
   }
   let current_block_type = select_block_type(ctx, [-1, -1]);
@@ -3087,7 +3087,7 @@ function create_each_block(ctx) {
         div2,
         "cge-row-tall",
         /*field*/
-        ctx[31].kind === "markdown"
+        ctx[30].kind === "markdown"
       );
     },
     m(target, anchor) {
@@ -3102,7 +3102,7 @@ function create_each_block(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*def*/
       2 && t0_value !== (t0_value = /*field*/
-      ctx2[31].label + "")) set_data(t0, t0_value);
+      ctx2[30].label + "")) set_data(t0, t0_value);
       if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
         if_block.p(ctx2, dirty);
       } else {
@@ -3119,7 +3119,7 @@ function create_each_block(ctx) {
           div2,
           "cge-row-tall",
           /*field*/
-          ctx2[31].kind === "markdown"
+          ctx2[30].kind === "markdown"
         );
       }
     },
@@ -3278,7 +3278,6 @@ function instance($$self, $$props, $$invalidate) {
   let previewContainer;
   let previewView;
   let debounceTimer;
-  let previewScale = 1;
   let previewPanelEl;
   onMount(() => {
     const ctx = { app, plugin, sourcePath, grid };
@@ -3288,26 +3287,25 @@ function instance($$self, $$props, $$invalidate) {
     updatePreview();
   });
   function updatePreview() {
-    if (!previewView || !previewPanelEl) return;
+    var _a;
+    if (!previewView) return;
     const ctx = { app, plugin, sourcePath, grid };
+    const gridHost = document.querySelector(`[data-card-grid-id="${grid.id}"]`);
+    const gridContainer = gridHost === null || gridHost === void 0 ? void 0 : gridHost.querySelector(".card-grid-container");
+    const gridWidth = (gridContainer === null || gridContainer === void 0 ? void 0 : gridContainer.offsetWidth) || 800;
+    const columns = grid.columns || 3;
+    const gap = (_a = grid.gap) !== null && _a !== void 0 ? _a : 10;
+    const widthFraction = Number(draft.width) || 1;
+    const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
     const normalized = def.normalize(draft);
     previewView.update(normalized, ctx);
-    $$invalidate(11, previewView.el.style.cssText = "", previewView);
-    $$invalidate(11, previewView.el.style.width = "280px", previewView);
+    $$invalidate(11, previewView.el.style.width = `${realPixelWidth}px`, previewView);
+    $$invalidate(11, previewView.el.style.height = "auto", previewView);
     $$invalidate(11, previewView.el.style.flex = "none", previewView);
-    requestAnimationFrame(() => {
-      if (!previewPanelEl) return;
-      const panelW = previewPanelEl.offsetWidth - 48;
-      const panelH = previewPanelEl.offsetHeight - 48;
-      const cardW = previewView.el.scrollWidth || 280;
-      const cardH = previewView.el.scrollHeight || 200;
-      const scaleW = Math.min(1, panelW / cardW);
-      const scaleH = Math.min(1, panelH / cardH);
-      previewScale = Math.min(scaleW, scaleH);
-      $$invalidate(11, previewView.el.style.transformOrigin = "top center", previewView);
-      $$invalidate(11, previewView.el.style.transform = `scale(${previewScale})`, previewView);
-      $$invalidate(11, previewView.el.style.marginBottom = `${-(cardH * (1 - previewScale))}px`, previewView);
-    });
+    const ratio = widthFraction / columns;
+    let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
+    if (def.type === "procedure" && ratio > 0.4) zoom = 0.45;
+    $$invalidate(11, previewView.el.style.zoom = String(zoom), previewView);
   }
   function openImagePicker(key) {
     new ImagePickerModal(

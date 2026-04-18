@@ -20,7 +20,6 @@
     let previewContainer: HTMLElement;
     let previewView: any;
     let debounceTimer: number;
-    let previewScale = 1;
     let previewPanelEl: HTMLElement;
 
     $: {
@@ -41,33 +40,41 @@
     });
 
     function updatePreview() {
-        if (!previewView || !previewPanelEl) return;
+        if (!previewView) return;
         const ctx = { app, plugin, sourcePath, grid };
+
+        // 1. Determine the actual width of the grid on screen to replicate layout accurately
+        const gridHost = document.querySelector(
+            `[data-card-grid-id="${grid.id}"]`,
+        );
+        const gridContainer = gridHost?.querySelector(
+            ".card-grid-container",
+        ) as HTMLElement;
+        const gridWidth = gridContainer?.offsetWidth || 800;
+
+        const columns = grid.columns || 3;
+        const gap = grid.gap ?? 10;
+        const widthFraction = Number(draft.width) || 1;
+
+        // 2. Calculate exactly how wide this card is in the actual grid
+        const realPixelWidth =
+            ((gridWidth + gap) / columns) * widthFraction - gap;
+
+        // 3. Update view with current data
         const normalized = def.normalize(draft);
         previewView.update(normalized, ctx);
 
-        // Let the card render naturally first
-        previewView.el.style.cssText = "";
-        previewView.el.style.width = "280px";
+        // 4. Apply the real width and the "spot on" zoom factors
+        previewView.el.style.width = `${realPixelWidth}px`;
+        previewView.el.style.height = "auto";
         previewView.el.style.flex = "none";
 
-        requestAnimationFrame(() => {
-            if (!previewPanelEl) return;
-            const panelW = previewPanelEl.offsetWidth - 48;
-            const panelH = previewPanelEl.offsetHeight - 48;
-            const cardW = previewView.el.scrollWidth || 280;
-            const cardH = previewView.el.scrollHeight || 200;
+        const ratio = widthFraction / columns;
+        let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
+        if (def.type === "procedure" && ratio > 0.4) zoom = 0.45;
 
-            // Scale to fit both dimensions, never upscale
-            const scaleW = Math.min(1, panelW / cardW);
-            const scaleH = Math.min(1, panelH / cardH);
-            previewScale = Math.min(scaleW, scaleH);
-
-            previewView.el.style.transformOrigin = "top center";
-            previewView.el.style.transform = `scale(${previewScale})`;
-            // Collapse the space the scaled element would otherwise take
-            previewView.el.style.marginBottom = `${-(cardH * (1 - previewScale))}px`;
-        });
+        // @ts-ignore - zoom works reliably in Obsidian's Electron environment
+        previewView.el.style.zoom = String(zoom);
     }
 
     function openImagePicker(key: string) {
