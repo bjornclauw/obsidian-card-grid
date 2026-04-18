@@ -25,6 +25,42 @@
     // Cast grid to any in the script block where TS is allowed
     $: gridAny = grid as any;
 
+    // Calculate dynamic constraints for the width field to match CardResizer logic
+    $: widthConstraints = (() => {
+        const columns = grid.columns || 3;
+        if (!draft.id) return { min: 0.3, max: columns };
+
+        const cards = grid.cards;
+        const index = cards.findIndex((c) => c.id === draft.id);
+        if (index === -1) return { min: 0.3, max: columns };
+
+        const indexInRow = (index % columns) + 1;
+
+        // Logic matching CardResizer.ts behavior
+        if (indexInRow < columns && index + 1 < cards.length) {
+            // Balanced resize behavior
+            const currentCard = cards[index];
+            const nextCard = cards[index + 1];
+            const total = (currentCard.width ?? 1) + (nextCard.width ?? 1);
+            return {
+                min: 0.3,
+                max: Math.max(0.3, Math.round((total - 0.3) * 100) / 100),
+            };
+        } else {
+            // Unbalanced resize behavior (at the end of a row or end of grid)
+            const rowIndex = Math.floor(index / columns);
+            const startOfRow = rowIndex * columns;
+            let sumPrev = 0;
+            for (let i = startOfRow; i < index; i++) {
+                sumPrev += cards[i].width ?? 1;
+            }
+            return {
+                min: 0.3,
+                max: Math.max(0.3, Math.round((columns - sumPrev) * 100) / 100),
+            };
+        }
+    })();
+
     $: {
         draft;
         if (previewView) {
@@ -113,12 +149,22 @@
                                 <button
                                     class="cge-stepper"
                                     on:click={() => {
+                                        const step =
+                                            field.key === "width"
+                                                ? 0.1
+                                                : (field.step ?? 1);
                                         const base =
                                             draft[field.key] ??
                                             gridAny[field.key] ??
                                             0;
-                                        draft[field.key] =
-                                            Number(base) - (field.step ?? 1);
+                                        let val = Number(base) - step;
+                                        if (field.key === "width") {
+                                            val = Math.max(
+                                                widthConstraints.min,
+                                                Math.round(val * 10) / 10,
+                                            );
+                                        }
+                                        draft[field.key] = val;
                                         draft = { ...draft };
                                     }}>−</button
                                 >
@@ -129,25 +175,57 @@
                                         gridAny[field.key] ??
                                         ""}
                                     on:input={(e) => {
-                                        const val =
+                                        let val =
                                             e.currentTarget.value === ""
                                                 ? undefined
                                                 : Number(e.currentTarget.value);
+
+                                        if (
+                                            val !== undefined &&
+                                            field.key === "width"
+                                        ) {
+                                            val = Math.max(
+                                                widthConstraints.min,
+                                                Math.min(
+                                                    widthConstraints.max,
+                                                    val,
+                                                ),
+                                            );
+                                            val = Math.round(val * 10) / 10;
+                                        }
+
                                         draft[field.key] = val;
                                         draft = { ...draft };
                                     }}
-                                    step={field.step ?? 1}
-                                    min={field.min ?? undefined}
+                                    step={field.key === "width"
+                                        ? 0.1
+                                        : (field.step ?? 1)}
+                                    min={field.key === "width"
+                                        ? widthConstraints.min
+                                        : (field.min ?? undefined)}
+                                    max={field.key === "width"
+                                        ? widthConstraints.max
+                                        : undefined}
                                 />
                                 <button
                                     class="cge-stepper"
                                     on:click={() => {
+                                        const step =
+                                            field.key === "width"
+                                                ? 0.1
+                                                : (field.step ?? 1);
                                         const base =
                                             draft[field.key] ??
                                             gridAny[field.key] ??
                                             0;
-                                        draft[field.key] =
-                                            Number(base) + (field.step ?? 1);
+                                        let val = Number(base) + step;
+                                        if (field.key === "width") {
+                                            val = Math.min(
+                                                widthConstraints.max,
+                                                Math.round(val * 10) / 10,
+                                            );
+                                        }
+                                        draft[field.key] = val;
                                         draft = { ...draft };
                                     }}>+</button
                                 >
