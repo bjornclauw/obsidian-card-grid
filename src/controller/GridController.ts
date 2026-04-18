@@ -3,6 +3,7 @@ import { Notice } from "obsidian";
 import type { CardGridData, CardId, CardInstance, CardTypeId, GridBlockRef } from "../domain/types";
 import type { CardTypeRegistry } from "../cards/registry";
 import { createId, parseCardGridObject } from "../domain/codec";
+import { DEFAULT_GAP } from "../domain/defaults";
 import { GridStore } from "../state/gridStore";
 import { GridView } from "../ui/GridView";
 import { CardGridRepository } from "../infrastructure/CardGridRepository";
@@ -214,6 +215,12 @@ export class GridController {
     this.setResizing(true);
 
     try {
+      // Reset grid-level gap to default
+      this.store.dispatch({
+        type: "grid/set-options",
+        patch: { gap: DEFAULT_GAP }
+      });
+
       for (const card of state.cards) {
         const updated = { ...card } as any;
         updated.width = 1;

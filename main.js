@@ -101,12 +101,13 @@ var import_obsidian = require("obsidian");
 
 // src/domain/defaults.ts
 var CURRENT_GRID_VERSION = 1;
+var DEFAULT_GAP = 10;
 function defaultGridData(id) {
   return {
     id,
     version: CURRENT_GRID_VERSION,
     columns: 3,
-    gap: 10,
+    gap: DEFAULT_GAP,
     imageFit: "cover",
     imageHeight: 180,
     imagePosition: "center",
@@ -876,7 +877,7 @@ function showCardMenu(evt, app, grid, registry, cardId, handlers) {
       });
     });
   });
-  menu.addItem((item) => item.setTitle("Reset all widths").setIcon("rotate-ccw").onClick(() => {
+  menu.addItem((item) => item.setTitle("Reset dimensions").setIcon("rotate-ccw").onClick(() => {
     var _a;
     return (_a = handlers.onResetGridWidths) == null ? void 0 : _a.call(handlers);
   }));
@@ -1575,6 +1576,10 @@ var GridController = class {
     const state = this.store.getState();
     this.setResizing(true);
     try {
+      this.store.dispatch({
+        type: "grid/set-options",
+        patch: { gap: DEFAULT_GAP }
+      });
       for (const card of state.cards) {
         const updated = __spreadValues({}, card);
         updated.width = 1;
