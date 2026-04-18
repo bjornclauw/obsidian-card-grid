@@ -305,15 +305,14 @@ export class GridController {
         const row: CardInstance[] = [];
         let rowSum = 0;
 
-        // Take cards greedily until we hit the column limit (by sum or count).
-        while (currentIndex < cards.length) {
+        // Group cards strictly by the columns count. 
+        // This ensures the grid structure is predictable and row breaks only occur 
+        // when the count limit is reached, preventing cards from jumping rows during edits.
+        while (currentIndex < cards.length && row.length < columns) {
           const card = cards[currentIndex];
-          const w = typeof card.width === "number" ? card.width : 1;
           row.push(card);
-          rowSum += w;
+          rowSum += typeof card.width === "number" ? card.width : 1;
           currentIndex++;
-          // Stop if we exceed width capacity OR reach the defined column item count.
-          if (rowSum >= columns - 0.01 || row.length >= columns) break;
         }
 
         const isLastRow = currentIndex === cards.length;

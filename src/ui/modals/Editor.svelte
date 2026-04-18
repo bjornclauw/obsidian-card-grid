@@ -44,7 +44,7 @@
             const total = (currentCard.width ?? 1) + (nextCard.width ?? 1);
             return {
                 min: 0.3,
-                max: Math.max(0.3, Math.round((total - 0.3) * 100) / 100),
+                max: Math.max(0.3, Math.floor((total - 0.3) * 100) / 100),
             };
         } else {
             // Unbalanced resize behavior (at the end of a row or end of grid)
@@ -56,7 +56,7 @@
             }
             return {
                 min: 0.3,
-                max: Math.max(0.3, Math.round((columns - sumPrev) * 100) / 100),
+                max: Math.max(0.3, Math.floor((columns - sumPrev) * 100) / 100),
             };
         }
     })();
@@ -167,7 +167,7 @@
                                         if (field.key === "width") {
                                             val = Math.max(
                                                 widthConstraints.min,
-                                                Math.round(val * 10) / 10,
+                                                Math.round(val * 100) / 100,
                                             );
                                         }
                                         draft[field.key] = val;
@@ -178,7 +178,9 @@
                                     class="cge-number-input"
                                     type="number"
                                     value={draft[field.key] ??
-                                        gridAny[field.key] ??
+                                        (field.key === "width"
+                                            ? (gridAny[field.key] ?? 1)
+                                            : (gridAny[field.key] ?? "")) ??
                                         ""}
                                     on:input={(e) => {
                                         let val =
@@ -190,14 +192,16 @@
                                             val !== undefined &&
                                             field.key === "width"
                                         ) {
-                                            val = Math.max(
-                                                widthConstraints.min,
-                                                Math.min(
-                                                    widthConstraints.max,
+                                            // Clamp strictly to bounds first to prevent overshooting constraints
+                                            val = Math.min(
+                                                widthConstraints.max,
+                                                Math.max(
+                                                    widthConstraints.min,
                                                     val,
                                                 ),
                                             );
-                                            val = Math.round(val * 10) / 10;
+                                            // Round to 0.01 precision to prevent floating point row-wrap issues
+                                            val = Math.round(val * 100) / 100;
                                         }
 
                                         draft[field.key] = val;
@@ -228,7 +232,7 @@
                                         if (field.key === "width") {
                                             val = Math.min(
                                                 widthConstraints.max,
-                                                Math.round(val * 10) / 10,
+                                                Math.round(val * 100) / 100,
                                             );
                                         }
                                         draft[field.key] = val;
