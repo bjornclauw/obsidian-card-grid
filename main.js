@@ -684,6 +684,8 @@ var procedureCardType = {
     const imageBox = box.createDiv("procedure-image-box");
     imageBox.style.flex = "0 0 38%";
     imageBox.style.display = "flex";
+    imageBox.style.position = "relative";
+    imageBox.style.flexDirection = "column";
     imageBox.style.overflow = "hidden";
     const img = imageBox.createEl("img");
     function renderMarkdown(el, markdown) {
@@ -711,20 +713,29 @@ var procedureCardType = {
         titleEl.style.color = card.textColor || "";
         void renderMarkdown(titleEl, card.title || "Untitled");
         void renderMarkdown(textBox, card.text || "");
+        const h = (_a = card.imageHeight) != null ? _a : viewCtx.grid.imageHeight;
         const enabled = card.imageEnabled !== false;
         if (enabled && card.image) {
           textBox.style.borderRight = "1px solid var(--background-modifier-border)";
           imageBox.style.display = "flex";
+          imageBox.style.minHeight = h ? `${h}px` : "0px";
           img.src = resolveImagePath(card.image);
           applyImageStyle(img, card, viewCtx.grid);
-          const h = (_a = card.imageHeight) != null ? _a : viewCtx.grid.imageHeight;
-          img.style.height = h ? `${h}px` : "auto";
-          img.style.flex = "1 1 auto";
+          img.style.position = "absolute";
+          img.style.top = "0";
+          img.style.left = "0";
+          img.style.height = "100%";
+          img.style.width = "100%";
+          img.style.minHeight = "0";
           img.style.maxHeight = "none";
+          img.style.flex = "1 1 auto";
           img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
+          img.style.objectPosition = card.imagePosition || viewCtx.grid.imagePosition || "center";
         } else {
           textBox.style.borderRight = "none";
           imageBox.style.display = "none";
+          imageBox.style.minHeight = "0px";
+          img.style.minHeight = "0px";
         }
       }
     };
