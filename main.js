@@ -45,6 +45,7 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -1331,6 +1332,685 @@ var CardGridRepository = class {
 // src/ui/modals/CardEditorModal.ts
 var import_obsidian12 = require("obsidian");
 
+// node_modules/svelte/src/runtime/internal/utils.js
+function noop() {
+}
+function run(fn) {
+  return fn();
+}
+function blank_object() {
+  return /* @__PURE__ */ Object.create(null);
+}
+function run_all(fns) {
+  fns.forEach(run);
+}
+function is_function(thing) {
+  return typeof thing === "function";
+}
+function safe_not_equal(a, b) {
+  return a != a ? b == b : a !== b || a && typeof a === "object" || typeof a === "function";
+}
+function is_empty(obj) {
+  return Object.keys(obj).length === 0;
+}
+
+// node_modules/svelte/src/runtime/internal/globals.js
+var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
+  // @ts-ignore Node typings have this
+  global
+);
+
+// node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
+var ResizeObserverSingleton = class _ResizeObserverSingleton {
+  /** @param {ResizeObserverOptions} options */
+  constructor(options) {
+    /**
+     * @private
+     * @readonly
+     * @type {WeakMap<Element, import('./private.js').Listener>}
+     */
+    __publicField(this, "_listeners", "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0);
+    /**
+     * @private
+     * @type {ResizeObserver}
+     */
+    __publicField(this, "_observer");
+    /** @type {ResizeObserverOptions} */
+    __publicField(this, "options");
+    this.options = options;
+  }
+  /**
+   * @param {Element} element
+   * @param {import('./private.js').Listener} listener
+   * @returns {() => void}
+   */
+  observe(element2, listener) {
+    this._listeners.set(element2, listener);
+    this._getObserver().observe(element2, this.options);
+    return () => {
+      this._listeners.delete(element2);
+      this._observer.unobserve(element2);
+    };
+  }
+  /**
+   * @private
+   */
+  _getObserver() {
+    var _a;
+    return (_a = this._observer) != null ? _a : this._observer = new ResizeObserver((entries) => {
+      var _a2;
+      for (const entry of entries) {
+        _ResizeObserverSingleton.entries.set(entry.target, entry);
+        (_a2 = this._listeners.get(entry.target)) == null ? void 0 : _a2(entry);
+      }
+    });
+  }
+};
+ResizeObserverSingleton.entries = "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0;
+
+// node_modules/svelte/src/runtime/internal/dom.js
+var is_hydrating = false;
+function start_hydrating() {
+  is_hydrating = true;
+}
+function end_hydrating() {
+  is_hydrating = false;
+}
+function append(target, node) {
+  target.appendChild(node);
+}
+function append_styles(target, style_sheet_id, styles) {
+  const append_styles_to = get_root_for_style(target);
+  if (!append_styles_to.getElementById(style_sheet_id)) {
+    const style = element("style");
+    style.id = style_sheet_id;
+    style.textContent = styles;
+    append_stylesheet(append_styles_to, style);
+  }
+}
+function get_root_for_style(node) {
+  if (!node) return document;
+  const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+  if (root && /** @type {ShadowRoot} */
+  root.host) {
+    return (
+      /** @type {ShadowRoot} */
+      root
+    );
+  }
+  return node.ownerDocument;
+}
+function append_stylesheet(node, style) {
+  append(
+    /** @type {Document} */
+    node.head || node,
+    style
+  );
+  return style.sheet;
+}
+function insert(target, node, anchor) {
+  target.insertBefore(node, anchor || null);
+}
+function detach(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+function destroy_each(iterations, detaching) {
+  for (let i = 0; i < iterations.length; i += 1) {
+    if (iterations[i]) iterations[i].d(detaching);
+  }
+}
+function element(name) {
+  return document.createElement(name);
+}
+function text(data) {
+  return document.createTextNode(data);
+}
+function space() {
+  return text(" ");
+}
+function listen(node, event, handler, options) {
+  node.addEventListener(event, handler, options);
+  return () => node.removeEventListener(event, handler, options);
+}
+function attr(node, attribute, value) {
+  if (value == null) node.removeAttribute(attribute);
+  else if (node.getAttribute(attribute) !== value) node.setAttribute(attribute, value);
+}
+function to_number(value) {
+  return value === "" ? null : +value;
+}
+function children(element2) {
+  return Array.from(element2.childNodes);
+}
+function set_data(text2, data) {
+  data = "" + data;
+  if (text2.data === data) return;
+  text2.data = /** @type {string} */
+  data;
+}
+function set_input_value(input, value) {
+  input.value = value == null ? "" : value;
+}
+function select_option(select, value, mounting) {
+  for (let i = 0; i < select.options.length; i += 1) {
+    const option = select.options[i];
+    if (option.__value === value) {
+      option.selected = true;
+      return;
+    }
+  }
+  if (!mounting || value !== void 0) {
+    select.selectedIndex = -1;
+  }
+}
+function select_value(select) {
+  const selected_option = select.querySelector(":checked");
+  return selected_option && selected_option.__value;
+}
+function toggle_class(element2, name, toggle) {
+  element2.classList.toggle(name, !!toggle);
+}
+function get_custom_elements_slots(element2) {
+  const result = {};
+  element2.childNodes.forEach(
+    /** @param {Element} node */
+    (node) => {
+      result[node.slot || "default"] = true;
+    }
+  );
+  return result;
+}
+
+// node_modules/svelte/src/runtime/internal/lifecycle.js
+var current_component;
+function set_current_component(component) {
+  current_component = component;
+}
+function get_current_component() {
+  if (!current_component) throw new Error("Function called outside component initialization");
+  return current_component;
+}
+function onMount(fn) {
+  get_current_component().$$.on_mount.push(fn);
+}
+
+// node_modules/svelte/src/runtime/internal/scheduler.js
+var dirty_components = [];
+var binding_callbacks = [];
+var render_callbacks = [];
+var flush_callbacks = [];
+var resolved_promise = /* @__PURE__ */ Promise.resolve();
+var update_scheduled = false;
+function schedule_update() {
+  if (!update_scheduled) {
+    update_scheduled = true;
+    resolved_promise.then(flush);
+  }
+}
+function add_render_callback(fn) {
+  render_callbacks.push(fn);
+}
+var seen_callbacks = /* @__PURE__ */ new Set();
+var flushidx = 0;
+function flush() {
+  if (flushidx !== 0) {
+    return;
+  }
+  const saved_component = current_component;
+  do {
+    try {
+      while (flushidx < dirty_components.length) {
+        const component = dirty_components[flushidx];
+        flushidx++;
+        set_current_component(component);
+        update(component.$$);
+      }
+    } catch (e) {
+      dirty_components.length = 0;
+      flushidx = 0;
+      throw e;
+    }
+    set_current_component(null);
+    dirty_components.length = 0;
+    flushidx = 0;
+    while (binding_callbacks.length) binding_callbacks.pop()();
+    for (let i = 0; i < render_callbacks.length; i += 1) {
+      const callback = render_callbacks[i];
+      if (!seen_callbacks.has(callback)) {
+        seen_callbacks.add(callback);
+        callback();
+      }
+    }
+    render_callbacks.length = 0;
+  } while (dirty_components.length);
+  while (flush_callbacks.length) {
+    flush_callbacks.pop()();
+  }
+  update_scheduled = false;
+  seen_callbacks.clear();
+  set_current_component(saved_component);
+}
+function update($$) {
+  if ($$.fragment !== null) {
+    $$.update();
+    run_all($$.before_update);
+    const dirty = $$.dirty;
+    $$.dirty = [-1];
+    $$.fragment && $$.fragment.p($$.ctx, dirty);
+    $$.after_update.forEach(add_render_callback);
+  }
+}
+function flush_render_callbacks(fns) {
+  const filtered = [];
+  const targets = [];
+  render_callbacks.forEach((c) => fns.indexOf(c) === -1 ? filtered.push(c) : targets.push(c));
+  targets.forEach((c) => c());
+  render_callbacks = filtered;
+}
+
+// node_modules/svelte/src/runtime/internal/transitions.js
+var outroing = /* @__PURE__ */ new Set();
+function transition_in(block, local) {
+  if (block && block.i) {
+    outroing.delete(block);
+    block.i(local);
+  }
+}
+
+// node_modules/svelte/src/runtime/internal/each.js
+function ensure_array_like(array_like_or_iterator) {
+  return (array_like_or_iterator == null ? void 0 : array_like_or_iterator.length) !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
+}
+
+// node_modules/svelte/src/shared/boolean_attributes.js
+var _boolean_attributes = (
+  /** @type {const} */
+  [
+    "allowfullscreen",
+    "allowpaymentrequest",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "hidden",
+    "inert",
+    "ismap",
+    "loop",
+    "multiple",
+    "muted",
+    "nomodule",
+    "novalidate",
+    "open",
+    "playsinline",
+    "readonly",
+    "required",
+    "reversed",
+    "selected"
+  ]
+);
+var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
+
+// node_modules/svelte/src/runtime/internal/Component.js
+function mount_component(component, target, anchor) {
+  const { fragment, after_update } = component.$$;
+  fragment && fragment.m(target, anchor);
+  add_render_callback(() => {
+    const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+    if (component.$$.on_destroy) {
+      component.$$.on_destroy.push(...new_on_destroy);
+    } else {
+      run_all(new_on_destroy);
+    }
+    component.$$.on_mount = [];
+  });
+  after_update.forEach(add_render_callback);
+}
+function destroy_component(component, detaching) {
+  const $$ = component.$$;
+  if ($$.fragment !== null) {
+    flush_render_callbacks($$.after_update);
+    run_all($$.on_destroy);
+    $$.fragment && $$.fragment.d(detaching);
+    $$.on_destroy = $$.fragment = null;
+    $$.ctx = [];
+  }
+}
+function make_dirty(component, i) {
+  if (component.$$.dirty[0] === -1) {
+    dirty_components.push(component);
+    schedule_update();
+    component.$$.dirty.fill(0);
+  }
+  component.$$.dirty[i / 31 | 0] |= 1 << i % 31;
+}
+function init(component, options, instance2, create_fragment2, not_equal, props, append_styles2 = null, dirty = [-1]) {
+  const parent_component = current_component;
+  set_current_component(component);
+  const $$ = component.$$ = {
+    fragment: null,
+    ctx: [],
+    // state
+    props,
+    update: noop,
+    not_equal,
+    bound: blank_object(),
+    // lifecycle
+    on_mount: [],
+    on_destroy: [],
+    on_disconnect: [],
+    before_update: [],
+    after_update: [],
+    context: new Map(options.context || (parent_component ? parent_component.$$.context : [])),
+    // everything else
+    callbacks: blank_object(),
+    dirty,
+    skip_bound: false,
+    root: options.target || parent_component.$$.root
+  };
+  append_styles2 && append_styles2($$.root);
+  let ready = false;
+  $$.ctx = instance2 ? instance2(component, options.props || {}, (i, ret, ...rest) => {
+    const value = rest.length ? rest[0] : ret;
+    if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
+      if (!$$.skip_bound && $$.bound[i]) $$.bound[i](value);
+      if (ready) make_dirty(component, i);
+    }
+    return ret;
+  }) : [];
+  $$.update();
+  ready = true;
+  run_all($$.before_update);
+  $$.fragment = create_fragment2 ? create_fragment2($$.ctx) : false;
+  if (options.target) {
+    if (options.hydrate) {
+      start_hydrating();
+      const nodes = children(options.target);
+      $$.fragment && $$.fragment.l(nodes);
+      nodes.forEach(detach);
+    } else {
+      $$.fragment && $$.fragment.c();
+    }
+    if (options.intro) transition_in(component.$$.fragment);
+    mount_component(component, options.target, options.anchor);
+    end_hydrating();
+    flush();
+  }
+  set_current_component(parent_component);
+}
+var SvelteElement;
+if (typeof HTMLElement === "function") {
+  SvelteElement = class extends HTMLElement {
+    constructor($$componentCtor, $$slots, use_shadow_dom) {
+      super();
+      /** The Svelte component constructor */
+      __publicField(this, "$$ctor");
+      /** Slots */
+      __publicField(this, "$$s");
+      /** The Svelte component instance */
+      __publicField(this, "$$c");
+      /** Whether or not the custom element is connected */
+      __publicField(this, "$$cn", false);
+      /** Component props data */
+      __publicField(this, "$$d", {});
+      /** `true` if currently in the process of reflecting component props back to attributes */
+      __publicField(this, "$$r", false);
+      /** @type {Record<string, CustomElementPropDefinition>} Props definition (name, reflected, type etc) */
+      __publicField(this, "$$p_d", {});
+      /** @type {Record<string, Function[]>} Event listeners */
+      __publicField(this, "$$l", {});
+      /** @type {Map<Function, Function>} Event listener unsubscribe functions */
+      __publicField(this, "$$l_u", /* @__PURE__ */ new Map());
+      this.$$ctor = $$componentCtor;
+      this.$$s = $$slots;
+      if (use_shadow_dom) {
+        this.attachShadow({ mode: "open" });
+      }
+    }
+    addEventListener(type, listener, options) {
+      this.$$l[type] = this.$$l[type] || [];
+      this.$$l[type].push(listener);
+      if (this.$$c) {
+        const unsub = this.$$c.$on(type, listener);
+        this.$$l_u.set(listener, unsub);
+      }
+      super.addEventListener(type, listener, options);
+    }
+    removeEventListener(type, listener, options) {
+      super.removeEventListener(type, listener, options);
+      if (this.$$c) {
+        const unsub = this.$$l_u.get(listener);
+        if (unsub) {
+          unsub();
+          this.$$l_u.delete(listener);
+        }
+      }
+      if (this.$$l[type]) {
+        const idx = this.$$l[type].indexOf(listener);
+        if (idx >= 0) {
+          this.$$l[type].splice(idx, 1);
+        }
+      }
+    }
+    connectedCallback() {
+      return __async(this, null, function* () {
+        this.$$cn = true;
+        if (!this.$$c) {
+          let create_slot = function(name) {
+            return () => {
+              let node;
+              const obj = {
+                c: function create() {
+                  node = element("slot");
+                  if (name !== "default") {
+                    attr(node, "name", name);
+                  }
+                },
+                /**
+                 * @param {HTMLElement} target
+                 * @param {HTMLElement} [anchor]
+                 */
+                m: function mount(target, anchor) {
+                  insert(target, node, anchor);
+                },
+                d: function destroy(detaching) {
+                  if (detaching) {
+                    detach(node);
+                  }
+                }
+              };
+              return obj;
+            };
+          };
+          yield Promise.resolve();
+          if (!this.$$cn || this.$$c) {
+            return;
+          }
+          const $$slots = {};
+          const existing_slots = get_custom_elements_slots(this);
+          for (const name of this.$$s) {
+            if (name in existing_slots) {
+              $$slots[name] = [create_slot(name)];
+            }
+          }
+          for (const attribute of this.attributes) {
+            const name = this.$$g_p(attribute.name);
+            if (!(name in this.$$d)) {
+              this.$$d[name] = get_custom_element_value(name, attribute.value, this.$$p_d, "toProp");
+            }
+          }
+          for (const key in this.$$p_d) {
+            if (!(key in this.$$d) && this[key] !== void 0) {
+              this.$$d[key] = this[key];
+              delete this[key];
+            }
+          }
+          this.$$c = new this.$$ctor({
+            target: this.shadowRoot || this,
+            props: __spreadProps(__spreadValues({}, this.$$d), {
+              $$slots,
+              $$scope: {
+                ctx: []
+              }
+            })
+          });
+          const reflect_attributes = () => {
+            this.$$r = true;
+            for (const key in this.$$p_d) {
+              this.$$d[key] = this.$$c.$$.ctx[this.$$c.$$.props[key]];
+              if (this.$$p_d[key].reflect) {
+                const attribute_value = get_custom_element_value(
+                  key,
+                  this.$$d[key],
+                  this.$$p_d,
+                  "toAttribute"
+                );
+                if (attribute_value == null) {
+                  this.removeAttribute(this.$$p_d[key].attribute || key);
+                } else {
+                  this.setAttribute(this.$$p_d[key].attribute || key, attribute_value);
+                }
+              }
+            }
+            this.$$r = false;
+          };
+          this.$$c.$$.after_update.push(reflect_attributes);
+          reflect_attributes();
+          for (const type in this.$$l) {
+            for (const listener of this.$$l[type]) {
+              const unsub = this.$$c.$on(type, listener);
+              this.$$l_u.set(listener, unsub);
+            }
+          }
+          this.$$l = {};
+        }
+      });
+    }
+    // We don't need this when working within Svelte code, but for compatibility of people using this outside of Svelte
+    // and setting attributes through setAttribute etc, this is helpful
+    attributeChangedCallback(attr2, _oldValue, newValue) {
+      var _a;
+      if (this.$$r) return;
+      attr2 = this.$$g_p(attr2);
+      this.$$d[attr2] = get_custom_element_value(attr2, newValue, this.$$p_d, "toProp");
+      (_a = this.$$c) == null ? void 0 : _a.$set({ [attr2]: this.$$d[attr2] });
+    }
+    disconnectedCallback() {
+      this.$$cn = false;
+      Promise.resolve().then(() => {
+        if (!this.$$cn && this.$$c) {
+          this.$$c.$destroy();
+          this.$$c = void 0;
+        }
+      });
+    }
+    $$g_p(attribute_name) {
+      return Object.keys(this.$$p_d).find(
+        (key) => this.$$p_d[key].attribute === attribute_name || !this.$$p_d[key].attribute && key.toLowerCase() === attribute_name
+      ) || attribute_name;
+    }
+  };
+}
+function get_custom_element_value(prop, value, props_definition, transform) {
+  var _a;
+  const type = (_a = props_definition[prop]) == null ? void 0 : _a.type;
+  value = type === "Boolean" && typeof value !== "boolean" ? value != null : value;
+  if (!transform || !props_definition[prop]) {
+    return value;
+  } else if (transform === "toAttribute") {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value == null ? null : JSON.stringify(value);
+      case "Boolean":
+        return value ? "" : null;
+      case "Number":
+        return value == null ? null : value;
+      default:
+        return value;
+    }
+  } else {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value && JSON.parse(value);
+      case "Boolean":
+        return value;
+      // conversion already handled above
+      case "Number":
+        return value != null ? +value : value;
+      default:
+        return value;
+    }
+  }
+}
+var SvelteComponent = class {
+  constructor() {
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$");
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$set");
+  }
+  /** @returns {void} */
+  $destroy() {
+    destroy_component(this, 1);
+    this.$destroy = noop;
+  }
+  /**
+   * @template {Extract<keyof Events, string>} K
+   * @param {K} type
+   * @param {((e: Events[K]) => void) | null | undefined} callback
+   * @returns {() => void}
+   */
+  $on(type, callback) {
+    if (!is_function(callback)) {
+      return noop;
+    }
+    const callbacks = this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
+    callbacks.push(callback);
+    return () => {
+      const index = callbacks.indexOf(callback);
+      if (index !== -1) callbacks.splice(index, 1);
+    };
+  }
+  /**
+   * @param {Partial<Props>} props
+   * @returns {void}
+   */
+  $set(props) {
+    if (this.$$set && !is_empty(props)) {
+      this.$$.skip_bound = true;
+      this.$$set(props);
+      this.$$.skip_bound = false;
+    }
+  }
+};
+
+// node_modules/svelte/src/shared/version.js
+var PUBLIC_VERSION = "4";
+
+// node_modules/svelte/src/runtime/internal/disclose-version/index.js
+if (typeof window !== "undefined")
+  (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
+
 // src/ui/modals/ImagePickerModal.ts
 var import_obsidian11 = require("obsidian");
 var ImagePickerModal = class extends import_obsidian11.FuzzySuggestModal {
@@ -1368,91 +2048,1008 @@ var ImagePickerModal = class extends import_obsidian11.FuzzySuggestModal {
   }
 };
 
+// src/ui/modals/Editor.svelte
+function add_css(target) {
+  append_styles(target, "svelte-13lc1at", '.card-grid-modal-container.svelte-13lc1at.svelte-13lc1at{display:flex;flex-direction:row;gap:20px;height:60vh}.card-grid-editor-side.svelte-13lc1at.svelte-13lc1at{flex:1.2;overflow-y:auto;padding-right:15px}.card-grid-preview-side.svelte-13lc1at.svelte-13lc1at{flex:0.8;display:flex;flex-direction:column;background:var(--background-secondary);border-radius:8px;padding:20px;border:1px solid var(--background-modifier-border);overflow:hidden;justify-content:center;align-items:center}.preview-label.svelte-13lc1at.svelte-13lc1at{font-size:0.8em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;font-weight:bold}.setting-item.svelte-13lc1at.svelte-13lc1at{display:flex;flex-direction:column;padding:12px 0;border-top:1px solid var(--background-modifier-border)}.setting-item.svelte-13lc1at.svelte-13lc1at:first-child{border-top:none}.setting-item-name.svelte-13lc1at.svelte-13lc1at{font-weight:600;margin-bottom:8px}input[type="text"].svelte-13lc1at.svelte-13lc1at,input[type="number"].svelte-13lc1at.svelte-13lc1at,select.svelte-13lc1at.svelte-13lc1at,textarea.svelte-13lc1at.svelte-13lc1at{width:100%}.image-field-row.svelte-13lc1at.svelte-13lc1at{display:flex;gap:8px;align-items:center}.path-text.svelte-13lc1at.svelte-13lc1at{flex:1;font-size:0.8em;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.modal-button-container.svelte-13lc1at.svelte-13lc1at{margin-top:20px;display:flex;justify-content:flex-end;gap:10px}.checkbox-container.svelte-13lc1at.svelte-13lc1at{background-color:var(--interactive-normal);border-radius:12px;cursor:pointer;height:24px;position:relative;transition:background-color 0.15s ease-in-out;width:45px}.checkbox-container.is-enabled.svelte-13lc1at.svelte-13lc1at{background-color:var(--interactive-accent)}.checkbox-container.svelte-13lc1at.svelte-13lc1at:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:2px}.checkbox-container.svelte-13lc1at input.svelte-13lc1at{pointer-events:none}');
+}
+function get_each_context(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[24] = list[i];
+  child_ctx[25] = list;
+  child_ctx[26] = i;
+  return child_ctx;
+}
+function get_each_context_1(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[27] = list[i];
+  return child_ctx;
+}
+function create_if_block_6(ctx) {
+  let textarea;
+  let textarea_placeholder_value;
+  let mounted;
+  let dispose;
+  function textarea_input_handler() {
+    ctx[20].call(
+      textarea,
+      /*field*/
+      ctx[24]
+    );
+  }
+  return {
+    c() {
+      var _a;
+      textarea = element("textarea");
+      attr(textarea, "rows", "8");
+      attr(textarea, "placeholder", textarea_placeholder_value = /*field*/
+      (_a = ctx[24].placeholder) != null ? _a : "");
+      attr(textarea, "class", "svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, textarea, anchor);
+      set_input_value(
+        textarea,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ]
+      );
+      if (!mounted) {
+        dispose = listen(textarea, "input", textarea_input_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      var _a;
+      ctx = new_ctx;
+      if (dirty & /*def*/
+      2 && textarea_placeholder_value !== (textarea_placeholder_value = /*field*/
+      (_a = ctx[24].placeholder) != null ? _a : "")) {
+        attr(textarea, "placeholder", textarea_placeholder_value);
+      }
+      if (dirty & /*draft, def*/
+      3) {
+        set_input_value(
+          textarea,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(textarea);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_5(ctx) {
+  let div;
+  let span;
+  let t0_value = (
+    /*draft*/
+    (ctx[0][
+      /*field*/
+      ctx[24].key
+    ] || "(none)") + ""
+  );
+  let t0;
+  let t1;
+  let button0;
+  let t3;
+  let button1;
+  let mounted;
+  let dispose;
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[18](
+        /*field*/
+        ctx[24]
+      )
+    );
+  }
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[19](
+        /*field*/
+        ctx[24]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      button0 = element("button");
+      button0.textContent = "Choose...";
+      t3 = space();
+      button1 = element("button");
+      button1.textContent = "Clear";
+      attr(span, "class", "path-text svelte-13lc1at");
+      attr(div, "class", "image-field-row svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span);
+      append(span, t0);
+      append(div, t1);
+      append(div, button0);
+      append(div, t3);
+      append(div, button1);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler_1),
+          listen(button1, "click", click_handler_2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*draft, def*/
+      3 && t0_value !== (t0_value = /*draft*/
+      (ctx[0][
+        /*field*/
+        ctx[24].key
+      ] || "(none)") + "")) set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_4(ctx) {
+  let input;
+  let mounted;
+  let dispose;
+  function input_input_handler_2() {
+    ctx[17].call(
+      input,
+      /*field*/
+      ctx[24]
+    );
+  }
+  return {
+    c() {
+      input = element("input");
+      attr(input, "type", "color");
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ]
+      );
+      if (!mounted) {
+        dispose = listen(input, "input", input_input_handler_2);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*draft, def*/
+      3) {
+        set_input_value(
+          input,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_3(ctx) {
+  let select;
+  let mounted;
+  let dispose;
+  let each_value_1 = ensure_array_like(
+    /*field*/
+    ctx[24].options
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+  }
+  function select_change_handler() {
+    ctx[16].call(
+      select,
+      /*field*/
+      ctx[24]
+    );
+  }
+  return {
+    c() {
+      select = element("select");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(select, "class", "svelte-13lc1at");
+      if (
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ] === void 0
+      ) add_render_callback(select_change_handler);
+    },
+    m(target, anchor) {
+      insert(target, select, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(select, null);
+        }
+      }
+      select_option(
+        select,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ],
+        true
+      );
+      if (!mounted) {
+        dispose = listen(select, "change", select_change_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*def*/
+      2) {
+        each_value_1 = ensure_array_like(
+          /*field*/
+          ctx[24].options
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_1(ctx, each_value_1, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_1(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(select, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_1.length;
+      }
+      if (dirty & /*draft, def*/
+      3) {
+        select_option(
+          select,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(select);
+      }
+      destroy_each(each_blocks, detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_2(ctx) {
+  let div;
+  let input;
+  let input_checked_value;
+  let div_aria_checked_value;
+  let mounted;
+  let dispose;
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[14](
+        /*field*/
+        ctx[24]
+      )
+    );
+  }
+  function keydown_handler(...args) {
+    return (
+      /*keydown_handler*/
+      ctx[15](
+        /*field*/
+        ctx[24],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      input = element("input");
+      attr(input, "type", "checkbox");
+      input.checked = input_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ];
+      attr(input, "tabindex", "-1");
+      attr(input, "class", "svelte-13lc1at");
+      attr(div, "class", "checkbox-container svelte-13lc1at");
+      attr(div, "role", "checkbox");
+      attr(div, "aria-checked", div_aria_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ]);
+      attr(div, "tabindex", "0");
+      toggle_class(
+        div,
+        "is-enabled",
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ]
+      );
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, input);
+      if (!mounted) {
+        dispose = [
+          listen(div, "click", click_handler),
+          listen(div, "keydown", keydown_handler)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*draft, def*/
+      3 && input_checked_value !== (input_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ])) {
+        input.checked = input_checked_value;
+      }
+      if (dirty & /*draft, def*/
+      3 && div_aria_checked_value !== (div_aria_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ])) {
+        attr(div, "aria-checked", div_aria_checked_value);
+      }
+      if (dirty & /*draft, def*/
+      3) {
+        toggle_class(
+          div,
+          "is-enabled",
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let input;
+  let input_step_value;
+  let mounted;
+  let dispose;
+  function input_input_handler_1() {
+    ctx[13].call(
+      input,
+      /*field*/
+      ctx[24]
+    );
+  }
+  return {
+    c() {
+      var _a;
+      input = element("input");
+      attr(input, "type", "number");
+      attr(input, "step", input_step_value = /*field*/
+      (_a = ctx[24].step) != null ? _a : 1);
+      attr(input, "class", "svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ]
+      );
+      if (!mounted) {
+        dispose = listen(input, "input", input_input_handler_1);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      var _a;
+      ctx = new_ctx;
+      if (dirty & /*def*/
+      2 && input_step_value !== (input_step_value = /*field*/
+      (_a = ctx[24].step) != null ? _a : 1)) {
+        attr(input, "step", input_step_value);
+      }
+      if (dirty & /*draft, def*/
+      3 && to_number(input.value) !== /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ]) {
+        set_input_value(
+          input,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block(ctx) {
+  let input;
+  let input_placeholder_value;
+  let mounted;
+  let dispose;
+  function input_input_handler() {
+    ctx[12].call(
+      input,
+      /*field*/
+      ctx[24]
+    );
+  }
+  return {
+    c() {
+      var _a;
+      input = element("input");
+      attr(input, "type", "text");
+      attr(input, "placeholder", input_placeholder_value = /*field*/
+      (_a = ctx[24].placeholder) != null ? _a : "");
+      attr(input, "class", "svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[24].key
+        ]
+      );
+      if (!mounted) {
+        dispose = listen(input, "input", input_input_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      var _a;
+      ctx = new_ctx;
+      if (dirty & /*def*/
+      2 && input_placeholder_value !== (input_placeholder_value = /*field*/
+      (_a = ctx[24].placeholder) != null ? _a : "")) {
+        attr(input, "placeholder", input_placeholder_value);
+      }
+      if (dirty & /*draft, def*/
+      3 && input.value !== /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[24].key
+      ]) {
+        set_input_value(
+          input,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[24].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block_1(ctx) {
+  let option;
+  let t_value = (
+    /*opt*/
+    ctx[27].label + ""
+  );
+  let t;
+  let option_value_value;
+  return {
+    c() {
+      option = element("option");
+      t = text(t_value);
+      option.__value = option_value_value = /*opt*/
+      ctx[27].value;
+      set_input_value(option, option.__value);
+    },
+    m(target, anchor) {
+      insert(target, option, anchor);
+      append(option, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*def*/
+      2 && t_value !== (t_value = /*opt*/
+      ctx2[27].label + "")) set_data(t, t_value);
+      if (dirty & /*def*/
+      2 && option_value_value !== (option_value_value = /*opt*/
+      ctx2[27].value)) {
+        option.__value = option_value_value;
+        set_input_value(option, option.__value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(option);
+      }
+    }
+  };
+}
+function create_each_block(ctx) {
+  let div3;
+  let div1;
+  let div0;
+  let t0_value = (
+    /*field*/
+    ctx[24].label + ""
+  );
+  let t0;
+  let t1;
+  let div2;
+  let t2;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*field*/
+      ctx2[24].kind === "text"
+    ) return create_if_block;
+    if (
+      /*field*/
+      ctx2[24].kind === "number"
+    ) return create_if_block_1;
+    if (
+      /*field*/
+      ctx2[24].kind === "toggle"
+    ) return create_if_block_2;
+    if (
+      /*field*/
+      ctx2[24].kind === "select"
+    ) return create_if_block_3;
+    if (
+      /*field*/
+      ctx2[24].kind === "color"
+    ) return create_if_block_4;
+    if (
+      /*field*/
+      ctx2[24].kind === "image-file"
+    ) return create_if_block_5;
+    if (
+      /*field*/
+      ctx2[24].kind === "markdown"
+    ) return create_if_block_6;
+  }
+  let current_block_type = select_block_type(ctx, -1);
+  let if_block = current_block_type && current_block_type(ctx);
+  return {
+    c() {
+      div3 = element("div");
+      div1 = element("div");
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      div2 = element("div");
+      if (if_block) if_block.c();
+      t2 = space();
+      attr(div0, "class", "setting-item-name svelte-13lc1at");
+      attr(div1, "class", "setting-item-info");
+      attr(div2, "class", "setting-item-control");
+      attr(div3, "class", "setting-item svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, div0);
+      append(div0, t0);
+      append(div3, t1);
+      append(div3, div2);
+      if (if_block) if_block.m(div2, null);
+      append(div3, t2);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*def*/
+      2 && t0_value !== (t0_value = /*field*/
+      ctx2[24].label + "")) set_data(t0, t0_value);
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if (if_block) if_block.d(1);
+        if_block = current_block_type && current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div2, null);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block) {
+        if_block.d();
+      }
+    }
+  };
+}
+function create_fragment(ctx) {
+  let div4;
+  let div0;
+  let t0;
+  let div3;
+  let div1;
+  let t2;
+  let div2;
+  let t3;
+  let div5;
+  let button0;
+  let t5;
+  let button1;
+  let mounted;
+  let dispose;
+  let each_value = ensure_array_like(
+    /*def*/
+    ctx[1].editor.fields
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+  }
+  return {
+    c() {
+      div4 = element("div");
+      div0 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t0 = space();
+      div3 = element("div");
+      div1 = element("div");
+      div1.textContent = "Preview";
+      t2 = space();
+      div2 = element("div");
+      t3 = space();
+      div5 = element("div");
+      button0 = element("button");
+      button0.textContent = "Cancel";
+      t5 = space();
+      button1 = element("button");
+      button1.textContent = "Save";
+      attr(div0, "class", "card-grid-editor-side svelte-13lc1at");
+      attr(div1, "class", "preview-label svelte-13lc1at");
+      attr(div2, "class", "preview-host");
+      attr(div3, "class", "card-grid-preview-side svelte-13lc1at");
+      attr(div4, "class", "card-grid-modal-container svelte-13lc1at");
+      attr(button1, "class", "mod-cta");
+      attr(div5, "class", "modal-button-container svelte-13lc1at");
+    },
+    m(target, anchor) {
+      insert(target, div4, anchor);
+      append(div4, div0);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div0, null);
+        }
+      }
+      append(div4, t0);
+      append(div4, div3);
+      append(div3, div1);
+      append(div3, t2);
+      append(div3, div2);
+      ctx[21](div2);
+      insert(target, t3, anchor);
+      insert(target, div5, anchor);
+      append(div5, button0);
+      append(div5, t5);
+      append(div5, button1);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", function() {
+            if (is_function(
+              /*onCancel*/
+              ctx[3]
+            )) ctx[3].apply(this, arguments);
+          }),
+          listen(
+            button1,
+            "click",
+            /*click_handler_3*/
+            ctx[22]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, [dirty]) {
+      ctx = new_ctx;
+      if (dirty & /*def, draft, openImagePicker*/
+      35) {
+        each_value = ensure_array_like(
+          /*def*/
+          ctx[1].editor.fields
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context(ctx, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div0, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div4);
+        detach(t3);
+        detach(div5);
+      }
+      destroy_each(each_blocks, detaching);
+      ctx[21](null);
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance($$self, $$props, $$invalidate) {
+  let { app } = $$props;
+  let { plugin } = $$props;
+  let { grid } = $$props;
+  let { def } = $$props;
+  let { draft } = $$props;
+  let { sourcePath } = $$props;
+  let { onSave } = $$props;
+  let { onCancel } = $$props;
+  let previewContainer;
+  let previewView;
+  let debounceTimer;
+  onMount(() => {
+    const ctx = { app, plugin, sourcePath, grid };
+    $$invalidate(10, previewView = def.createView(ctx));
+    previewContainer.appendChild(previewView.el);
+    updatePreview();
+  });
+  function updatePreview() {
+    var _a;
+    if (!previewView) return;
+    const ctx = { app, plugin, sourcePath, grid };
+    const gridHost = document.querySelector(`[data-card-grid-id="${grid.id}"]`);
+    const gridContainer = gridHost === null || gridHost === void 0 ? void 0 : gridHost.querySelector(".card-grid-container");
+    const gridWidth = (gridContainer === null || gridContainer === void 0 ? void 0 : gridContainer.offsetWidth) || 800;
+    const columns = grid.columns || 3;
+    const gap = (_a = grid.gap) !== null && _a !== void 0 ? _a : 10;
+    const widthFraction = Number(draft.width) || 1;
+    const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
+    $$invalidate(10, previewView.el.style.width = `${realPixelWidth}px`, previewView);
+    $$invalidate(10, previewView.el.style.height = "auto", previewView);
+    $$invalidate(10, previewView.el.style.flex = "none", previewView);
+    const ratio = widthFraction / columns;
+    let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
+    if (def.type === "procedure" && ratio > 0.4) zoom = 0.45;
+    $$invalidate(10, previewView.el.style.zoom = String(zoom), previewView);
+    const normalized = def.normalize(draft);
+    previewView.update(normalized, ctx);
+  }
+  function openImagePicker(key) {
+    new ImagePickerModal(
+      app,
+      (file) => {
+        $$invalidate(0, draft[key] = file.path, draft);
+        $$invalidate(0, draft = Object.assign({}, draft));
+      }
+    ).open();
+  }
+  function input_input_handler(field) {
+    draft[field.key] = this.value;
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  function input_input_handler_1(field) {
+    draft[field.key] = to_number(this.value);
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  const click_handler = (field) => {
+    $$invalidate(0, draft[field.key] = !draft[field.key], draft);
+    $$invalidate(0, draft = __spreadValues({}, draft));
+  };
+  const keydown_handler = (field, e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      $$invalidate(0, draft[field.key] = !draft[field.key], draft);
+      $$invalidate(0, draft = __spreadValues({}, draft));
+    }
+  };
+  function select_change_handler(field) {
+    draft[field.key] = select_value(this);
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  function input_input_handler_2(field) {
+    draft[field.key] = this.value;
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  const click_handler_1 = (field) => openImagePicker(field.key);
+  const click_handler_2 = (field) => {
+    $$invalidate(0, draft[field.key] = "", draft);
+    $$invalidate(0, draft = __spreadValues({}, draft));
+  };
+  function textarea_input_handler(field) {
+    draft[field.key] = this.value;
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  function div2_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      previewContainer = $$value;
+      $$invalidate(4, previewContainer);
+    });
+  }
+  const click_handler_3 = () => onSave(draft);
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2) $$invalidate(6, app = $$props2.app);
+    if ("plugin" in $$props2) $$invalidate(7, plugin = $$props2.plugin);
+    if ("grid" in $$props2) $$invalidate(8, grid = $$props2.grid);
+    if ("def" in $$props2) $$invalidate(1, def = $$props2.def);
+    if ("draft" in $$props2) $$invalidate(0, draft = $$props2.draft);
+    if ("sourcePath" in $$props2) $$invalidate(9, sourcePath = $$props2.sourcePath);
+    if ("onSave" in $$props2) $$invalidate(2, onSave = $$props2.onSave);
+    if ("onCancel" in $$props2) $$invalidate(3, onCancel = $$props2.onCancel);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*draft, previewView, debounceTimer*/
+    3073) {
+      $: {
+        draft;
+        if (previewView) {
+          clearTimeout(debounceTimer);
+          $$invalidate(11, debounceTimer = window.setTimeout(updatePreview, 100));
+        }
+      }
+    }
+  };
+  return [
+    draft,
+    def,
+    onSave,
+    onCancel,
+    previewContainer,
+    openImagePicker,
+    app,
+    plugin,
+    grid,
+    sourcePath,
+    previewView,
+    debounceTimer,
+    input_input_handler,
+    input_input_handler_1,
+    click_handler,
+    keydown_handler,
+    select_change_handler,
+    input_input_handler_2,
+    click_handler_1,
+    click_handler_2,
+    textarea_input_handler,
+    div2_binding,
+    click_handler_3
+  ];
+}
+var Editor = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(
+      this,
+      options,
+      instance,
+      create_fragment,
+      safe_not_equal,
+      {
+        app: 6,
+        plugin: 7,
+        grid: 8,
+        def: 1,
+        draft: 0,
+        sourcePath: 9,
+        onSave: 2,
+        onCancel: 3
+      },
+      add_css
+    );
+  }
+};
+var Editor_default = Editor;
+
 // src/ui/modals/CardEditorModal.ts
 function clone(value) {
   const sc = globalThis.structuredClone;
   if (sc) return sc(value);
   return JSON.parse(JSON.stringify(value));
 }
-function injectStyles(container) {
-  if (container.querySelector("style[data-card-editor]")) return;
-  const style = document.createElement("style");
-  style.setAttribute("data-card-editor", "true");
-  style.textContent = `
-  .card-grid-modal-container {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    height: 65vh;
-    min-height: 400px;
-  }
-
-  .card-grid-editor-side {
-    flex: 1.2;
-    overflow-y: auto;
-    padding-right: 15px;
-  }
-
-  .card-grid-preview-side {
-    flex: 0.8;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: var(--background-secondary);
-    border-radius: 8px;
-    padding: 20px;
-    border: 1px solid var(--background-modifier-border);
-    position: sticky;
-    top: 0;
-  }
-
-  .card-grid-editor .card-grid-md-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .card-grid-editor .card-grid-md-toolbar {
-    display: flex;
-    gap: 6px;
-  }
-
-  .card-grid-editor .card-grid-md-toolbar button {
-    flex: 1;
-    border-radius: 6px;
-  }
-
-  .card-grid-editor .card-grid-md-toolbar button.mod-cta {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-  }
-
-  .card-grid-editor .card-grid-md-editor,
-  .card-grid-editor .card-grid-md-preview {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    padding: 10px;
-    background: var(--background-primary);
-    min-height: 150px;
-    max-height: 400px;
-    overflow: auto;
-  }
-
-  .card-grid-editor textarea {
-    width: 100%;
-    resize: vertical;
-    background: transparent;
-  }
-  `;
-  container.appendChild(style);
-}
 var CardEditorModal = class extends import_obsidian12.Modal {
   constructor(app, plugin, sourcePath, grid, def, card, onSubmit) {
     super(app);
-    this.previewView = null;
-    this.previewTimeout = null;
     this.plugin = plugin;
     this.sourcePath = sourcePath;
     this.grid = grid;
@@ -1462,188 +3059,32 @@ var CardEditorModal = class extends import_obsidian12.Modal {
     this.setTitle(def.editor.title);
   }
   onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
     this.modalEl.style.width = "900px";
     this.modalEl.style.maxWidth = "95vw";
-    contentEl.addClass("card-grid-editor");
-    contentEl.addClass(`card-type-${this.def.type}`);
-    injectStyles(contentEl);
-    const container = contentEl.createDiv("card-grid-modal-container");
-    const editorSide = container.createDiv("card-grid-editor-side");
-    const previewSide = container.createDiv("card-grid-preview-side");
-    this.setupPreview(previewSide);
-    this.renderFields(this.def.editor, editorSide);
-    this.debouncedRefresh();
-    new import_obsidian12.Setting(contentEl).addButton(
-      (b) => b.setButtonText("Cancel").onClick(() => {
-        this.onSubmit(null);
-        this.close();
-      })
-    ).addButton(
-      (b) => b.setCta().setButtonText("Save").onClick(() => {
-        const normalized = this.def.normalize(this.draft);
-        this.onSubmit(normalized);
-        this.close();
-      })
-    );
+    this.contentEl.empty();
+    this.svelteComponent = new Editor_default({
+      target: this.contentEl,
+      props: {
+        app: this.app,
+        plugin: this.plugin,
+        grid: this.grid,
+        def: this.def,
+        draft: this.draft,
+        sourcePath: this.sourcePath,
+        onSave: (finalDraft) => {
+          this.onSubmit(this.def.normalize(finalDraft));
+          this.close();
+        },
+        onCancel: () => {
+          this.onSubmit(null);
+          this.close();
+        }
+      }
+    });
   }
   onClose() {
-    this.contentEl.empty();
-  }
-  setupPreview(container) {
-    const ctx = {
-      app: this.app,
-      plugin: this.plugin,
-      sourcePath: this.sourcePath,
-      grid: this.grid
-    };
-    this.previewView = this.def.createView(ctx);
-    container.appendChild(this.previewView.el);
-  }
-  debouncedRefresh() {
-    if (this.previewTimeout) window.clearTimeout(this.previewTimeout);
-    this.previewTimeout = window.setTimeout(() => this.renderPreview(), 150);
-  }
-  renderPreview() {
     var _a;
-    if (!this.previewView) return;
-    const ctx = {
-      app: this.app,
-      plugin: this.plugin,
-      sourcePath: this.sourcePath,
-      grid: this.grid
-    };
-    const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
-    const gridContainer = gridHost == null ? void 0 : gridHost.querySelector(".card-grid-container");
-    const gridWidth = (gridContainer == null ? void 0 : gridContainer.offsetWidth) || 800;
-    const columns = this.grid.columns || 3;
-    const gap = (_a = this.grid.gap) != null ? _a : 10;
-    const widthFraction = Number(this.draft["width"]) || 1;
-    const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
-    this.previewView.el.style.width = `${realPixelWidth}px`;
-    const ratio = widthFraction / columns;
-    let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
-    if (this.def.type === "procedure" && ratio > 0.4) zoom = 0.45;
-    this.previewView.el.style.height = "auto";
-    this.previewView.el.style.flex = "none";
-    this.previewView.el.style.zoom = String(zoom);
-    const normalized = this.def.normalize(this.draft);
-    this.previewView.update(normalized, ctx);
-  }
-  renderFields(spec, container) {
-    for (const field of spec.fields) {
-      this.renderField(field, container);
-    }
-  }
-  renderField(field, container) {
-    const key = field.key;
-    const getString = () => typeof this.draft[key] === "string" ? this.draft[key] : "";
-    const getNumber = () => typeof this.draft[key] === "number" ? this.draft[key] : void 0;
-    const getBoolean = () => typeof this.draft[key] === "boolean" ? this.draft[key] : void 0;
-    const setValue = (value) => {
-      this.draft[key] = value;
-    };
-    if (field.kind === "text") {
-      new import_obsidian12.Setting(container).setName(field.label).addText((t) => {
-        var _a;
-        t.setPlaceholder((_a = field.placeholder) != null ? _a : "").setValue(getString());
-        t.onChange((v) => {
-          setValue(v);
-          this.debouncedRefresh();
-        });
-      });
-      return;
-    }
-    if (field.kind === "number") {
-      new import_obsidian12.Setting(container).setName(field.label).addText((t) => {
-        const initial = getNumber();
-        t.setValue(initial === void 0 ? "" : String(initial));
-        t.onChange((v) => {
-          const n = Number(v);
-          setValue(Number.isFinite(n) ? n : void 0);
-          this.debouncedRefresh();
-        });
-      });
-      return;
-    }
-    if (field.kind === "select") {
-      new import_obsidian12.Setting(container).setName(field.label).addDropdown((d) => {
-        var _a, _b, _c;
-        for (const opt of field.options) d.addOption(opt.value, opt.label);
-        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_c = (_b = field.defaultValue) != null ? _b : (_a = field.options[0]) == null ? void 0 : _a.value) != null ? _c : "";
-        if (initial) d.setValue(initial);
-        d.onChange((v) => {
-          setValue(v);
-          this.debouncedRefresh();
-        });
-      });
-      return;
-    }
-    if (field.kind === "toggle") {
-      new import_obsidian12.Setting(container).setName(field.label).addToggle((t) => {
-        var _a;
-        const initial = getBoolean();
-        t.setValue((_a = initial != null ? initial : field.defaultValue) != null ? _a : false);
-        t.onChange((v) => {
-          setValue(v);
-          this.debouncedRefresh();
-        });
-      });
-      return;
-    }
-    if (field.kind === "color") {
-      new import_obsidian12.Setting(container).setName(field.label).addColorPicker((c) => {
-        var _a;
-        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_a = field.defaultValue) != null ? _a : "#cccccc";
-        c.setValue(initial);
-        c.onChange((v) => {
-          setValue(v);
-          this.debouncedRefresh();
-        });
-      });
-      return;
-    }
-    if (field.kind === "image-file") {
-      const setting = new import_obsidian12.Setting(container).setName(field.label);
-      const desc = setting.descEl;
-      const renderDesc = () => {
-        const v = getString();
-        desc.setText(v ? v : "(none)");
-      };
-      renderDesc();
-      setting.addButton(
-        (b) => b.setButtonText("Choose\u2026").onClick(() => {
-          new ImagePickerModal(this.app, (file) => {
-            setValue(file.path);
-            renderDesc();
-            this.debouncedRefresh();
-          }).open();
-        })
-      );
-      setting.addButton(
-        (b) => b.setButtonText("Clear").onClick(() => {
-          setValue("");
-          renderDesc();
-          this.debouncedRefresh();
-        })
-      );
-      return;
-    }
-    if (field.kind === "markdown") {
-      new import_obsidian12.Setting(container).setName(field.label).addTextArea((t) => {
-        var _a;
-        t.setValue(getString());
-        t.setPlaceholder((_a = field.placeholder) != null ? _a : "");
-        t.onChange((v) => {
-          setValue(v);
-          this.debouncedRefresh();
-        });
-        t.inputEl.rows = 8;
-        t.inputEl.style.width = "100%";
-      });
-      return;
-    }
+    (_a = this.svelteComponent) == null ? void 0 : _a.$destroy();
   }
 };
 
@@ -1965,12 +3406,12 @@ var GridController = class {
   updateCardWidths(updates) {
     this.setResizing(true);
     try {
-      for (const update of updates) {
-        const card = this.findCard(update.id);
+      for (const update2 of updates) {
+        const card = this.findCard(update2.id);
         if (!card) continue;
         this.store.dispatch({
           type: "card/replace",
-          card: __spreadProps(__spreadValues({}, card), { width: Math.round(update.width * 1e3) / 1e3 })
+          card: __spreadProps(__spreadValues({}, card), { width: Math.round(update2.width * 1e3) / 1e3 })
         });
       }
     } finally {
