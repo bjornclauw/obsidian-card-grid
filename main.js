@@ -1379,6 +1379,34 @@ function injectStyles(container) {
   const style = document.createElement("style");
   style.setAttribute("data-card-editor", "true");
   style.textContent = `
+  .card-grid-modal-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    height: 65vh;
+    min-height: 400px;
+  }
+
+  .card-grid-editor-side {
+    flex: 1.2;
+    overflow-y: auto;
+    padding-right: 15px;
+  }
+
+  .card-grid-preview-side {
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--background-modifier-border);
+    position: sticky;
+    top: 0;
+  }
+
   .card-grid-editor .card-grid-md-field {
     display: flex;
     flex-direction: column;
@@ -1423,6 +1451,8 @@ function injectStyles(container) {
 var CardEditorModal = class extends import_obsidian12.Modal {
   constructor(app, plugin, sourcePath, grid, def, card, onSubmit) {
     super(app);
+    this.previewView = null;
+    this.previewTimeout = null;
     this.plugin = plugin;
     this.sourcePath = sourcePath;
     this.grid = grid;
@@ -1434,10 +1464,17 @@ var CardEditorModal = class extends import_obsidian12.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
+    this.modalEl.style.width = "900px";
+    this.modalEl.style.maxWidth = "95vw";
     contentEl.addClass("card-grid-editor");
     contentEl.addClass(`card-type-${this.def.type}`);
     injectStyles(contentEl);
-    this.renderFields(this.def.editor, contentEl);
+    const container = contentEl.createDiv("card-grid-modal-container");
+    const editorSide = container.createDiv("card-grid-editor-side");
+    const previewSide = container.createDiv("card-grid-preview-side");
+    this.setupPreview(previewSide);
+    this.renderFields(this.def.editor, editorSide);
+    this.debouncedRefresh();
     new import_obsidian12.Setting(contentEl).addButton(
       (b) => b.setButtonText("Cancel").onClick(() => {
         this.onSubmit(null);
@@ -1454,13 +1491,52 @@ var CardEditorModal = class extends import_obsidian12.Modal {
   onClose() {
     this.contentEl.empty();
   }
+  setupPreview(container) {
+    const ctx = {
+      app: this.app,
+      plugin: this.plugin,
+      sourcePath: this.sourcePath,
+      grid: this.grid
+    };
+    this.previewView = this.def.createView(ctx);
+    container.appendChild(this.previewView.el);
+  }
+  debouncedRefresh() {
+    if (this.previewTimeout) window.clearTimeout(this.previewTimeout);
+    this.previewTimeout = window.setTimeout(() => this.renderPreview(), 150);
+  }
+  renderPreview() {
+    var _a;
+    if (!this.previewView) return;
+    const ctx = {
+      app: this.app,
+      plugin: this.plugin,
+      sourcePath: this.sourcePath,
+      grid: this.grid
+    };
+    const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
+    const gridContainer = gridHost == null ? void 0 : gridHost.querySelector(".card-grid-container");
+    const gridWidth = (gridContainer == null ? void 0 : gridContainer.offsetWidth) || 800;
+    const columns = this.grid.columns || 3;
+    const gap = (_a = this.grid.gap) != null ? _a : 10;
+    const widthFraction = Number(this.draft["width"]) || 1;
+    const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
+    this.previewView.el.style.width = `${realPixelWidth}px`;
+    const ratio = widthFraction / columns;
+    let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
+    if (this.def.type === "procedure" && ratio > 0.4) zoom = 0.45;
+    this.previewView.el.style.height = "auto";
+    this.previewView.el.style.flex = "none";
+    this.previewView.el.style.zoom = String(zoom);
+    const normalized = this.def.normalize(this.draft);
+    this.previewView.update(normalized, ctx);
+  }
   renderFields(spec, container) {
     for (const field of spec.fields) {
       this.renderField(field, container);
     }
   }
   renderField(field, container) {
-    var _a;
     const key = field.key;
     const getString = () => typeof this.draft[key] === "string" ? this.draft[key] : "";
     const getNumber = () => typeof this.draft[key] === "number" ? this.draft[key] : void 0;
@@ -1470,9 +1546,12 @@ var CardEditorModal = class extends import_obsidian12.Modal {
     };
     if (field.kind === "text") {
       new import_obsidian12.Setting(container).setName(field.label).addText((t) => {
-        var _a2;
-        t.setPlaceholder((_a2 = field.placeholder) != null ? _a2 : "").setValue(getString());
-        t.onChange((v) => setValue(v));
+        var _a;
+        t.setPlaceholder((_a = field.placeholder) != null ? _a : "").setValue(getString());
+        t.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
       });
       return;
     }
@@ -1483,35 +1562,45 @@ var CardEditorModal = class extends import_obsidian12.Modal {
         t.onChange((v) => {
           const n = Number(v);
           setValue(Number.isFinite(n) ? n : void 0);
+          this.debouncedRefresh();
         });
       });
       return;
     }
     if (field.kind === "select") {
       new import_obsidian12.Setting(container).setName(field.label).addDropdown((d) => {
-        var _a2, _b, _c;
+        var _a, _b, _c;
         for (const opt of field.options) d.addOption(opt.value, opt.label);
-        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_c = (_b = field.defaultValue) != null ? _b : (_a2 = field.options[0]) == null ? void 0 : _a2.value) != null ? _c : "";
+        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_c = (_b = field.defaultValue) != null ? _b : (_a = field.options[0]) == null ? void 0 : _a.value) != null ? _c : "";
         if (initial) d.setValue(initial);
-        d.onChange((v) => setValue(v));
+        d.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
       });
       return;
     }
     if (field.kind === "toggle") {
       new import_obsidian12.Setting(container).setName(field.label).addToggle((t) => {
-        var _a2;
+        var _a;
         const initial = getBoolean();
-        t.setValue((_a2 = initial != null ? initial : field.defaultValue) != null ? _a2 : false);
-        t.onChange((v) => setValue(v));
+        t.setValue((_a = initial != null ? initial : field.defaultValue) != null ? _a : false);
+        t.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
       });
       return;
     }
     if (field.kind === "color") {
       new import_obsidian12.Setting(container).setName(field.label).addColorPicker((c) => {
-        var _a2;
-        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_a2 = field.defaultValue) != null ? _a2 : "#cccccc";
+        var _a;
+        const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_a = field.defaultValue) != null ? _a : "#cccccc";
         c.setValue(initial);
-        c.onChange((v) => setValue(v));
+        c.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
       });
       return;
     }
@@ -1528,6 +1617,7 @@ var CardEditorModal = class extends import_obsidian12.Modal {
           new ImagePickerModal(this.app, (file) => {
             setValue(file.path);
             renderDesc();
+            this.debouncedRefresh();
           }).open();
         })
       );
@@ -1535,77 +1625,23 @@ var CardEditorModal = class extends import_obsidian12.Modal {
         (b) => b.setButtonText("Clear").onClick(() => {
           setValue("");
           renderDesc();
+          this.debouncedRefresh();
         })
       );
       return;
     }
     if (field.kind === "markdown") {
-      const setting = new import_obsidian12.Setting(container).setName(field.label);
-      const wrapper = setting.controlEl.createDiv("card-grid-md-field");
-      const toolbar = wrapper.createDiv("card-grid-md-toolbar");
-      const editorWrap = wrapper.createDiv("card-grid-md-editor");
-      const previewWrap = wrapper.createDiv("card-grid-md-preview");
-      const textarea = new import_obsidian12.TextAreaComponent(editorWrap);
-      textarea.inputEl.rows = 8;
-      textarea.setValue(getString());
-      textarea.setPlaceholder((_a = field.placeholder) != null ? _a : "");
-      textarea.onChange((v) => setValue(v));
-      let showingPreview = false;
-      const renderPreview = () => __async(this, null, function* () {
-        var _a2;
-        previewWrap.empty();
-        const ctx = {
-          app: this.app,
-          plugin: this.plugin,
-          sourcePath: this.sourcePath,
-          grid: this.grid
-        };
-        const view = this.def.createView(ctx);
-        const cardEl = view.el;
-        const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
-        const gridContainer = gridHost == null ? void 0 : gridHost.querySelector(".card-grid-container");
-        const gridWidth = (gridContainer == null ? void 0 : gridContainer.offsetWidth) || 800;
-        const columns = this.grid.columns || 3;
-        const gap = (_a2 = this.grid.gap) != null ? _a2 : 10;
-        const widthFraction = Number(this.draft["width"]) || 1;
-        const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
-        cardEl.style.width = `${realPixelWidth}px`;
-        const availableWidth = previewWrap.clientWidth || 500;
-        const fitZoom = (availableWidth - 10) / realPixelWidth;
-        const ratio = widthFraction / columns;
-        let zoom = fitZoom;
-        if (ratio <= 0.4) {
-          zoom = Math.min(fitZoom, 0.75);
-        } else if (ratio >= 0.8) {
-          zoom = Math.min(1, fitZoom * 1.15);
-        } else {
-          zoom = Math.min(1, fitZoom);
-        }
-        cardEl.style.flex = "0 0 auto";
-        cardEl.style.margin = "0 auto";
-        cardEl.style.zoom = String(zoom);
-        previewWrap.appendChild(cardEl);
-        const normalized = this.def.normalize(this.draft);
-        view.update(normalized, ctx);
+      new import_obsidian12.Setting(container).setName(field.label).addTextArea((t) => {
+        var _a;
+        t.setValue(getString());
+        t.setPlaceholder((_a = field.placeholder) != null ? _a : "");
+        t.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
+        t.inputEl.rows = 8;
+        t.inputEl.style.width = "100%";
       });
-      const update = () => {
-        editorWrap.style.display = showingPreview ? "none" : "";
-        previewWrap.style.display = showingPreview ? "" : "none";
-      };
-      const editBtn = new import_obsidian12.ButtonComponent(toolbar).setButtonText("Edit").setCta().onClick(() => {
-        showingPreview = false;
-        editBtn.setCta();
-        previewBtn.removeCta();
-        update();
-      });
-      const previewBtn = new import_obsidian12.ButtonComponent(toolbar).setButtonText("Preview").onClick(() => __async(this, null, function* () {
-        showingPreview = true;
-        previewBtn.setCta();
-        editBtn.removeCta();
-        update();
-        yield renderPreview();
-      }));
-      update();
       return;
     }
   }

@@ -34,6 +34,34 @@ function injectStyles(container: HTMLElement) {
   const style = document.createElement("style");
   style.setAttribute("data-card-editor", "true");
   style.textContent = `
+  .card-grid-modal-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    height: 65vh;
+    min-height: 400px;
+  }
+
+  .card-grid-editor-side {
+    flex: 1.2;
+    overflow-y: auto;
+    padding-right: 15px;
+  }
+
+  .card-grid-preview-side {
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--background-modifier-border);
+    position: sticky;
+    top: 0;
+  }
+
   .card-grid-editor .card-grid-md-field {
     display: flex;
     flex-direction: column;
@@ -84,6 +112,9 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
   private readonly draft: Record<string, unknown>;
   private readonly onSubmit: OnSubmit;
 
+  private previewView: any = null;
+  private previewTimeout: number | null = null;
+
   constructor(
     app: App,
     plugin: Plugin,
@@ -106,12 +137,23 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
   onOpen(): void {
     const { contentEl } = this;
     contentEl.empty();
+
+    // Make modal wider for side-by-side preview
+    this.modalEl.style.width = "900px";
+    this.modalEl.style.maxWidth = "95vw";
+
     contentEl.addClass("card-grid-editor");
     contentEl.addClass(`card-type-${this.def.type}`);
 
     injectStyles(contentEl);
 
-    this.renderFields(this.def.editor, contentEl);
+    const container = contentEl.createDiv("card-grid-modal-container");
+    const editorSide = container.createDiv("card-grid-editor-side");
+    const previewSide = container.createDiv("card-grid-preview-side");
+
+    this.setupPreview(previewSide);
+    this.renderFields(this.def.editor, editorSide);
+    this.debouncedRefresh();
 
     new Setting(contentEl)
       .addButton((b) =>
@@ -131,6 +173,57 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
 
   onClose(): void {
     this.contentEl.empty();
+  }
+
+  private setupPreview(container: HTMLElement) {
+    const ctx = {
+      app: this.app,
+      plugin: this.plugin,
+      sourcePath: this.sourcePath,
+      grid: this.grid
+    };
+    this.previewView = this.def.createView(ctx);
+    container.appendChild(this.previewView.el);
+  }
+
+  private debouncedRefresh() {
+    if (this.previewTimeout) window.clearTimeout(this.previewTimeout);
+    this.previewTimeout = window.setTimeout(() => this.renderPreview(), 150);
+  }
+
+  private renderPreview() {
+    if (!this.previewView) return;
+
+    const ctx = {
+      app: this.app,
+      plugin: this.plugin,
+      sourcePath: this.sourcePath,
+      grid: this.grid
+    };
+
+    const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
+    const gridContainer = gridHost?.querySelector(".card-grid-container") as HTMLElement;
+    const gridWidth = gridContainer?.offsetWidth || 800;
+
+    const columns = this.grid.columns || 3;
+    const gap = this.grid.gap ?? 10;
+    const widthFraction = Number(this.draft["width"]) || 1;
+
+    const realPixelWidth = ((gridWidth + gap) / columns) * widthFraction - gap;
+    this.previewView.el.style.width = `${realPixelWidth}px`;
+
+    const ratio = widthFraction / columns;
+
+    let zoom = ratio > 0.8 ? 0.5 : (ratio > 0.4 ? 0.6 : 0.8);
+    if (this.def.type === "procedure" && ratio > 0.4) zoom = 0.45;
+
+    // Ensure the card doesn't stretch vertically in the flex container
+    this.previewView.el.style.height = "auto";
+    this.previewView.el.style.flex = "none";
+    this.previewView.el.style.zoom = String(zoom);
+
+    const normalized = this.def.normalize(this.draft);
+    this.previewView.update(normalized, ctx);
   }
 
   private renderFields(spec: CardEditorSpec, container: HTMLElement): void {
@@ -162,7 +255,10 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     if (field.kind === "text") {
       new Setting(container).setName(field.label).addText((t: TextComponent) => {
         t.setPlaceholder(field.placeholder ?? "").setValue(getString());
-        t.onChange((v) => setValue(v));
+        t.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
+        });
       });
       return;
     }
@@ -174,6 +270,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
         t.onChange((v) => {
           const n = Number(v);
           setValue(Number.isFinite(n) ? n : undefined);
+          this.debouncedRefresh();
         });
       });
       return;
@@ -189,7 +286,10 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
               ? (this.draft[key] as string)
               : field.defaultValue ?? field.options[0]?.value ?? "";
           if (initial) d.setValue(initial);
-          d.onChange((v) => setValue(v));
+          d.onChange((v) => {
+            setValue(v);
+            this.debouncedRefresh();
+          });
         });
       return;
     }
@@ -200,7 +300,10 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
         .addToggle((t: ToggleComponent) => {
           const initial = getBoolean();
           t.setValue(initial ?? field.defaultValue ?? false);
-          t.onChange((v) => setValue(v));
+          t.onChange((v) => {
+            setValue(v);
+            this.debouncedRefresh();
+          });
         });
       return;
     }
@@ -214,7 +317,10 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
               ? (this.draft[key] as string)
               : field.defaultValue ?? "#cccccc";
           c.setValue(initial);
-          c.onChange((v) => setValue(v));
+          c.onChange((v) => {
+            setValue(v);
+            this.debouncedRefresh();
+          });
         });
       return;
     }
@@ -234,6 +340,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
           new ImagePickerModal(this.app, (file) => {
             setValue(file.path);
             renderDesc();
+            this.debouncedRefresh();
           }).open();
         })
       );
@@ -242,106 +349,23 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
         b.setButtonText("Clear").onClick(() => {
           setValue("");
           renderDesc();
+          this.debouncedRefresh();
         })
       );
       return;
     }
 
-    // ✨ Pretty markdown editor
     if (field.kind === "markdown") {
-      const setting = new Setting(container).setName(field.label);
-      const wrapper = setting.controlEl.createDiv("card-grid-md-field");
-
-      const toolbar = wrapper.createDiv("card-grid-md-toolbar");
-      const editorWrap = wrapper.createDiv("card-grid-md-editor");
-      const previewWrap = wrapper.createDiv("card-grid-md-preview");
-
-      const textarea = new TextAreaComponent(editorWrap);
-      textarea.inputEl.rows = 8;
-      textarea.setValue(getString());
-      textarea.setPlaceholder(field.placeholder ?? "");
-      textarea.onChange((v) => setValue(v));
-
-      let showingPreview = false;
-
-      const renderPreview = async () => {
-        previewWrap.empty();
-
-        const ctx = {
-          app: this.app,
-          plugin: this.plugin,
-          sourcePath: this.sourcePath,
-          grid: this.grid
-        };
-
-        const view = this.def.createView(ctx);
-        const cardEl = view.el;
-
-        // 1. Determine the actual width of the grid on screen to replicate layout accurately
-        const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
-        const gridContainer = gridHost?.querySelector(".card-grid-container") as HTMLElement;
-        const gridWidth = gridContainer?.offsetWidth || 800;
-
-        const columns = this.grid.columns || 3;
-        const gap = this.grid.gap ?? 10;
-        const widthFraction = Number(this.draft["width"]) || 1;
-
-        // 2. Calculate exactly how wide this card is in the actual grid
-        const realPixelWidth = ((gridWidth + gap) / columns) * widthFraction - gap;
-
-        // 3. Apply the real width and calculate adaptive zoom
-        cardEl.style.width = `${realPixelWidth}px`;
-        const availableWidth = previewWrap.clientWidth || 500;
-        const fitZoom = (availableWidth - 10) / realPixelWidth;
-        const ratio = widthFraction / columns;
-
-        // Narrow cards (often tall) are zoomed out more; wide cards are zoomed in for better visibility
-        let zoom = fitZoom;
-        if (ratio <= 0.4) {
-          zoom = Math.min(fitZoom, 0.75);
-        } else if (ratio >= 0.8) {
-          zoom = Math.min(1.0, fitZoom * 1.15);
-        } else {
-          zoom = Math.min(1.0, fitZoom);
-        }
-
-        cardEl.style.flex = "0 0 auto";
-        cardEl.style.margin = "0 auto";
-        // @ts-ignore - zoom is a non-standard but effective way to scale in Electron/Obsidian
-        cardEl.style.zoom = String(zoom);
-
-        previewWrap.appendChild(cardEl);
-
-        const normalized = this.def.normalize(this.draft);
-        view.update(normalized, ctx);
-      };
-
-      const update = () => {
-        editorWrap.style.display = showingPreview ? "none" : "";
-        previewWrap.style.display = showingPreview ? "" : "none";
-      };
-
-      const editBtn = new ButtonComponent(toolbar)
-        .setButtonText("Edit")
-        .setCta()
-        .onClick(() => {
-          showingPreview = false;
-          editBtn.setCta();
-          previewBtn.removeCta();
-          update();
+      new Setting(container).setName(field.label).addTextArea((t) => {
+        t.setValue(getString());
+        t.setPlaceholder(field.placeholder ?? "");
+        t.onChange((v) => {
+          setValue(v);
+          this.debouncedRefresh();
         });
-
-      const previewBtn = new ButtonComponent(toolbar)
-        .setButtonText("Preview")
-        .onClick(async () => {
-          showingPreview = true;
-          previewBtn.setCta();
-          editBtn.removeCta();
-          update();
-          await renderPreview();
-        });
-
-      update();
+        t.inputEl.rows = 8;
+        t.inputEl.style.width = "100%";
+      });
       return;
     }
   }
