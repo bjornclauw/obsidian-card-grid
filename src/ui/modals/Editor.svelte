@@ -22,6 +22,9 @@
     let debounceTimer: number;
     let previewPanelEl: HTMLElement;
 
+    // Cast grid to any in the script block where TS is allowed
+    $: gridAny = grid as any;
+
     $: {
         draft;
         if (previewView) {
@@ -110,25 +113,41 @@
                                 <button
                                     class="cge-stepper"
                                     on:click={() => {
+                                        const base =
+                                            draft[field.key] ??
+                                            gridAny[field.key] ??
+                                            0;
                                         draft[field.key] =
-                                            (Number(draft[field.key]) || 0) -
-                                            (field.step ?? 1);
+                                            Number(base) - (field.step ?? 1);
                                         draft = { ...draft };
                                     }}>−</button
                                 >
                                 <input
                                     class="cge-number-input"
                                     type="number"
-                                    bind:value={draft[field.key]}
+                                    value={draft[field.key] ??
+                                        gridAny[field.key] ??
+                                        ""}
+                                    on:input={(e) => {
+                                        const val =
+                                            e.currentTarget.value === ""
+                                                ? undefined
+                                                : Number(e.currentTarget.value);
+                                        draft[field.key] = val;
+                                        draft = { ...draft };
+                                    }}
                                     step={field.step ?? 1}
                                     min={field.min ?? undefined}
                                 />
                                 <button
                                     class="cge-stepper"
                                     on:click={() => {
+                                        const base =
+                                            draft[field.key] ??
+                                            gridAny[field.key] ??
+                                            0;
                                         draft[field.key] =
-                                            (Number(draft[field.key]) || 0) +
-                                            (field.step ?? 1);
+                                            Number(base) + (field.step ?? 1);
                                         draft = { ...draft };
                                     }}>+</button
                                 >
