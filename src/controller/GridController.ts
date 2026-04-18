@@ -202,11 +202,18 @@ export class GridController {
       return;
     }
 
-    new CardEditorModal(this.app, this.plugin, this.ref.sourcePath, def as any, card as any, (updated) => {
-      if (!updated) return;
-      this.store.dispatch({ type: "card/replace", card: updated });
-      this.rebalanceGrid();
-    }).open();
+    new CardEditorModal(
+      this.app,
+      this.plugin,
+      this.ref.sourcePath,
+      this.store.getState(),
+      def as any,
+      card as any,
+      (updated) => {
+        if (!updated) return;
+        this.store.dispatch({ type: "card/replace", card: updated });
+        this.rebalanceGrid();
+      }).open();
   }
 
   private changeColumns(count: number): void {

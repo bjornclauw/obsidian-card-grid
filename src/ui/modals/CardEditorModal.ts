@@ -10,7 +10,7 @@ import {
   ToggleComponent
 } from "obsidian";
 import type { Plugin } from "obsidian";
-import type { CardInstance } from "../../domain/types";
+import type { CardGridData, CardInstance } from "../../domain/types";
 import type {
   CardEditorField,
   CardEditorSpec,
@@ -34,28 +34,6 @@ function injectStyles(container: HTMLElement) {
   const style = document.createElement("style");
   style.setAttribute("data-card-editor", "true");
   style.textContent = `
-  .card-grid-editor .card-grid-preview-card {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
-
-.card-grid-editor.card-type-procedure .card-grid-preview-card {
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.card-grid-editor .card-grid-preview-content {
-  max-width: 500px;
-  width: 100%;
-  text-align: center;
-}
-
-.card-grid-editor.card-type-procedure .card-grid-preview-content {
-  text-align: left;
-}
-
   .card-grid-editor .card-grid-md-field {
     display: flex;
     flex-direction: column;
@@ -84,7 +62,8 @@ function injectStyles(container: HTMLElement) {
     border-radius: 6px;
     padding: 10px;
     background: var(--background-primary);
-    height: 200px;
+    min-height: 150px;
+    max-height: 400px;
     overflow: auto;
   }
 
@@ -100,6 +79,7 @@ function injectStyles(container: HTMLElement) {
 export class CardEditorModal<TCard extends CardInstance> extends Modal {
   private readonly plugin: Plugin;
   private readonly sourcePath: string;
+  private readonly grid: CardGridData;
   private readonly def: CardTypeDefinition<TCard>;
   private readonly draft: Record<string, unknown>;
   private readonly onSubmit: OnSubmit;
@@ -108,6 +88,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     app: App,
     plugin: Plugin,
     sourcePath: string,
+    grid: CardGridData,
     def: CardTypeDefinition<TCard>,
     card: TCard,
     onSubmit: OnSubmit
@@ -115,6 +96,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     super(app);
     this.plugin = plugin;
     this.sourcePath = sourcePath;
+    this.grid = grid;
     this.def = def;
     this.draft = clone(card) as unknown as Record<string, unknown>;
     this.onSubmit = onSubmit;
@@ -285,33 +267,53 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
       const renderPreview = async () => {
         previewWrap.empty();
 
-        // Create same structure as real card
-        const card = previewWrap.createDiv("card-grid-preview-card");
-        const content = card.createDiv("card-grid-preview-content");
+        const ctx = {
+          app: this.app,
+          plugin: this.plugin,
+          sourcePath: this.sourcePath,
+          grid: this.grid
+        };
 
-        // Apply alignment from draft if it exists (for text, icon, and notifier cards)
-        const alignment = this.draft["alignment"];
-        if (alignment === "left") {
-          previewWrap.style.alignItems = "flex-start";
-          previewWrap.style.textAlign = "left";
-          card.style.justifyContent = "flex-start";
-          card.style.alignItems = "flex-start";
-          content.style.textAlign = "left";
-        } else if (alignment === "center") {
-          previewWrap.style.alignItems = "center";
-          previewWrap.style.textAlign = "center";
-          card.style.justifyContent = "center";
-          card.style.alignItems = "center";
-          content.style.textAlign = "center";
+        const view = this.def.createView(ctx);
+        const cardEl = view.el;
+
+        // 1. Determine the actual width of the grid on screen to replicate layout accurately
+        const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
+        const gridContainer = gridHost?.querySelector(".card-grid-container") as HTMLElement;
+        const gridWidth = gridContainer?.offsetWidth || 800;
+
+        const columns = this.grid.columns || 3;
+        const gap = this.grid.gap ?? 10;
+        const widthFraction = Number(this.draft["width"]) || 1;
+
+        // 2. Calculate exactly how wide this card is in the actual grid
+        const realPixelWidth = ((gridWidth + gap) / columns) * widthFraction - gap;
+
+        // 3. Apply the real width and calculate adaptive zoom
+        cardEl.style.width = `${realPixelWidth}px`;
+        const availableWidth = previewWrap.clientWidth || 500;
+        const fitZoom = (availableWidth - 10) / realPixelWidth;
+        const ratio = widthFraction / columns;
+
+        // Narrow cards (often tall) are zoomed out more; wide cards are zoomed in for better visibility
+        let zoom = fitZoom;
+        if (ratio <= 0.4) {
+          zoom = Math.min(fitZoom, 0.75);
+        } else if (ratio >= 0.8) {
+          zoom = Math.min(1.0, fitZoom * 1.15);
+        } else {
+          zoom = Math.min(1.0, fitZoom);
         }
 
-        await MarkdownRenderer.render(
-          this.app,
-          getString() || " ",
-          content,
-          this.sourcePath,
-          this.plugin
-        );
+        cardEl.style.flex = "0 0 auto";
+        cardEl.style.margin = "0 auto";
+        // @ts-ignore - zoom is a non-standard but effective way to scale in Electron/Obsidian
+        cardEl.style.zoom = String(zoom);
+
+        previewWrap.appendChild(cardEl);
+
+        const normalized = this.def.normalize(this.draft);
+        view.update(normalized, ctx);
       };
 
       const update = () => {

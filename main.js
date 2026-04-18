@@ -1379,28 +1379,6 @@ function injectStyles(container) {
   const style = document.createElement("style");
   style.setAttribute("data-card-editor", "true");
   style.textContent = `
-  .card-grid-editor .card-grid-preview-card {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
-
-.card-grid-editor.card-type-procedure .card-grid-preview-card {
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.card-grid-editor .card-grid-preview-content {
-  max-width: 500px;
-  width: 100%;
-  text-align: center;
-}
-
-.card-grid-editor.card-type-procedure .card-grid-preview-content {
-  text-align: left;
-}
-
   .card-grid-editor .card-grid-md-field {
     display: flex;
     flex-direction: column;
@@ -1429,7 +1407,8 @@ function injectStyles(container) {
     border-radius: 6px;
     padding: 10px;
     background: var(--background-primary);
-    height: 200px;
+    min-height: 150px;
+    max-height: 400px;
     overflow: auto;
   }
 
@@ -1442,10 +1421,11 @@ function injectStyles(container) {
   container.appendChild(style);
 }
 var CardEditorModal = class extends import_obsidian12.Modal {
-  constructor(app, plugin, sourcePath, def, card, onSubmit) {
+  constructor(app, plugin, sourcePath, grid, def, card, onSubmit) {
     super(app);
     this.plugin = plugin;
     this.sourcePath = sourcePath;
+    this.grid = grid;
     this.def = def;
     this.draft = clone(card);
     this.onSubmit = onSubmit;
@@ -1572,30 +1552,41 @@ var CardEditorModal = class extends import_obsidian12.Modal {
       textarea.onChange((v) => setValue(v));
       let showingPreview = false;
       const renderPreview = () => __async(this, null, function* () {
+        var _a2;
         previewWrap.empty();
-        const card = previewWrap.createDiv("card-grid-preview-card");
-        const content = card.createDiv("card-grid-preview-content");
-        const alignment = this.draft["alignment"];
-        if (alignment === "left") {
-          previewWrap.style.alignItems = "flex-start";
-          previewWrap.style.textAlign = "left";
-          card.style.justifyContent = "flex-start";
-          card.style.alignItems = "flex-start";
-          content.style.textAlign = "left";
-        } else if (alignment === "center") {
-          previewWrap.style.alignItems = "center";
-          previewWrap.style.textAlign = "center";
-          card.style.justifyContent = "center";
-          card.style.alignItems = "center";
-          content.style.textAlign = "center";
+        const ctx = {
+          app: this.app,
+          plugin: this.plugin,
+          sourcePath: this.sourcePath,
+          grid: this.grid
+        };
+        const view = this.def.createView(ctx);
+        const cardEl = view.el;
+        const gridHost = document.querySelector(`[data-card-grid-id="${this.grid.id}"]`);
+        const gridContainer = gridHost == null ? void 0 : gridHost.querySelector(".card-grid-container");
+        const gridWidth = (gridContainer == null ? void 0 : gridContainer.offsetWidth) || 800;
+        const columns = this.grid.columns || 3;
+        const gap = (_a2 = this.grid.gap) != null ? _a2 : 10;
+        const widthFraction = Number(this.draft["width"]) || 1;
+        const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
+        cardEl.style.width = `${realPixelWidth}px`;
+        const availableWidth = previewWrap.clientWidth || 500;
+        const fitZoom = (availableWidth - 10) / realPixelWidth;
+        const ratio = widthFraction / columns;
+        let zoom = fitZoom;
+        if (ratio <= 0.4) {
+          zoom = Math.min(fitZoom, 0.75);
+        } else if (ratio >= 0.8) {
+          zoom = Math.min(1, fitZoom * 1.15);
+        } else {
+          zoom = Math.min(1, fitZoom);
         }
-        yield import_obsidian12.MarkdownRenderer.render(
-          this.app,
-          getString() || " ",
-          content,
-          this.sourcePath,
-          this.plugin
-        );
+        cardEl.style.flex = "0 0 auto";
+        cardEl.style.margin = "0 auto";
+        cardEl.style.zoom = String(zoom);
+        previewWrap.appendChild(cardEl);
+        const normalized = this.def.normalize(this.draft);
+        view.update(normalized, ctx);
       });
       const update = () => {
         editorWrap.style.display = showingPreview ? "none" : "";
@@ -1914,11 +1905,19 @@ var GridController = class {
       new import_obsidian13.Notice("Unknown card type cannot be edited.");
       return;
     }
-    new CardEditorModal(this.app, this.plugin, this.ref.sourcePath, def, card, (updated) => {
-      if (!updated) return;
-      this.store.dispatch({ type: "card/replace", card: updated });
-      this.rebalanceGrid();
-    }).open();
+    new CardEditorModal(
+      this.app,
+      this.plugin,
+      this.ref.sourcePath,
+      this.store.getState(),
+      def,
+      card,
+      (updated) => {
+        if (!updated) return;
+        this.store.dispatch({ type: "card/replace", card: updated });
+        this.rebalanceGrid();
+      }
+    ).open();
   }
   changeColumns(count) {
     this.store.dispatch({
