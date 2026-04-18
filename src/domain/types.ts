@@ -74,7 +74,21 @@ export interface ImageCard extends BaseCard {
   imageRadius?: number;
 }
 
-export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard;
+export interface ProcedureCard extends BaseCard {
+  type: "procedure";
+  title?: string;
+  text?: string;
+  image?: string;
+  imageEnabled?: boolean;
+
+  // Optional per-card overrides (fallback to grid defaults).
+  imageFit?: CardGridData["imageFit"];
+  imageHeight?: number;
+  imagePosition?: string;
+  imageRadius?: number;
+}
+
+export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard;
 
 export interface GridBlockRef {
   sourcePath: string;

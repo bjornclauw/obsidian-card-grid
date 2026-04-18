@@ -91,6 +91,25 @@
   opacity: 0.8;
 }
 
+/* Procedure Card Specific Alignment */
+.card-grid-card.card-type-procedure {
+  text-align: left;
+}
+
+.card-grid-card.card-type-procedure h4 {
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 0;
+}
+
+.card-grid-card.card-type-procedure .procedure-text-box {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
 /* Image styling */
 .card-grid-card img {
   width: 100%;
@@ -153,6 +172,19 @@
   border-radius: 6px;
   background-color: var(--background-primary);
   min-height: 60px;
+  /* Default centering to match standard cards */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Procedure Card Editor specific overrides for top-left alignment */
+.card-grid-editor.card-type-procedure .card-grid-md-preview {
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .card-grid-suggest-sub {

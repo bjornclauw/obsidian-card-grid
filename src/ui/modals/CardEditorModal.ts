@@ -41,11 +41,21 @@ function injectStyles(container: HTMLElement) {
   height: 100%;
 }
 
+.card-grid-editor.card-type-procedure .card-grid-preview-card {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
 .card-grid-editor .card-grid-preview-content {
   max-width: 500px;
   width: 100%;
   text-align: center;
 }
+
+.card-grid-editor.card-type-procedure .card-grid-preview-content {
+  text-align: left;
+}
+
   .card-grid-editor .card-grid-md-field {
     display: flex;
     flex-direction: column;
@@ -115,6 +125,7 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("card-grid-editor");
+    contentEl.addClass(`card-type-${this.def.type}`);
 
     injectStyles(contentEl);
 
