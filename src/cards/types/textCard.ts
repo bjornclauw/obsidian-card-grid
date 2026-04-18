@@ -16,6 +16,12 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       { kind: "text", key: "title", label: "Title" },
       { kind: "markdown", key: "text", label: "Text" },
       {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1 // Default to 1 column
+      },
+      {
         kind: "select",
         key: "alignment",
         label: "Alignment",
@@ -36,12 +42,6 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         key: "textColor",
         label: "Title color",
         defaultValue: "var(--text-normal)"
-      },
-      {
-        kind: "number",
-        key: "width",
-        label: "Width (columns)",
-        defaultValue: 1 // Default to 1 column
       }
     ]
   },
