@@ -113,6 +113,12 @@ export const flashCardType: CardTypeDefinition<FlashCard> = {
                     img.src = resolveImagePath(card.image);
                     // Cast to any to bypass the strict literal 'type' check in the shared utility
                     applyImageStyle(img, card as any, viewCtx.grid);
+
+                    const h = card.imageHeight ?? viewCtx.grid.imageHeight;
+                    img.style.height = h ? `${h}px` : "auto";
+                    img.style.flex = "1 1 auto";
+                    img.style.maxHeight = "none";
+                    img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
                 } else {
                     img.style.display = "none";
                 }

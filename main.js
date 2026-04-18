@@ -374,6 +374,7 @@ var flashCardType = {
     return {
       el: box,
       update(card, viewCtx) {
+        var _a;
         box.style.setProperty("--card-width", String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
@@ -383,6 +384,11 @@ var flashCardType = {
           img.style.display = "";
           img.src = resolveImagePath(card.image);
           applyImageStyle(img, card, viewCtx.grid);
+          const h = (_a = card.imageHeight) != null ? _a : viewCtx.grid.imageHeight;
+          img.style.height = h ? `${h}px` : "auto";
+          img.style.flex = "1 1 auto";
+          img.style.maxHeight = "none";
+          img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
         } else {
           img.style.display = "none";
         }
@@ -1567,8 +1573,21 @@ var GridController = class {
   }
   resetAllWidths() {
     const state = this.store.getState();
-    const updates = state.cards.map((c) => ({ id: c.id, width: 1 }));
-    this.updateCardWidths(updates);
+    this.setResizing(true);
+    try {
+      for (const card of state.cards) {
+        const updated = __spreadValues({}, card);
+        updated.width = 1;
+        delete updated.imageHeight;
+        this.store.dispatch({
+          type: "card/replace",
+          card: updated
+        });
+      }
+    } finally {
+      this.setResizing(false);
+      this.view.update(this.store.getState());
+    }
   }
   setResizing(resizing) {
     this.isResizing = resizing;

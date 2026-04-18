@@ -211,8 +211,23 @@ export class GridController {
 
   public resetAllWidths(): void {
     const state = this.store.getState();
-    const updates = state.cards.map(c => ({ id: c.id, width: 1 }));
-    this.updateCardWidths(updates);
+    this.setResizing(true);
+
+    try {
+      for (const card of state.cards) {
+        const updated = { ...card } as any;
+        updated.width = 1;
+        delete updated.imageHeight;
+
+        this.store.dispatch({
+          type: "card/replace",
+          card: updated
+        });
+      }
+    } finally {
+      this.setResizing(false);
+      this.view.update(this.store.getState());
+    }
   }
 
   public setResizing(resizing: boolean): void {

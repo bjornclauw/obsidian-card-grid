@@ -88,7 +88,7 @@ export function showCardMenu(
   });
 
   menu.addItem((item) => item
-    .setTitle("Reset all widths")
+    .setTitle("Reset dimensions")
     .setIcon("rotate-ccw")
     .onClick(() => handlers.onResetGridWidths?.()));
 

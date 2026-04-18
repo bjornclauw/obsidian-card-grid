@@ -1,4 +1,67 @@
-/* Card content is rendered as Markdown preview; editing happens in a modal. */
+/* ==========================================================================
+   CARD TYPE SPECIFIC STYLES
+   ========================================================================== */
+
+/* --- Procedure Card --- */
+.card-grid-card.card-type-procedure {
+  text-align: left;
+}
+
+.card-grid-card.card-type-procedure h4 {
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 0;
+}
+
+.card-grid-card.card-type-procedure .procedure-text-box {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+/* --- Spacer Card --- */
+.card-grid-spacer {
+  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
+  min-width: 0;
+  position: relative;
+  background: var(--background-secondary-alt);
+  opacity: 0.6;
+  border: 1px dotted var(--background-modifier-border);
+  transition: flex 0.1s ease;
+  box-shadow: none;
+  min-height: 50px;
+}
+
+/* ==========================================================================
+   GENERAL GRID & LAYOUT STYLES
+   ========================================================================== */
+
+/* --- Grid Container --- */
+.card-grid-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--grid-gap, 20px);
+}
+
+/* --- Base Card Styles --- */
+.card-grid-card {
+  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
+  min-width: 0;
+  position: relative;
+  transition: flex 0.1s ease;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Typography & Content --- */
 .card-grid-card h4,
 .card-grid-card .card-text {
   white-space: normal;
@@ -32,34 +95,17 @@
   margin-bottom: 0 !important;
 }
 
-/* Flex container */
-.card-grid-container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--grid-gap, 20px);
+.card-grid-card img {
+  width: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-/* Card base styles */
-.card-grid-card {
-  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
-  min-width: 0;
-  position: relative;
-  transition: flex 0.1s ease;
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-  break-inside: avoid;
-  page-break-inside: avoid;
-  display: flex;
-  flex-direction: column;
-}
-
+/* --- Resizing Interactions --- */
 .card-grid-card.card-grid-resizing {
   opacity: 0.9;
 }
 
-/* Show resize cursor when hovering near card edge */
 :is(.card-grid-card, .card-grid-spacer):not(:last-child)::after {
   content: "";
   position: absolute;
@@ -71,53 +117,12 @@
   z-index: 10;
 }
 
-/* Spacer card - invisible, non-interactive */
-.card-grid-spacer {
-  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
-  min-width: 0;
-  position: relative;
-  background: var(--background-secondary-alt);
-  opacity: 0.6;
-  border: 1px dotted var(--background-modifier-border);
-  transition: flex 0.1s ease;
-  box-shadow: none;
-  /*pointer-events: none;*/
-  min-height: 50px;
-}
-
-/* Disable transitions during active resizing to prevent "glitching" lag */
 .card-grid-resizing {
   transition: none !important;
   opacity: 0.8;
 }
 
-/* Procedure Card Specific Alignment */
-.card-grid-card.card-type-procedure {
-  text-align: left;
-}
-
-.card-grid-card.card-type-procedure h4 {
-  align-items: flex-start;
-  justify-content: flex-start;
-  margin-top: 0;
-}
-
-.card-grid-card.card-type-procedure .procedure-text-box {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-/* Image styling */
-.card-grid-card img {
-  width: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Editor modal */
+/* --- Editor UI & Modals --- */
 .card-grid-editor .setting-item-control {
   flex-direction: column;
   align-items: stretch;
@@ -215,7 +220,9 @@
   max-width: 150px;
 }
 
-/* Print styles */
+/* ==========================================================================
+   PRINT STYLES
+   ========================================================================== */
 @media print {
   .card-grid-container {
     break-inside: avoid !important;
