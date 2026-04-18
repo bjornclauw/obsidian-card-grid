@@ -4,7 +4,7 @@
 A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, image/text card types with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
-- **Registry Pattern**: Built-in types (Text, Image, Spacer) + extensible via `cards/index.ts`
+- **Registry Pattern**: Built-in types (Text, Flash, Image, Spacer) + extensible via `cards/index.ts`
 - **Reducer/Unidirectional Flow**: Immutable updates via `state/gridStore.ts` with typed actions
 - **Factory Rendering**: Each card type implements `createView(ctx)` returning CardView
 - **Flexbox Resizing**: Direct DOM manipulation via `ui/CardResizer.ts` (bypasses controller for performance)
@@ -42,7 +42,8 @@ cards/                           # Registry implementations (Factory pattern)
 ├── shared/imageStyle.ts         # Constraint-based styling inheritance
 └── types/
     ├── textCard.ts              # MarkdownRenderer integration
-    ├── imageCard.ts             # Multi-line rendering, fit/position constraints
+    ├── flashCard.ts             # Multi-line rendering, fit/position constraints
+    ├── imageCard.ts             # Pure image display
     ├── spacerCard.ts            # Flex basis for multi-column layout control
     └── unknownCard.ts           # Fallback preserving raw data (forward compat)
 
@@ -72,7 +73,7 @@ ui/
 - **Interactive resizing**: Drag handles between cards with flex basis adjustment via direct DOM manipulation (`ui/CardResizer.ts`)—bypasses controller during drag for performance, dispatches on release
 - **GridController**: Central event orchestration, saveChain debouncing (250ms), resize guards to prevent flicker in `update()`
 - **CardEditorModal**: Dynamic field rendering from specs using builder pattern; supports text/image card types with rich editing
-- **Image/Text cards**: Added with specialized renderers—Markdown support in text cards, constraint-based styling inheritance (fit/position/radius) in image cards via shared module
+- **Flash/Image/Text cards**: Added with specialized renderers—Markdown support in text cards, constraint-based styling inheritance (fit/position/radius) in flash/image cards via shared module
 - **Refactoring**: Extracted image styling logic into `cards/shared/imageStyle.ts` for reuse across card types
 
 ## Development Commands

@@ -14,8 +14,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
   editor: {
     title: "Edit image card",
     fields: [
-      { kind: "text", key: "title", label: "Title" },
-      { kind: "markdown", key: "text", label: "Text" },
       { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
       { kind: "image-file", key: "image", label: "Image" },
       {
@@ -40,12 +38,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         defaultValue: "#cccccc"
       },
       {
-        kind: "color",
-        key: "textColor",
-        label: "Title color",
-        defaultValue: "#000000"
-      },
-      {
         kind: "number",
         key: "width",
         label: "Width (columns)",
@@ -55,7 +47,7 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
   },
   normalize(raw: unknown): ImageCard {
     if (!isRecord(raw)) {
-      return { id: createId("card"), type: "image", title: "Untitled", text: "" };
+      return { id: createId("card"), type: "image" };
     }
     const id =
       typeof raw.id === "string" && raw.id.trim().length > 0
@@ -64,11 +56,8 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
     return {
       id,
       type: "image",
-      title: typeof raw.title === "string" ? raw.title : "Untitled",
-      text: typeof raw.text === "string" ? raw.text : "",
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
-      textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
       image: typeof raw.image === "string" ? raw.image : undefined,
       imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
       imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as ImageCard["imageFit"],
@@ -83,13 +72,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
     box.className = "card-grid-card";
 
     const img = box.createEl("img");
-    const titleEl = box.createEl("h4");
-    const textEl = box.createDiv("card-text");
-
-    async function renderMarkdown(el: HTMLElement, markdown: string) {
-      el.empty();
-      await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
-    }
 
     function resolveImagePath(path: string): string {
       const file = ctx.app.vault.getAbstractFileByPath(path);
@@ -115,11 +97,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         } else {
           img.style.display = "none";
         }
-
-        titleEl.style.color = card.textColor || "#000000";
-        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
-        void renderMarkdown(titleEl, card.title || "Untitled");
-        void renderMarkdown(textEl, card.text || "");
       }
     };
   }

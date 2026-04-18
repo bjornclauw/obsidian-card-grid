@@ -74,7 +74,7 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 
 // src/plugin/CardGridPlugin.ts
-var import_obsidian11 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 
 // src/cards/registry.ts
 var CardTypeRegistry = class {
@@ -266,7 +266,7 @@ var textCardType = {
   }
 };
 
-// src/cards/types/imageCard.ts
+// src/cards/types/flashCard.ts
 var import_obsidian2 = require("obsidian");
 
 // src/cards/shared/imageStyle.ts
@@ -284,15 +284,15 @@ function applyImageStyle(img, card, grid) {
   img.style.width = "100%";
 }
 
-// src/cards/types/imageCard.ts
+// src/cards/types/flashCard.ts
 function isRecord3(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
-var imageCardType = {
-  type: "image",
-  displayName: "Image card",
+var flashCardType = {
+  type: "flashcard",
+  displayName: "Flash card",
   editor: {
-    title: "Edit image card",
+    title: "Edit flash card",
     fields: [
       { kind: "text", key: "title", label: "Title" },
       { kind: "markdown", key: "text", label: "Text" },
@@ -336,12 +336,12 @@ var imageCardType = {
   },
   normalize(raw) {
     if (!isRecord3(raw)) {
-      return { id: createId("card"), type: "image", title: "Untitled", text: "" };
+      return { id: createId("card"), type: "flashcard", title: "Untitled", text: "" };
     }
     const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : createId("card");
     return {
       id,
-      type: "image",
+      type: "flashcard",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
       backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : void 0,
@@ -398,8 +398,100 @@ var imageCardType = {
   }
 };
 
-// src/cards/types/spacerCard.ts
+// src/cards/types/imageCard.ts
+var import_obsidian3 = require("obsidian");
 function isRecord4(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+var imageCardType = {
+  type: "image",
+  displayName: "Image card",
+  editor: {
+    title: "Edit image card",
+    fields: [
+      { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
+      { kind: "image-file", key: "image", label: "Image" },
+      {
+        kind: "select",
+        key: "imageFit",
+        label: "Image fit",
+        options: [
+          { label: "Cover", value: "cover" },
+          { label: "Contain", value: "contain" },
+          { label: "Fill", value: "fill" },
+          { label: "None", value: "none" },
+          { label: "Scale-down", value: "scale-down" }
+        ]
+      },
+      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
+      { kind: "text", key: "imagePosition", label: "Image position", placeholder: "e.g. center" },
+      { kind: "number", key: "imageRadius", label: "Image radius", min: 0, step: 1 },
+      {
+        kind: "color",
+        key: "backgroundColor",
+        label: "Border color",
+        defaultValue: "#cccccc"
+      },
+      {
+        kind: "number",
+        key: "width",
+        label: "Width (columns)",
+        defaultValue: 1
+        // Default to 1 column
+      }
+    ]
+  },
+  normalize(raw) {
+    if (!isRecord4(raw)) {
+      return { id: createId("card"), type: "image" };
+    }
+    const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : createId("card");
+    return {
+      id,
+      type: "image",
+      backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : void 0,
+      image: typeof raw.image === "string" ? raw.image : void 0,
+      imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : void 0,
+      imageFit: typeof raw.imageFit === "string" ? raw.imageFit : void 0,
+      imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : void 0,
+      imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : void 0,
+      imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : void 0,
+      width: typeof raw.width === "number" ? raw.width : 1
+    };
+  },
+  createView(ctx) {
+    const box = document.createElement("div");
+    box.className = "card-grid-card";
+    const img = box.createEl("img");
+    function resolveImagePath(path) {
+      const file = ctx.app.vault.getAbstractFileByPath(path);
+      if (file instanceof import_obsidian3.TFile) {
+        return ctx.app.vault.getResourcePath(file);
+      }
+      return path;
+    }
+    return {
+      el: box,
+      update(card, viewCtx) {
+        box.style.setProperty("--card-width", String(card.width || 1));
+        box.dataset.widthFraction = String(card.width || 1);
+        box.dataset.cardId = card.id;
+        box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
+        const enabled = card.imageEnabled !== false;
+        if (enabled && card.image) {
+          img.style.display = "";
+          img.src = resolveImagePath(card.image);
+          applyImageStyle(img, card, viewCtx.grid);
+        } else {
+          img.style.display = "none";
+        }
+      }
+    };
+  }
+};
+
+// src/cards/types/spacerCard.ts
+function isRecord5(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 var spacerCardType = {
@@ -417,7 +509,7 @@ var spacerCardType = {
     ]
   },
   normalize(raw) {
-    if (!isRecord4(raw)) {
+    if (!isRecord5(raw)) {
       return { id: createId("card"), type: "spacer" };
     }
     const id = typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id.trim() : createId("card");
@@ -443,7 +535,7 @@ var spacerCardType = {
 };
 
 // src/cards/types/unknownCard.ts
-function isRecord5(value) {
+function isRecord6(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 var unknownCardType = {
@@ -462,7 +554,7 @@ var unknownCardType = {
     ]
   },
   normalize(raw) {
-    const obj = isRecord5(raw) ? raw : {};
+    const obj = isRecord6(raw) ? raw : {};
     const id = typeof obj.id === "string" && obj.id.trim().length > 0 ? obj.id.trim() : createId("card");
     const type = typeof obj.type === "string" && obj.type.trim().length > 0 ? obj.type.trim() : "unknown";
     const width = typeof obj.width === "number" ? obj.width : 1;
@@ -499,6 +591,7 @@ var unknownCardType = {
 function createDefaultRegistry() {
   const registry = new CardTypeRegistry();
   registry.register(textCardType);
+  registry.register(flashCardType);
   registry.register(imageCardType);
   registry.register(unknownCardType);
   registry.register(spacerCardType);
@@ -506,7 +599,7 @@ function createDefaultRegistry() {
 }
 
 // src/controller/GridController.ts
-var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 
 // src/state/gridStore.ts
 var GridStore = class {
@@ -584,11 +677,11 @@ function reduce(state, action) {
 }
 
 // src/ui/menus/cardMenu.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/ui/modals/CardTypeSuggestModal.ts
-var import_obsidian3 = require("obsidian");
-var CardTypeSuggestModal = class extends import_obsidian3.SuggestModal {
+var import_obsidian4 = require("obsidian");
+var CardTypeSuggestModal = class extends import_obsidian4.SuggestModal {
   constructor(app, registry, onPick) {
     super(app);
     this.registry = registry;
@@ -615,7 +708,7 @@ var CardTypeSuggestModal = class extends import_obsidian3.SuggestModal {
 // src/ui/menus/cardMenu.ts
 function showCardMenu(evt, app, grid, registry, cardId, handlers) {
   evt.preventDefault();
-  const menu = new import_obsidian4.Menu();
+  const menu = new import_obsidian5.Menu();
   menu.addItem((i) => i.setTitle("Edit").onClick(() => handlers.onEditCard(cardId)));
   menu.addItem(
     (i) => i.setTitle("Clone").onClick(() => handlers.onCloneCard(cardId))
@@ -737,19 +830,19 @@ var GridView = class {
 };
 
 // src/infrastructure/CardGridRepository.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/infrastructure/yaml.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 function cleanYamlSource(source) {
   return source.replace(/\u00a0/g, " ").replace(/\t/g, "  ").replace(/[^\S\r\n]+$/gm, "");
 }
 function parseYamlObject(source) {
   const cleaned = cleanYamlSource(source);
-  return (0, import_obsidian5.parseYaml)(cleaned);
+  return (0, import_obsidian6.parseYaml)(cleaned);
 }
 function stringifyYamlObject(value) {
-  return (0, import_obsidian5.stringifyYaml)(value);
+  return (0, import_obsidian6.stringifyYaml)(value);
 }
 
 // src/infrastructure/CardGridRepository.ts
@@ -788,7 +881,7 @@ var CardGridRepository = class {
   save(ref, data) {
     return __async(this, null, function* () {
       const file = this.app.vault.getAbstractFileByPath(ref.sourcePath);
-      if (!(file instanceof import_obsidian6.TFile)) return;
+      if (!(file instanceof import_obsidian7.TFile)) return;
       const raw = yield this.app.vault.read(file);
       const lines = raw.split("\n");
       const yamlObj = serializeCardGridData(data);
@@ -817,11 +910,11 @@ var CardGridRepository = class {
 };
 
 // src/ui/modals/CardEditorModal.ts
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 
 // src/ui/modals/ImagePickerModal.ts
-var import_obsidian7 = require("obsidian");
-var ImagePickerModal = class extends import_obsidian7.FuzzySuggestModal {
+var import_obsidian8 = require("obsidian");
+var ImagePickerModal = class extends import_obsidian8.FuzzySuggestModal {
   constructor(app, onSelectFile) {
     super(app);
     this.onSelectFile = onSelectFile;
@@ -919,7 +1012,7 @@ function injectStyles(container) {
   `;
   container.appendChild(style);
 }
-var CardEditorModal = class extends import_obsidian8.Modal {
+var CardEditorModal = class extends import_obsidian9.Modal {
   constructor(app, plugin, sourcePath, def, card, onSubmit) {
     super(app);
     this.plugin = plugin;
@@ -935,7 +1028,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
     contentEl.addClass("card-grid-editor");
     injectStyles(contentEl);
     this.renderFields(this.def.editor, contentEl);
-    new import_obsidian8.Setting(contentEl).addButton(
+    new import_obsidian9.Setting(contentEl).addButton(
       (b) => b.setButtonText("Cancel").onClick(() => {
         this.onSubmit(null);
         this.close();
@@ -966,7 +1059,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       this.draft[key] = value;
     };
     if (field.kind === "text") {
-      new import_obsidian8.Setting(container).setName(field.label).addText((t) => {
+      new import_obsidian9.Setting(container).setName(field.label).addText((t) => {
         var _a2;
         t.setPlaceholder((_a2 = field.placeholder) != null ? _a2 : "").setValue(getString());
         t.onChange((v) => setValue(v));
@@ -974,7 +1067,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "number") {
-      new import_obsidian8.Setting(container).setName(field.label).addText((t) => {
+      new import_obsidian9.Setting(container).setName(field.label).addText((t) => {
         const initial = getNumber();
         t.setValue(initial === void 0 ? "" : String(initial));
         t.onChange((v) => {
@@ -985,7 +1078,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "select") {
-      new import_obsidian8.Setting(container).setName(field.label).addDropdown((d) => {
+      new import_obsidian9.Setting(container).setName(field.label).addDropdown((d) => {
         var _a2, _b, _c;
         for (const opt of field.options) d.addOption(opt.value, opt.label);
         const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_c = (_b = field.defaultValue) != null ? _b : (_a2 = field.options[0]) == null ? void 0 : _a2.value) != null ? _c : "";
@@ -995,7 +1088,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "toggle") {
-      new import_obsidian8.Setting(container).setName(field.label).addToggle((t) => {
+      new import_obsidian9.Setting(container).setName(field.label).addToggle((t) => {
         var _a2;
         const initial = getBoolean();
         t.setValue((_a2 = initial != null ? initial : field.defaultValue) != null ? _a2 : false);
@@ -1004,7 +1097,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "color") {
-      new import_obsidian8.Setting(container).setName(field.label).addColorPicker((c) => {
+      new import_obsidian9.Setting(container).setName(field.label).addColorPicker((c) => {
         var _a2;
         const initial = typeof this.draft[key] === "string" ? this.draft[key] : (_a2 = field.defaultValue) != null ? _a2 : "#cccccc";
         c.setValue(initial);
@@ -1013,7 +1106,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "image-file") {
-      const setting = new import_obsidian8.Setting(container).setName(field.label);
+      const setting = new import_obsidian9.Setting(container).setName(field.label);
       const desc = setting.descEl;
       const renderDesc = () => {
         const v = getString();
@@ -1037,12 +1130,12 @@ var CardEditorModal = class extends import_obsidian8.Modal {
       return;
     }
     if (field.kind === "markdown") {
-      const setting = new import_obsidian8.Setting(container).setName(field.label);
+      const setting = new import_obsidian9.Setting(container).setName(field.label);
       const wrapper = setting.controlEl.createDiv("card-grid-md-field");
       const toolbar = wrapper.createDiv("card-grid-md-toolbar");
       const editorWrap = wrapper.createDiv("card-grid-md-editor");
       const previewWrap = wrapper.createDiv("card-grid-md-preview");
-      const textarea = new import_obsidian8.TextAreaComponent(editorWrap);
+      const textarea = new import_obsidian9.TextAreaComponent(editorWrap);
       textarea.inputEl.rows = 8;
       textarea.setValue(getString());
       textarea.setPlaceholder((_a = field.placeholder) != null ? _a : "");
@@ -1052,7 +1145,7 @@ var CardEditorModal = class extends import_obsidian8.Modal {
         previewWrap.empty();
         const card = previewWrap.createDiv("card-grid-preview-card");
         const content = card.createDiv("card-grid-preview-content");
-        yield import_obsidian8.MarkdownRenderer.render(
+        yield import_obsidian9.MarkdownRenderer.render(
           this.app,
           getString() || " ",
           content,
@@ -1064,13 +1157,13 @@ var CardEditorModal = class extends import_obsidian8.Modal {
         editorWrap.style.display = showingPreview ? "none" : "";
         previewWrap.style.display = showingPreview ? "" : "none";
       };
-      const editBtn = new import_obsidian8.ButtonComponent(toolbar).setButtonText("Edit").setCta().onClick(() => {
+      const editBtn = new import_obsidian9.ButtonComponent(toolbar).setButtonText("Edit").setCta().onClick(() => {
         showingPreview = false;
         editBtn.setCta();
         previewBtn.removeCta();
         update();
       });
-      const previewBtn = new import_obsidian8.ButtonComponent(toolbar).setButtonText("Preview").onClick(() => __async(this, null, function* () {
+      const previewBtn = new import_obsidian9.ButtonComponent(toolbar).setButtonText("Preview").onClick(() => __async(this, null, function* () {
         showingPreview = true;
         previewBtn.setCta();
         editBtn.removeCta();
@@ -1297,7 +1390,7 @@ var GridController = class {
     if (!card) return;
     const def = this.registry.get(card.type);
     if (!this.registry.has(card.type) || card.type === "unknown") {
-      new import_obsidian9.Notice("Unknown card type cannot be edited.");
+      new import_obsidian10.Notice("Unknown card type cannot be edited.");
       return;
     }
     new CardEditorModal(this.app, this.plugin, this.ref.sourcePath, def, card, (updated) => {
@@ -1335,8 +1428,8 @@ var GridController = class {
 };
 
 // src/plugin/GridRenderChild.ts
-var import_obsidian10 = require("obsidian");
-var GridRenderChild = class extends import_obsidian10.MarkdownRenderChild {
+var import_obsidian11 = require("obsidian");
+var GridRenderChild = class extends import_obsidian11.MarkdownRenderChild {
   constructor(containerEl, controller) {
     super(containerEl);
     this.controller = controller;
@@ -1350,7 +1443,7 @@ var GridRenderChild = class extends import_obsidian10.MarkdownRenderChild {
 };
 
 // src/plugin/CardGridPlugin.ts
-var CardGridPlugin = class extends import_obsidian11.Plugin {
+var CardGridPlugin = class extends import_obsidian12.Plugin {
   constructor() {
     super(...arguments);
     this.registry = createDefaultRegistry();

@@ -23,14 +23,15 @@ graph TD
     C -->|Events Dispatched| E(Action Handlers: Edit/Clone/Delete/Reorder)
     B -->|Registry Lookup| F(CardTypeRegistry)
     F -->|Implementation| G[TextCard]
-    F -->|Implementation| H[ImageCard]  
+    F -->|Implementation| H[FlashCard]  
+    F -->|Implementation| J[ImageCard]
     F -->|Fallback| I[UnknownCard]
 ```
 
 ### Key Architectural Patterns
 
 **1. Registry Pattern (Open/Closed Principle)**
-- Built-in card types: Text, Image, Spacer, Unknown (forward-compatible)
+- Built-in card types: Text, Flash, Image, Spacer, Unknown (forward-compatible)
 - Factory pattern via `CardTypeDefinition<TCard>` interface with generics
 - Central dispatcher (`registry.ts`) routes via Map-based lookup
 - Each type implements: normalize(), createView(ctx), getEditorSpec()
@@ -59,7 +60,8 @@ Each card type provides its own DOM rendering factory, enabling distinct structu
 | Type | Description | Key Fields |
 |------|-------------|------------|
 | **Text** | Title + markdown body | `title`, `text` (markdown), colors, custom layout overrides |
-| **Image** | Photo with optional overlay text | `image`, `title`, extensive styling (fit/position/radius), Markdown rendering support |
+| **Flash** | Photo with optional overlay text | `image`, `title`, extensive styling (fit/position/radius), Markdown rendering support |
+| **Image** | Pure photo display | `image`, extensive styling (fit/position/radius) |
 | **Spacer** | Empty placeholder for column control | `width` (in columns), used to span multiple cards horizontally |
 | **Unknown** | Fallback for unrecognized types | Preserves raw data structure, enables forward compatibility |
 
@@ -104,7 +106,7 @@ cards/                     # Registry implementations (Registry Pattern)
 ├── shared/imageStyle.ts   # Image constraint-based styling inheritance logic
 └── types/
     ├── textCard.ts        # Text card: MarkdownRenderer integration, rich content
-    ├── imageCard.ts       # Image card: Multi-line rendering, fit/position constraints
+    ├── flashCard.ts       # Flash card: Multi-line rendering, fit/position constraints
     ├── spacerCard.ts      # Spacer card: Flex basis for multi-column layout control
     └── unknownCard.ts     # Safety net preserving raw data for forward compatibility
 
@@ -222,7 +224,7 @@ export const mySpecialCardType: CardTypeDefinition<MySpecialCard> = {
 ```typescript
 export function createDefaultRegistry(): CardTypeRegistry {
   const registry = new CardTypeRegistry();
-  // Built-ins: textCard, imageCard, spacerCard, unknownCard
+  // Built-ins: textCard, flashCard, spacerCard, unknownCard
   registry.register(mySpecialCardType);
   return registry;
 }
@@ -242,7 +244,7 @@ cards:
 | Type | Purpose | Key Fields | Editor Schema |
 |------|---------|------------|---------------|
 | **Text** | Rich content with Markdown | `title`, `text` | Text field, Markdown textarea |
-| **Image** | Media display | `image`, `title`, styling constraints | Image picker, fit/position fields |
+| **Flash** | Media display | `image`, `title`, styling constraints | Image picker, fit/position fields |
 | **Spacer** | Multi-column layout control | `width` (in columns) | Number input for flex basis |
 | **Unknown** | Forward compatibility safety net | Preserves raw data | Read-only metadata view
 
@@ -303,7 +305,7 @@ cards:
 \`\`\`
 ```
 
-### Image Card with Custom Styling
+### Flash Card with Custom Styling
 ```yaml
 \`\`\`card-grid
 columns: 2
@@ -312,7 +314,8 @@ imageFit: contain
 imageHeight: 150
 
 cards:
-  - image: https://picsum.photos/400/300
+  - type: flashcard
+    image: https://picsum.photos/400/300
     title: Architecture Diagram
     backgroundColor: "#F8F9FA"
 \`\`\`
@@ -338,8 +341,9 @@ imageFit: contain
   color: "#4A90E2"
   backgroundColor: "#F0F7FF"
 
-# Image card with constraint-based styling inheritance
-- image: https://picsum.photos/800/600
+# Flash card with constraint-based styling inheritance
+- type: flashcard
+  image: https://picsum.photos/800/600
   title: Architecture Diagram
   imageFit: contain      # Inherit from grid, override if needed
   imageHeight: 250       # Override max height (grid default: 180)

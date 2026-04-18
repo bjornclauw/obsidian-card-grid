@@ -41,8 +41,8 @@ export interface TextCard extends CardInstance {
   text: string;
 }
 
-export interface ImageCard extends BaseCard {
-  type: "image";
+export interface FlashCard extends BaseCard {
+  type: "flashcard";
   title?: string;
   text?: string;
   image?: string;
@@ -62,7 +62,19 @@ export interface UnknownCard extends BaseCard {
   raw: Record<string, unknown>;
 }
 
-export type BuiltInCard = TextCard | ImageCard | UnknownCard;
+export interface ImageCard extends BaseCard {
+  type: "image";
+  image?: string;
+  imageEnabled?: boolean;
+
+  // Optional per-card overrides (fallback to grid defaults).
+  imageFit?: CardGridData["imageFit"];
+  imageHeight?: number;
+  imagePosition?: string;
+  imageRadius?: number;
+}
+
+export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard;
 
 export interface GridBlockRef {
   sourcePath: string;
