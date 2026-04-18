@@ -35,8 +35,8 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
                 key: "alignment",
                 label: "Alignment",
                 options: [
-                    { label: "Top Left", value: "top-left" },
-                    { label: "Top Center", value: "top-center" }
+                    { label: "Left", value: "left" },
+                    { label: "Center", value: "center" }
                 ]
             },
             { kind: "number", key: "titleSize", label: "Title size (px)", defaultValue: 28 },
@@ -57,7 +57,7 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
             title: typeof raw.title === "string" ? raw.title : "Notification",
             text: typeof raw.text === "string" ? raw.text : "",
             icon: typeof raw.icon === "string" ? raw.icon : "⚠️",
-            alignment: (raw.alignment === "top-left" || raw.alignment === "top-center") ? raw.alignment : "top-center",
+            alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
             titleSize: typeof raw.titleSize === "number" ? raw.titleSize : 28,
             textSize: typeof raw.textSize === "number" ? raw.textSize : 16,
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "#1a237e",
@@ -100,7 +100,7 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
                 titleEl.style.color = card.textColor || "#ffffff";
 
                 // Apply Alignment
-                if (card.alignment === "top-left") {
+                if (card.alignment === "left") {
                     box.style.textAlign = "left";
                     box.style.alignItems = "flex-start";
                 } else {

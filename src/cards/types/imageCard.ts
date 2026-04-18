@@ -70,6 +70,8 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
   createView(ctx: CardViewContext): CardView<ImageCard> {
     const box = document.createElement("div");
     box.className = "card-grid-card";
+    box.style.padding = "0";
+    box.style.overflow = "hidden";
 
     const img = box.createEl("img");
 

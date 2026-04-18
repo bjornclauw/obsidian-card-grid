@@ -40,6 +40,7 @@ export interface TextCard extends CardInstance {
   type: "text";
   title: string;
   text: string;
+  alignment?: "left" | "center";
 }
 
 export interface FlashCard extends BaseCard {
@@ -93,7 +94,7 @@ export interface NotifierCard extends BaseCard {
   type: "notifier";
   title?: string;
   text?: string;
-  alignment?: "top-left" | "top-center";
+  alignment?: "left" | "center";
   titleSize?: number;
   textSize?: number;
   icon?: string;
@@ -110,6 +111,7 @@ export interface IconCard extends BaseCard {
   iconSize?: number;
   textSize?: number;
   iconColor?: string;
+  alignment?: "left" | "center";
 }
 
 export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard | IconCard;

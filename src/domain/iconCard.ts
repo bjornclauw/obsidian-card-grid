@@ -46,6 +46,15 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 defaultValue: "arrow-right"
             },
             { kind: "markdown", key: "text", label: "Text (Optional)" },
+            {
+                kind: "select",
+                key: "alignment",
+                label: "Alignment",
+                options: [
+                    { label: "Left", value: "left" },
+                    { label: "Center", value: "center" }
+                ]
+            },
             { kind: "number", key: "iconSize", label: "Icon size (px)", defaultValue: 48 },
             { kind: "number", key: "textSize", label: "Text size (px)", defaultValue: 14 },
             { kind: "color", key: "backgroundColor", label: "Background color", defaultValue: "transparent" },
@@ -63,6 +72,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             type: "icon",
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
+            alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
             iconSize: typeof raw.iconSize === "number" ? raw.iconSize : 48,
             textSize: typeof raw.textSize === "number" ? raw.textSize : 14,
             iconColor: typeof raw.iconColor === "string" ? raw.iconColor : undefined,
@@ -100,6 +110,15 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
 
                 box.style.backgroundColor = card.backgroundColor || "transparent";
                 box.style.color = card.textColor || "var(--text-normal)";
+
+                // Apply Alignment
+                if (card.alignment === "left") {
+                    box.style.textAlign = "left";
+                    box.style.alignItems = "flex-start";
+                } else {
+                    box.style.textAlign = "center";
+                    box.style.alignItems = "center";
+                }
 
                 // Update Icon
                 iconContainer.empty();

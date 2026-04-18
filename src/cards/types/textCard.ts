@@ -16,6 +16,15 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       { kind: "text", key: "title", label: "Title" },
       { kind: "markdown", key: "text", label: "Text" },
       {
+        kind: "select",
+        key: "alignment",
+        label: "Alignment",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" }
+        ]
+      },
+      {
         kind: "color",
         key: "backgroundColor",
         label: "Border color",
@@ -48,6 +57,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       type: "text",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
+      alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
       textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
@@ -57,9 +67,17 @@ export const textCardType: CardTypeDefinition<TextCard> = {
   createView(ctx: CardViewContext): CardView<TextCard> {
     const box = document.createElement("div");
     box.className = "card-grid-card";
+    box.style.padding = "0";
+    box.style.overflow = "hidden";
+    box.style.display = "flex";
+    box.style.flexDirection = "column";
 
     const titleEl = box.createEl("h4");
+    titleEl.style.margin = "0";
+    titleEl.style.padding = "10px";
+
     const textEl = box.createDiv("card-text");
+    textEl.style.padding = "10px";
 
     async function renderMarkdown(el: HTMLElement, markdown: string) {
       el.empty();
@@ -76,6 +94,14 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         titleEl.style.color = card.textColor || "#000000";
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
+
+        // Apply Alignment
+        box.style.textAlign = card.alignment === "left" ? "left" : "center";
+        if (card.alignment === "left") {
+          titleEl.style.alignItems = "flex-start";
+        } else {
+        }
+
         void renderMarkdown(titleEl, card.title || "Untitled");
 
         // Text body renders as Markdown preview only (editing happens in a modal).

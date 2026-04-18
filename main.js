@@ -209,6 +209,15 @@ var textCardType = {
       { kind: "text", key: "title", label: "Title" },
       { kind: "markdown", key: "text", label: "Text" },
       {
+        kind: "select",
+        key: "alignment",
+        label: "Alignment",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" }
+        ]
+      },
+      {
         kind: "color",
         key: "backgroundColor",
         label: "Border color",
@@ -239,6 +248,7 @@ var textCardType = {
       type: "text",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
+      alignment: raw.alignment === "left" || raw.alignment === "center" ? raw.alignment : "center",
       backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : void 0,
       textColor: typeof raw.textColor === "string" ? raw.textColor : void 0,
       width: typeof raw.width === "number" ? raw.width : 1
@@ -247,8 +257,15 @@ var textCardType = {
   createView(ctx) {
     const box = document.createElement("div");
     box.className = "card-grid-card";
+    box.style.padding = "0";
+    box.style.overflow = "hidden";
+    box.style.display = "flex";
+    box.style.flexDirection = "column";
     const titleEl = box.createEl("h4");
+    titleEl.style.margin = "0";
+    titleEl.style.padding = "10px";
     const textEl = box.createDiv("card-text");
+    textEl.style.padding = "10px";
     function renderMarkdown(el, markdown) {
       return __async(this, null, function* () {
         el.empty();
@@ -264,6 +281,11 @@ var textCardType = {
         box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
         titleEl.style.color = card.textColor || "#000000";
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
+        box.style.textAlign = card.alignment === "left" ? "left" : "center";
+        if (card.alignment === "left") {
+          titleEl.style.alignItems = "flex-start";
+        } else {
+        }
         void renderMarkdown(titleEl, card.title || "Untitled");
         void renderMarkdown(textEl, card.text || "");
       }
@@ -467,6 +489,8 @@ var imageCardType = {
   createView(ctx) {
     const box = document.createElement("div");
     box.className = "card-grid-card";
+    box.style.padding = "0";
+    box.style.overflow = "hidden";
     const img = box.createEl("img");
     function resolveImagePath(path) {
       const file = ctx.app.vault.getAbstractFileByPath(path);
@@ -779,8 +803,8 @@ var notifierCardType = {
         key: "alignment",
         label: "Alignment",
         options: [
-          { label: "Top Left", value: "top-left" },
-          { label: "Top Center", value: "top-center" }
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" }
         ]
       },
       { kind: "number", key: "titleSize", label: "Title size (px)", defaultValue: 28 },
@@ -801,7 +825,7 @@ var notifierCardType = {
       title: typeof raw.title === "string" ? raw.title : "Notification",
       text: typeof raw.text === "string" ? raw.text : "",
       icon: typeof raw.icon === "string" ? raw.icon : "\u26A0\uFE0F",
-      alignment: raw.alignment === "top-left" || raw.alignment === "top-center" ? raw.alignment : "top-center",
+      alignment: raw.alignment === "left" || raw.alignment === "center" ? raw.alignment : "center",
       titleSize: typeof raw.titleSize === "number" ? raw.titleSize : 28,
       textSize: typeof raw.textSize === "number" ? raw.textSize : 16,
       backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "#1a237e",
@@ -836,7 +860,7 @@ var notifierCardType = {
         box.style.backgroundColor = card.backgroundColor || "#1a237e";
         box.style.color = card.textColor || "#ffffff";
         titleEl.style.color = card.textColor || "#ffffff";
-        if (card.alignment === "top-left") {
+        if (card.alignment === "left") {
           box.style.textAlign = "left";
           box.style.alignItems = "flex-start";
         } else {
@@ -897,6 +921,15 @@ var iconCardType = {
         defaultValue: "arrow-right"
       },
       { kind: "markdown", key: "text", label: "Text (Optional)" },
+      {
+        kind: "select",
+        key: "alignment",
+        label: "Alignment",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" }
+        ]
+      },
       { kind: "number", key: "iconSize", label: "Icon size (px)", defaultValue: 48 },
       { kind: "number", key: "textSize", label: "Text size (px)", defaultValue: 14 },
       { kind: "color", key: "backgroundColor", label: "Background color", defaultValue: "transparent" },
@@ -914,6 +947,7 @@ var iconCardType = {
       type: "icon",
       icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
       text: typeof raw.text === "string" ? raw.text : "",
+      alignment: raw.alignment === "left" || raw.alignment === "center" ? raw.alignment : "center",
       iconSize: typeof raw.iconSize === "number" ? raw.iconSize : 48,
       textSize: typeof raw.textSize === "number" ? raw.textSize : 14,
       iconColor: typeof raw.iconColor === "string" ? raw.iconColor : void 0,
@@ -948,6 +982,13 @@ var iconCardType = {
         box.dataset.cardId = card.id;
         box.style.backgroundColor = card.backgroundColor || "transparent";
         box.style.color = card.textColor || "var(--text-normal)";
+        if (card.alignment === "left") {
+          box.style.textAlign = "left";
+          box.style.alignItems = "flex-start";
+        } else {
+          box.style.textAlign = "center";
+          box.style.alignItems = "center";
+        }
         iconContainer.empty();
         if (card.icon) {
           (0, import_obsidian6.setIcon)(iconContainer, card.icon);
