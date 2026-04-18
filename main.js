@@ -473,6 +473,7 @@ var imageCardType = {
     return {
       el: box,
       update(card, viewCtx) {
+        var _a;
         box.style.setProperty("--card-width", String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
@@ -482,6 +483,11 @@ var imageCardType = {
           img.style.display = "";
           img.src = resolveImagePath(card.image);
           applyImageStyle(img, card, viewCtx.grid);
+          const h = (_a = card.imageHeight) != null ? _a : viewCtx.grid.imageHeight;
+          img.style.height = h ? `${h}px` : "auto";
+          img.style.flex = "1 1 auto";
+          img.style.maxHeight = "none";
+          img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
         } else {
           img.style.display = "none";
         }

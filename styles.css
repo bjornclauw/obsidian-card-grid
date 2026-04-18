@@ -51,6 +51,8 @@
   text-align: center;
   break-inside: avoid;
   page-break-inside: avoid;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-grid-card.card-grid-resizing {
@@ -91,9 +93,9 @@
 
 /* Image styling */
 .card-grid-card img {
-  max-height: 200px;
   width: 100%;
   object-fit: cover;
+  display: block;
 }
 
 /* Editor modal */
