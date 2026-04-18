@@ -72,8 +72,10 @@
     onMount(() => {
         const ctx = { app, plugin, sourcePath, grid };
         previewView = def.createView(ctx);
-        // Remove any flex/border from the real card
-        previewView.el.style.cssText = "";
+
+        // Reset flex properties that might interfere with modal layout
+        previewView.el.style.flex = "none";
+
         previewContainer.appendChild(previewView.el);
         updatePreview();
     });
@@ -107,6 +109,10 @@
         previewView.el.style.width = `${realPixelWidth}px`;
         previewView.el.style.height = "auto";
         previewView.el.style.flex = "none";
+
+        // Apply grid-level styling to preview
+        previewView.el.style.borderRadius = `${grid.borderRadius}px`;
+        previewView.el.style.overflow = "hidden";
 
         const ratio = widthFraction / columns;
         let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;

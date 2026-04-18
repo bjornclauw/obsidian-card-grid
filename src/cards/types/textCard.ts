@@ -88,6 +88,11 @@ export const textCardType: CardTypeDefinition<TextCard> = {
     return {
       el: box,
       update(card: TextCard, viewCtx: CardViewContext) {
+        // Re-apply essential layout (critical for editor preview stability)
+        box.style.display = "flex";
+        box.style.flexDirection = "column";
+        box.style.overflow = "hidden";
+
         box.style.setProperty('--card-width', String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
@@ -97,6 +102,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
 
         // Apply Alignment
+
         box.style.textAlign = card.alignment === "left" ? "left" : card.alignment === "right" ? "right" : "center";
         if (card.alignment === "left") {
           titleEl.style.alignItems = "flex-start";
@@ -105,6 +111,19 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         } else {
           titleEl.style.alignItems = "center";
         }
+
+
+
+
+        const align = card.alignment || "center";
+        box.style.textAlign = align;
+
+        // Ensure children fill width so background colors and text-align work correctly
+        box.style.alignItems = "stretch";
+        titleEl.style.width = "100%";
+        titleEl.style.boxSizing = "border-box";
+        textEl.style.width = "100%";
+        textEl.style.boxSizing = "border-box";
 
         void renderMarkdown(titleEl, card.title || "Untitled");
 
