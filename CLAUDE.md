@@ -1,13 +1,14 @@
 # Obsidian Card Grid Plugin
 
 ## What This Is
-A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, image/text card types with rich editing, and modal-based operations.
+A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text/Flash/Image/Procedure) with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
-- **Registry Pattern**: Built-in types (Text, Flash, Image, Spacer) + extensible via `cards/index.ts`
+- **Registry Pattern**: Built-in types (Text, Flash, Image, Procedure, Spacer) + extensible via `cards/index.ts`
 - **Reducer/Unidirectional Flow**: Immutable updates via `state/gridStore.ts` with typed actions
 - **Factory Rendering**: Each card type implements `createView(ctx)` returning CardView
 - **Flexbox Resizing**: Direct DOM manipulation via `ui/CardResizer.ts` (bypasses controller for performance)
+- **Grid Rebalancing**: Centralized gap configuration and grid balancing logic in `controller/GridController.ts`
 
 ## Core Files to Know
 | File | Responsibility |
@@ -70,11 +71,12 @@ ui/
 
 ## Recent Changes
 **Latest commits**:
-- **Interactive resizing**: Drag handles between cards with flex basis adjustment via direct DOM manipulation (`ui/CardResizer.ts`)—bypasses controller during drag for performance, dispatches on release
-- **GridController**: Central event orchestration, saveChain debouncing (250ms), resize guards to prevent flicker in `update()`
-- **CardEditorModal**: Dynamic field rendering from specs using builder pattern; supports text/image card types with rich editing
-- **Flash/Image/Text cards**: Added with specialized renderers—Markdown support in text cards, constraint-based styling inheritance (fit/position/radius) in flash/image cards via shared module
-- **Refactoring**: Extracted image styling logic into `cards/shared/imageStyle.ts` for reuse across card types
+- **ProcedureCard**: New specialized card type with customizable layout/styling options (grouping, spacing controls)
+- **Grid Rebalancing**: Centralized gap configuration and grid balancing logic in `controller/GridController.ts`
+- **Independent Resizing**: Enhanced drag handles allowing independent width adjustment per card pair
+- **Text/Flash rendering fixes**: Improved text handling and flash card layout consistency
+- **Image flex adjustments**: Updated image rendering logic for proper resizing behavior during flex operations
+- **Bug fixes**: Fixed procedural card sizing, text rendering edge cases, and image display issues
 
 ## Development Commands
 - `npm run dev` — Watch mode (hot-reload)

@@ -3,7 +3,7 @@ import { Notice } from "obsidian";
 import type { CardGridData, CardId, CardInstance, CardTypeId, GridBlockRef } from "../domain/types";
 import type { CardTypeRegistry } from "../cards/registry";
 import { createId, parseCardGridObject } from "../domain/codec";
-import { DEFAULT_GAP } from "../domain/defaults";
+import { DEFAULT_GAP, DEFAULT_RADIUS } from "../domain/defaults";
 import { GridStore } from "../state/gridStore";
 import { GridView } from "../ui/GridView";
 import { CardGridRepository } from "../infrastructure/CardGridRepository";
@@ -95,6 +95,7 @@ export class GridController {
     const container = this.view.getContainer();
     container.style.setProperty("--grid-columns", String(data.columns));
     container.style.setProperty("--grid-gap", `${data.gap}px`);
+    container.style.setProperty("--grid-border-radius", `${data.borderRadius}px`);
   }
 
   private scheduleSave(state: CardGridData): void {
@@ -246,7 +247,7 @@ export class GridController {
       // Reset grid-level gap to default
       this.store.dispatch({
         type: "grid/set-options",
-        patch: { gap: DEFAULT_GAP }
+        patch: { gap: DEFAULT_GAP, borderRadius: DEFAULT_RADIUS }
       });
 
       for (const card of state.cards) {

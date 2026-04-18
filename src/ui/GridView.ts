@@ -79,6 +79,11 @@ export class GridView {
 
       this.container.appendChild(entry.view.el);
       entry.view.update(card as any, viewCtx);
+
+      // Apply grid-level styling
+      entry.view.el.style.borderRadius = `${grid.borderRadius}px`;
+      entry.view.el.style.overflow = "hidden"; // Clip content to the border radius
+
       existing.delete(card.id);
     }
 

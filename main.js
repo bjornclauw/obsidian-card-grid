@@ -102,12 +102,14 @@ var import_obsidian = require("obsidian");
 // src/domain/defaults.ts
 var CURRENT_GRID_VERSION = 1;
 var DEFAULT_GAP = 10;
+var DEFAULT_RADIUS = 8;
 function defaultGridData(id) {
   return {
     id,
     version: CURRENT_GRID_VERSION,
     columns: 3,
     gap: DEFAULT_GAP,
+    borderRadius: DEFAULT_RADIUS,
     imageFit: "cover",
     imageHeight: 180,
     imagePosition: "center",
@@ -149,6 +151,7 @@ function parseCardGridObject(raw, registry) {
     version: toNumber(obj.version, CURRENT_GRID_VERSION),
     columns: Math.max(1, Math.floor(toNumber(obj.columns, base.columns))),
     gap: Math.max(0, toNumber(obj.gap, base.gap)),
+    borderRadius: Math.max(0, toNumber(obj.borderRadius, base.borderRadius)),
     imageFit: (_a = toStringOrUndefined(obj.imageFit)) != null ? _a : base.imageFit,
     imageHeight: Math.max(0, toNumber(obj.imageHeight, (_b = base.imageHeight) != null ? _b : 0)),
     imagePosition: (_c = toStringOrUndefined(obj.imagePosition)) != null ? _c : base.imagePosition,
@@ -176,6 +179,7 @@ function serializeCardGridData(data) {
     version: data.version,
     columns: data.columns,
     gap: data.gap,
+    borderRadius: data.borderRadius,
     imageFit: data.imageFit,
     imageHeight: data.imageHeight,
     imagePosition: data.imagePosition,
@@ -940,6 +944,8 @@ var GridView = class {
       entry.view.el.dataset.widthFraction = String(widthFraction);
       this.container.appendChild(entry.view.el);
       entry.view.update(card, viewCtx);
+      entry.view.el.style.borderRadius = `${grid.borderRadius}px`;
+      entry.view.el.style.overflow = "hidden";
       existing.delete(card.id);
     }
     for (const id of existing) {
@@ -1543,6 +1549,7 @@ var GridController = class {
     const container = this.view.getContainer();
     container.style.setProperty("--grid-columns", String(data.columns));
     container.style.setProperty("--grid-gap", `${data.gap}px`);
+    container.style.setProperty("--grid-border-radius", `${data.borderRadius}px`);
   }
   scheduleSave(state) {
     if (this.destroyed) return;
@@ -1667,7 +1674,7 @@ var GridController = class {
     try {
       this.store.dispatch({
         type: "grid/set-options",
-        patch: { gap: DEFAULT_GAP }
+        patch: { gap: DEFAULT_GAP, borderRadius: DEFAULT_RADIUS }
       });
       for (const card of state.cards) {
         const updated = __spreadValues({}, card);

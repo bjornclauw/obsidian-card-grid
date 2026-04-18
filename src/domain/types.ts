@@ -10,6 +10,7 @@ export interface CardGridData {
   version: number;
   columns: number;
   gap: number;
+  borderRadius: number;
 
   // Optional grid-level defaults used by some card types.
   imageFit?: "cover" | "contain" | "fill" | "none" | "scale-down";

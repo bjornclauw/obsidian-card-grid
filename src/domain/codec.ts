@@ -57,6 +57,7 @@ export function parseCardGridObject(
     version: toNumber(obj.version, CURRENT_GRID_VERSION),
     columns: Math.max(1, Math.floor(toNumber(obj.columns, base.columns))),
     gap: Math.max(0, toNumber(obj.gap, base.gap)),
+    borderRadius: Math.max(0, toNumber(obj.borderRadius, base.borderRadius)),
     imageFit:
       (toStringOrUndefined(obj.imageFit) as CardGridData["imageFit"]) ??
       base.imageFit,
@@ -91,6 +92,7 @@ export function serializeCardGridData(data: CardGridData): Record<string, unknow
     version: data.version,
     columns: data.columns,
     gap: data.gap,
+    borderRadius: data.borderRadius,
 
     imageFit: data.imageFit,
     imageHeight: data.imageHeight,
