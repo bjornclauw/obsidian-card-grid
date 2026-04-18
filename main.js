@@ -715,40 +715,35 @@ var CardTypeSuggestModal = class extends import_obsidian4.SuggestModal {
 function showCardMenu(evt, app, grid, registry, cardId, handlers) {
   evt.preventDefault();
   const menu = new import_obsidian5.Menu();
-  menu.addItem((i) => i.setTitle("Edit").onClick(() => handlers.onEditCard(cardId)));
-  menu.addItem(
-    (i) => i.setTitle("Clone").onClick(() => handlers.onCloneCard(cardId))
-  );
-  menu.addItem(
-    (i) => i.setTitle("Remove").onClick(() => handlers.onDeleteCard(cardId))
-  );
+  menu.addItem((i) => i.setTitle("Edit card").setIcon("pencil").onClick(() => handlers.onEditCard(cardId)));
   menu.addSeparator();
-  menu.addItem(
-    (i) => i.setTitle("Add card before").onClick(() => handlers.onAddCardBefore(cardId))
-  );
-  menu.addItem(
-    (i) => i.setTitle("Add card after").onClick(() => handlers.onAddCardAfter(cardId))
-  );
+  menu.addItem((i) => i.setTitle("Add card before").setIcon("plus-circle").onClick(() => handlers.onAddCardBefore(cardId)));
+  menu.addItem((i) => i.setTitle("Add card after").setIcon("plus-circle").onClick(() => handlers.onAddCardAfter(cardId)));
   menu.addSeparator();
-  menu.addItem((i) => i.setTitle("Move up").onClick(() => handlers.onMoveCard(cardId, "up")));
-  menu.addItem(
-    (i) => i.setTitle("Move down").onClick(() => handlers.onMoveCard(cardId, "down"))
-  );
+  menu.addItem((i) => i.setTitle("Clone card").setIcon("copy").onClick(() => handlers.onCloneCard(cardId)));
+  menu.addItem((i) => i.setTitle("Move up").setIcon("arrow-up").onClick(() => handlers.onMoveCard(cardId, "up")));
+  menu.addItem((i) => i.setTitle("Move down").setIcon("arrow-down").onClick(() => handlers.onMoveCard(cardId, "down")));
   menu.addSeparator();
-  menu.addItem(
-    (i) => i.setTitle("Change type\u2026").onClick(() => {
-      new CardTypeSuggestModal(app, registry, (type) => {
-        handlers.onChangeType(cardId, type);
-      }).open();
-    })
-  );
-  menu.addSeparator();
+  menu.addItem((i) => i.setTitle("Change card type...").setIcon("type").onClick(() => {
+    new CardTypeSuggestModal(app, registry, (type) => {
+      handlers.onChangeType(cardId, type);
+    }).open();
+  }));
   menu.addItem((item) => {
-    item.setTitle("Reset all widths").setIcon("reset").onClick(() => {
-      var _a;
-      return (_a = handlers.onResetGridWidths) == null ? void 0 : _a.call(handlers);
+    item.setTitle("Columns").setIcon("layout-columns");
+    const submenu = item.setSubmenu();
+    [1, 2, 3, 4].forEach((num) => {
+      submenu.addItem((subItem) => {
+        subItem.setTitle(`${num} column${num > 1 ? "s" : ""}`).setChecked(grid.columns === num).onClick(() => handlers.onChangeColumns(num));
+      });
     });
   });
+  menu.addItem((item) => item.setTitle("Reset all widths").setIcon("rotate-ccw").onClick(() => {
+    var _a;
+    return (_a = handlers.onResetGridWidths) == null ? void 0 : _a.call(handlers);
+  }));
+  menu.addSeparator();
+  menu.addItem((i) => i.setTitle("Remove card").setIcon("trash").onClick(() => handlers.onDeleteCard(cardId)));
   menu.showAtMouseEvent(evt);
 }
 
@@ -1308,7 +1303,8 @@ var GridController = class {
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
         onChangeType: (id, type) => this.changeType(id, type),
-        onResetGridWidths: () => this.resetAllWidths()
+        onResetGridWidths: () => this.resetAllWidths(),
+        onChangeColumns: (count) => this.changeColumns(count)
       },
       controller: this
     });
@@ -1403,6 +1399,12 @@ var GridController = class {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
     }).open();
+  }
+  changeColumns(count) {
+    this.store.dispatch({
+      type: "grid/set-options",
+      patch: { columns: count }
+    });
   }
   updateCardWidths(updates) {
     this.setResizing(true);

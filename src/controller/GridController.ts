@@ -65,7 +65,8 @@ export class GridController {
         onDeleteCard: (id) => this.deleteCard(id),
         onMoveCard: (id, dir) => this.moveCard(id, dir),
         onChangeType: (id, type) => this.changeType(id, type as CardTypeId),
-        onResetGridWidths: () => this.resetAllWidths()
+        onResetGridWidths: () => this.resetAllWidths(),
+        onChangeColumns: (count) => this.changeColumns(count)
       },
       controller: this
     });
@@ -178,6 +179,13 @@ export class GridController {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
     }).open();
+  }
+
+  private changeColumns(count: number): void {
+    this.store.dispatch({
+      type: "grid/set-options",
+      patch: { columns: count }
+    });
   }
 
   public updateCardWidths(updates: { id: CardId; width: number }[]): void {
