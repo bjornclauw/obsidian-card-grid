@@ -21,6 +21,17 @@
   align-items: flex-start;
 }
 
+/* --- Notifier Card --- */
+.card-grid-card.card-type-notifier {
+  justify-content: flex-start;
+  border: none !important;
+  /* Notifier usually uses solid backgrounds, not borders */
+}
+
+.card-grid-card.card-type-notifier .notifier-text p {
+  margin: 0;
+}
+
 /* --- Spacer Card --- */
 .card-grid-spacer {
   flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));

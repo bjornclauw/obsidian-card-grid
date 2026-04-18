@@ -89,7 +89,21 @@ export interface ProcedureCard extends BaseCard {
   imageRadius?: number;
 }
 
-export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard;
+export interface NotifierCard extends BaseCard {
+  type: "notifier";
+  title?: string;
+  text?: string;
+  alignment?: "top-left" | "top-center";
+  titleSize?: number;
+  textSize?: number;
+  icon?: string;
+
+  // Overrides for inherited styling
+  backgroundColor?: string;
+  textColor?: string;
+}
+
+export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard;
 
 export interface GridBlockRef {
   sourcePath: string;
