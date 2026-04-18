@@ -90,7 +90,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         box.style.overflow = "hidden";
 
         const titleBox = box.createDiv("procedure-title-box");
-        titleBox.style.flex = "0 0 25%";
+        titleBox.style.flex = "0 0 24%";
         titleBox.style.padding = "10px";
         titleBox.style.borderRight = "1px solid var(--background-modifier-border)";
         titleBox.style.display = "flex";
@@ -102,7 +102,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         textBox.style.padding = "10px";
 
         const imageBox = box.createDiv("procedure-image-box");
-        imageBox.style.flex = "0 0 25%";
+        imageBox.style.flex = "0 0 38%";
         imageBox.style.display = "flex";
         imageBox.style.overflow = "hidden";
         const img = imageBox.createEl("img");
@@ -141,6 +141,12 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     imageBox.style.display = "flex";
                     img.src = resolveImagePath(card.image);
                     applyImageStyle(img, card as any, viewCtx.grid);
+
+                    const h = card.imageHeight ?? viewCtx.grid.imageHeight;
+                    img.style.height = h ? `${h}px` : "auto";
+                    img.style.flex = "1 1 auto";
+                    img.style.maxHeight = "none";
+                    img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
                 } else {
                     textBox.style.borderRight = "none";
                     imageBox.style.display = "none";
