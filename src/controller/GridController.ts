@@ -134,7 +134,18 @@ export class GridController {
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
 
-      (base as any).width = 1; // Default to standard column width
+      let width = 1;
+      if (pivotId && (mode === "before" || mode === "after")) {
+        const pivot = this.findCard(pivotId);
+        if (pivot) {
+          width = Math.round(((pivot.width ?? 1) / 2) * 1000) / 1000;
+          const updatedPivot = { ...pivot, width } as any;
+          if (updatedPivot.raw) updatedPivot.raw = { ...updatedPivot.raw, width };
+          this.store.dispatch({ type: "card/replace", card: updatedPivot });
+        }
+      }
+
+      (base as any).width = width;
 
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
       this.rebalanceGrid();
@@ -150,7 +161,12 @@ export class GridController {
     const card = this.findCard(id);
     if (!card) return;
 
-    const cloned = cloneCard(card, createId("card"));
+    const half = Math.round(((card.width ?? 1) / 2) * 1000) / 1000;
+    const updatedCard = { ...card, width: half } as any;
+    if (updatedCard.raw) updatedCard.raw = { ...updatedCard.raw, width: half };
+    this.store.dispatch({ type: "card/replace", card: updatedCard });
+
+    const cloned = cloneCard(updatedCard, createId("card"));
     const index = this.store.getState().cards.findIndex((c) => c.id === id);
     this.store.dispatch({ type: "card/insert", card: cloned, atIndex: index + 1 });
 
@@ -295,8 +311,8 @@ export class GridController {
 
         // Reset solitary cards in incomplete rows to 1 column if they were larger 
         // (handles cards being pushed or cloned from large cards).
-        if (!isFullRow && row.length === 3 && rowSum > 3) {
-          targetSum = 3;
+        if (!isFullRow && row.length === 1 && rowSum > 1) {
+          targetSum = 1;
         }
 
         const scale = rowSum > 0 ? targetSum / rowSum : 1;

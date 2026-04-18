@@ -1572,9 +1572,20 @@ var GridController = class {
       }
     }
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
+      var _a;
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
-      base.width = 1;
+      let width = 1;
+      if (pivotId && (mode === "before" || mode === "after")) {
+        const pivot = this.findCard(pivotId);
+        if (pivot) {
+          width = Math.round(((_a = pivot.width) != null ? _a : 1) / 2 * 1e3) / 1e3;
+          const updatedPivot = __spreadProps(__spreadValues({}, pivot), { width });
+          if (updatedPivot.raw) updatedPivot.raw = __spreadProps(__spreadValues({}, updatedPivot.raw), { width });
+          this.store.dispatch({ type: "card/replace", card: updatedPivot });
+        }
+      }
+      base.width = width;
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
       this.rebalanceGrid();
     }).open();
@@ -1584,9 +1595,14 @@ var GridController = class {
     this.rebalanceGrid();
   }
   cloneCard(id) {
+    var _a;
     const card = this.findCard(id);
     if (!card) return;
-    const cloned = cloneCard(card, createId("card"));
+    const half = Math.round(((_a = card.width) != null ? _a : 1) / 2 * 1e3) / 1e3;
+    const updatedCard = __spreadProps(__spreadValues({}, card), { width: half });
+    if (updatedCard.raw) updatedCard.raw = __spreadProps(__spreadValues({}, updatedCard.raw), { width: half });
+    this.store.dispatch({ type: "card/replace", card: updatedCard });
+    const cloned = cloneCard(updatedCard, createId("card"));
     const index = this.store.getState().cards.findIndex((c) => c.id === id);
     this.store.dispatch({ type: "card/insert", card: cloned, atIndex: index + 1 });
     this.rebalanceGrid();
@@ -1699,8 +1715,8 @@ var GridController = class {
         }
         const isFullRow = row.length === columns;
         let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
-        if (!isFullRow && row.length === 3 && rowSum > 3) {
-          targetSum = 3;
+        if (!isFullRow && row.length === 1 && rowSum > 1) {
+          targetSum = 1;
         }
         const scale = rowSum > 0 ? targetSum / rowSum : 1;
         for (const card of row) {
