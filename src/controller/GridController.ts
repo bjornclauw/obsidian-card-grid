@@ -12,6 +12,8 @@ import { CardEditorModal } from "../ui/modals/CardEditorModal";
 import { CardTypeSuggestModal } from "../ui/modals/CardTypeSuggestModal";
 import { CardResizer } from "../ui/CardResizer";
 
+const MIN_WIDTH = 0.3;
+
 function cloneCard(card: CardInstance, newId: string): CardInstance {
   const anyCard = card as any;
   if (anyCard.raw && typeof anyCard.raw === "object") {
@@ -139,7 +141,7 @@ export class GridController {
       if (pivotId && (mode === "before" || mode === "after")) {
         const pivot = this.findCard(pivotId);
         if (pivot) {
-          width = Math.round(((pivot.width ?? 1) / 2) * 1000) / 1000;
+          width = Math.max(MIN_WIDTH, Math.round(((pivot.width ?? 1) / 2) * 1000) / 1000);
           const updatedPivot = { ...pivot, width } as any;
           if (updatedPivot.raw) updatedPivot.raw = { ...updatedPivot.raw, width };
           this.store.dispatch({ type: "card/replace", card: updatedPivot });
@@ -162,7 +164,7 @@ export class GridController {
     const card = this.findCard(id);
     if (!card) return;
 
-    const half = Math.round(((card.width ?? 1) / 2) * 1000) / 1000;
+    const half = Math.max(MIN_WIDTH, Math.round(((card.width ?? 1) / 2) * 1000) / 1000);
     const updatedCard = { ...card, width: half } as any;
     if (updatedCard.raw) updatedCard.raw = { ...updatedCard.raw, width: half };
     this.store.dispatch({ type: "card/replace", card: updatedCard });
@@ -280,16 +282,15 @@ export class GridController {
 
   public isCurrentlyResizing(): boolean {
     return this.isResizing;
-
   }
+
   /**
    * Performs a global reflow of the grid. It groups cards into rows and scales 
    * widths proportionally to ensure each row exactly fills the 'columns' constraint.
    * This naturally pushes and pulls cards between rows recursively.
-     */
+   */
   private rebalanceGrid(): void {
     const state = this.store.getState();
-
     const cards = [...state.cards];
     const columns = state.columns;
     if (cards.length === 0) return;
@@ -297,31 +298,51 @@ export class GridController {
     this.setResizing(true);
     try {
       const updates: CardInstance[] = [];
-
       let currentIndex = 0;
 
       while (currentIndex < cards.length) {
         const row: CardInstance[] = [];
         let rowSum = 0;
 
-        // Group: Respect the column count strictly. Exactly 'columns' cards per row.
-        // This ensures the structural truth of the grid is defined by the column count property.
-        while (currentIndex < cards.length && row.length < columns) {
+        // Take cards greedily until we hit the column limit (by sum or count).
+        while (currentIndex < cards.length) {
           const card = cards[currentIndex];
+          const w = typeof card.width === "number" ? card.width : 1;
           row.push(card);
-          rowSum += (typeof card.width === 'number' ? card.width : 1);
+          rowSum += w;
           currentIndex++;
+          // Stop if we exceed width capacity OR reach the defined column item count.
+          if (rowSum >= columns - 0.01 || row.length >= columns) break;
         }
 
-        // Scale: Proportionally adjust widths so the row fills exactly 'columns' units.
-        const isFullRow = row.length === columns;
-        let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
-
-
+        const isLastRow = currentIndex === cards.length;
+        // Use a slightly smaller target to avoid floating point wrap-around in CSS flexbox
+        const targetSum = (rowSum >= columns - 0.05 || !isLastRow) ? columns - 0.001 : rowSum;
         const scale = rowSum > 0 ? targetSum / rowSum : 1;
 
-        for (const card of row) {
-          const newWidth = Math.round((card.width ?? 1) * scale * 1000) / 1000;
+        // Pass 1: Scale and apply MIN_WIDTH clamp
+        let currentTotal = 0;
+        const rowWidths = row.map(c => {
+          const w = Math.max(MIN_WIDTH, (c.width ?? 1) * scale);
+          currentTotal += w;
+          return w;
+        });
+
+        // Pass 2: If clamping caused us to exceed the column count, steal from adjustable cards
+        if (currentTotal > columns) {
+          const overage = currentTotal - (columns - 0.001);
+          const adjustableIndices = rowWidths.map((w, i) => w > MIN_WIDTH ? i : -1).filter(i => i !== -1);
+          if (adjustableIndices.length > 0) {
+            const reduction = overage / adjustableIndices.length;
+            for (const idx of adjustableIndices) {
+              rowWidths[idx] = Math.max(MIN_WIDTH, rowWidths[idx] - reduction);
+            }
+          }
+        }
+
+        for (let i = 0; i < row.length; i++) {
+          const card = row[i];
+          const newWidth = Math.round(rowWidths[i] * 1000) / 1000;
           if (newWidth === card.width) continue;
 
           const updated = { ...card, width: newWidth } as any;
