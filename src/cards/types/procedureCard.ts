@@ -90,7 +90,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         box.style.overflow = "hidden";
 
         const titleBox = box.createDiv("procedure-title-box");
-        titleBox.style.flex = "1";
+        titleBox.style.flex = "0 0 25%";
         titleBox.style.padding = "10px";
         titleBox.style.borderRight = "1px solid var(--background-modifier-border)";
         titleBox.style.display = "flex";
@@ -98,11 +98,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         const titleEl = titleBox.createEl("h4");
 
         const textBox = box.createDiv("procedure-text-box");
-        textBox.style.flex = "2";
+        textBox.style.flex = "1";
         textBox.style.padding = "10px";
 
         const imageBox = box.createDiv("procedure-image-box");
-        imageBox.style.flex = "1";
+        imageBox.style.flex = "0 0 25%";
         imageBox.style.display = "flex";
         imageBox.style.overflow = "hidden";
         const img = imageBox.createEl("img");
@@ -129,10 +129,10 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
 
                 titleBox.style.backgroundColor = card.backgroundColor || "transparent";
-                titleEl.style.color = card.textColor || "#000000";
+                titleEl.style.color = card.textColor || "";
                 void renderMarkdown(titleEl, card.title || "Untitled");
 
-                textBox.style.color = card.textColor || "#000000";
+
                 void renderMarkdown(textBox, card.text || "");
 
                 const enabled = card.imageEnabled !== false;
