@@ -1350,26 +1350,57 @@ var CardResizer = class {
     this.startWidth2 = 0;
     this.card1Id = "";
     this.card2Id = "";
+    this.maxUnbalancedWidth = 0;
     this.setupDividerListeners();
+    this.setupCursorHandler();
+  }
+  setupCursorHandler() {
+    this.container.addEventListener("mousemove", (evt) => {
+      if (this.isDragging) return;
+      const target = evt.target;
+      const cardEl = target.closest(".card-grid-card, .card-grid-spacer");
+      if (!cardEl) {
+        this.container.style.cursor = "";
+        return;
+      }
+      const columns = parseFloat(getComputedStyle(this.container).getPropertyValue("--grid-columns") || "3");
+      const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+      const myIndex = allCards.indexOf(cardEl);
+      const indexInRow = myIndex % columns + 1;
+      const rect = cardEl.getBoundingClientRect();
+      const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
+      if (isNearRightEdge && indexInRow < columns) {
+        this.container.style.cursor = "col-resize";
+      } else {
+        this.container.style.cursor = "";
+      }
+    });
   }
   setupDividerListeners() {
     this.container.addEventListener("mousedown", (evt) => {
       const cardEl = evt.target.closest(".card-grid-card, .card-grid-spacer");
       if (!cardEl) return;
+      const columns = parseFloat(getComputedStyle(this.container).getPropertyValue("--grid-columns") || "3");
+      const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+      const myIndex = allCards.indexOf(cardEl);
+      const indexInRow = myIndex % columns + 1;
+      if (indexInRow === columns) {
+        return;
+      }
       const rect = cardEl.getBoundingClientRect();
       const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
       if (!isNearRightEdge) {
         return;
       }
       const nextCardEl = cardEl.nextElementSibling;
-      if (!nextCardEl || !nextCardEl.classList.contains("card-grid-card") && !nextCardEl.classList.contains("card-grid-spacer")) {
-        return;
+      let neighbor = null;
+      if (nextCardEl && (nextCardEl.classList.contains("card-grid-card") || nextCardEl.classList.contains("card-grid-spacer"))) {
+        const rectNext = nextCardEl.getBoundingClientRect();
+        if (Math.abs(rect.top - rectNext.top) <= 10) {
+          neighbor = nextCardEl;
+        }
       }
-      const rectNext = nextCardEl.getBoundingClientRect();
-      if (Math.abs(rect.top - rectNext.top) > 10) {
-        return;
-      }
-      this.startResize(evt, cardEl, nextCardEl);
+      this.startResize(evt, cardEl, neighbor);
     });
   }
   onMouseMove(evt, card1El, card2El) {
@@ -1378,6 +1409,12 @@ var CardResizer = class {
     const containerRect = this.container.getBoundingClientRect();
     const columns = parseFloat(getComputedStyle(this.container).getPropertyValue("--grid-columns") || "3");
     const unitDelta = deltaX / containerRect.width * columns;
+    if (!card2El) {
+      let w = this.startWidth1 + unitDelta;
+      w = Math.round(Math.min(this.maxUnbalancedWidth, Math.max(0.3, w)) * 1e3) / 1e3;
+      card1El.style.setProperty("--card-width", String(w));
+      return;
+    }
     let w1 = this.startWidth1 + unitDelta;
     let w2 = this.startWidth2 - unitDelta;
     const totalWidth = this.startWidth1 + this.startWidth2;
@@ -1399,12 +1436,26 @@ var CardResizer = class {
     this.controller.setResizing(true);
     this.startX = evt.clientX;
     this.card1Id = card1El.dataset.cardId || "";
-    this.card2Id = card2El.dataset.cardId || "";
+    this.card2Id = (card2El == null ? void 0 : card2El.dataset.cardId) || "";
     this.startWidth1 = parseFloat(card1El.dataset.widthFraction || "1");
-    this.startWidth2 = parseFloat(card2El.dataset.widthFraction || "1");
+    this.startWidth2 = card2El ? parseFloat(card2El.dataset.widthFraction || "1") : 0;
+    if (!card2El) {
+      const columns = parseFloat(getComputedStyle(this.container).getPropertyValue("--grid-columns") || "3");
+      const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+      const myIndex = allCards.indexOf(card1El);
+      const rowIndex = Math.floor(myIndex / columns);
+      const startOfRow = rowIndex * columns;
+      let sumOfPreviousInRow = 0;
+      for (let i = startOfRow; i < myIndex; i++) {
+        sumOfPreviousInRow += parseFloat(allCards[i].dataset.widthFraction || "1");
+      }
+      this.maxUnbalancedWidth = columns - sumOfPreviousInRow;
+    }
     card1El.classList.add("card-grid-resizing");
-    card2El.classList.add("card-grid-resizing");
-    const onMouseMove = (e) => this.onMouseMove(e, card1El, card2El);
+    if (card2El) {
+      card2El.classList.add("card-grid-resizing");
+    }
+    const onMouseMove = (e) => this.onMouseMove(e, card1El, card2El || void 0);
     const onMouseUp = () => this.onMouseUp(card1El, card2El, onMouseMove);
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp, { once: true });
@@ -1415,13 +1466,16 @@ var CardResizer = class {
     this.isDragging = false;
     this.controller.setResizing(false);
     card1El.classList.remove("card-grid-resizing");
-    card2El.classList.remove("card-grid-resizing");
+    if (card2El) {
+      card2El.classList.remove("card-grid-resizing");
+    }
     const newWidth1 = parseFloat(getComputedStyle(card1El).getPropertyValue("--card-width") || "1");
-    const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue("--card-width") || "1");
-    this.controller.updateCardWidths([
-      { id: this.card1Id, width: newWidth1 },
-      { id: this.card2Id, width: newWidth2 }
-    ]);
+    const updates = [{ id: this.card1Id, width: newWidth1 }];
+    if (this.card2Id && card2El) {
+      const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue("--card-width") || "1");
+      updates.push({ id: this.card2Id, width: newWidth2 });
+    }
+    this.controller.updateCardWidths(updates);
   }
   destroy() {
     this.isDragging = false;
@@ -1625,7 +1679,7 @@ var GridController = class {
    * This naturally pushes and pulls cards between rows recursively.
      */
   rebalanceGrid() {
-    var _a, _b;
+    var _a;
     const state = this.store.getState();
     const cards = [...state.cards];
     const columns = state.columns;
@@ -1640,14 +1694,17 @@ var GridController = class {
         while (currentIndex < cards.length && row.length < columns) {
           const card = cards[currentIndex];
           row.push(card);
-          rowSum += (_a = card.width) != null ? _a : 1;
+          rowSum += typeof card.width === "number" ? card.width : 1;
           currentIndex++;
         }
         const isFullRow = row.length === columns;
-        const targetSum = isFullRow ? columns : rowSum;
-        const scale = targetSum / rowSum;
+        let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
+        if (!isFullRow && row.length === 3 && rowSum > 3) {
+          targetSum = 3;
+        }
+        const scale = rowSum > 0 ? targetSum / rowSum : 1;
         for (const card of row) {
-          const newWidth = Math.round(((_b = card.width) != null ? _b : 1) * scale * 1e3) / 1e3;
+          const newWidth = Math.round(((_a = card.width) != null ? _a : 1) * scale * 1e3) / 1e3;
           if (newWidth === card.width) continue;
           const updated = __spreadProps(__spreadValues({}, card), { width: newWidth });
           if (updated.raw) updated.raw = __spreadProps(__spreadValues({}, updated.raw), { width: newWidth });

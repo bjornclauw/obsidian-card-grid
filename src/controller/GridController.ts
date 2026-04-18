@@ -280,22 +280,26 @@ export class GridController {
         const row: CardInstance[] = [];
         let rowSum = 0;
 
-        // Group: Respect the column count strictly. Exactly 'columns' cards per row (if available).
+        // Group: Respect the column count strictly. Exactly 'columns' cards per row.
         // This ensures the structural truth of the grid is defined by the column count property.
         while (currentIndex < cards.length && row.length < columns) {
           const card = cards[currentIndex];
           row.push(card);
-          rowSum += (card.width ?? 1);
+          rowSum += (typeof card.width === 'number' ? card.width : 1);
           currentIndex++;
         }
 
         // Scale: Proportionally adjust widths so the row fills exactly 'columns' units.
-        // If the row is complete (full count), we scale it to exactly fill the column capacity.
-        // If it's an incomplete last row, we maintain the natural widths (scale 1.0)
-        // to prevent isolated cards from expanding to fill the entire grid width.
         const isFullRow = row.length === columns;
-        const targetSum = isFullRow ? columns : rowSum;
-        const scale = targetSum / rowSum;
+        let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
+
+        // Reset solitary cards in incomplete rows to 1 column if they were larger 
+        // (handles cards being pushed or cloned from large cards).
+        if (!isFullRow && row.length === 3 && rowSum > 3) {
+          targetSum = 3;
+        }
+
+        const scale = rowSum > 0 ? targetSum / rowSum : 1;
 
         for (const card of row) {
           const newWidth = Math.round((card.width ?? 1) * scale * 1000) / 1000;

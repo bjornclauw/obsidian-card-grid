@@ -8,6 +8,7 @@ export class CardResizer {
     private startWidth2 = 0;
     private card1Id: string = "";
     private card2Id: string = "";
+    private maxUnbalancedWidth: number = 0;
 
     constructor(
         private app: App,
@@ -15,6 +16,36 @@ export class CardResizer {
         private controller: GridController
     ) {
         this.setupDividerListeners();
+        this.setupCursorHandler();
+    }
+
+    private setupCursorHandler(): void {
+        this.container.addEventListener("mousemove", (evt) => {
+            if (this.isDragging) return;
+
+            const target = evt.target as HTMLElement;
+            const cardEl = target.closest(".card-grid-card, .card-grid-spacer") as HTMLElement;
+
+            if (!cardEl) {
+                this.container.style.cursor = "";
+                return;
+            }
+
+            const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
+            const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+            const myIndex = allCards.indexOf(cardEl);
+            const indexInRow = (myIndex % columns) + 1;
+
+            const rect = cardEl.getBoundingClientRect();
+            const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
+
+            // Change icon only if it's a resizable edge (not the last column)
+            if (isNearRightEdge && indexInRow < columns) {
+                this.container.style.cursor = "col-resize";
+            } else {
+                this.container.style.cursor = "";
+            }
+        });
     }
 
     private setupDividerListeners(): void {
@@ -25,6 +56,16 @@ export class CardResizer {
             const cardEl = (evt.target as HTMLElement).closest(".card-grid-card, .card-grid-spacer") as HTMLElement;
             if (!cardEl) return;
 
+            // Respect the "highest truth": cards in the last column cannot be resized.
+            const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
+            const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+            const myIndex = allCards.indexOf(cardEl);
+            const indexInRow = (myIndex % columns) + 1;
+
+            if (indexInRow === columns) {
+                return;
+            }
+
             // Only start resize if clicking near the right edge (where the handle is)
             const rect = cardEl.getBoundingClientRect();
             const isNearRightEdge = Math.abs(evt.clientX - rect.right) <= 15;
@@ -33,27 +74,25 @@ export class CardResizer {
             }
 
             const nextCardEl = cardEl.nextElementSibling as HTMLElement;
-            //console.log("nextCardEl:", nextCardEl);
 
-            // Accept both .card-grid-card AND .card-grid-spacer for next element
-            if (!nextCardEl || (!nextCardEl.classList.contains("card-grid-card") && !nextCardEl.classList.contains("card-grid-spacer"))) {
-                //console.log("no next card");
-                return;
+            // Determine if we have a neighbor on the same row to resize against
+            let neighbor: HTMLElement | null = null;
+            if (nextCardEl &&
+                (nextCardEl.classList.contains("card-grid-card") || nextCardEl.classList.contains("card-grid-spacer"))) {
+                const rectNext = nextCardEl.getBoundingClientRect();
+                // Vertical check to ensure they are on the same row
+                if (Math.abs(rect.top - rectNext.top) <= 10) {
+                    neighbor = nextCardEl;
+                }
             }
 
-            // Verify that both cards are on the same row by checking their vertical position
-            const rectNext = nextCardEl.getBoundingClientRect();
-            if (Math.abs(rect.top - rectNext.top) > 10) {
-                // Cards are on different rows; resizing between them is not allowed.
-                return;
-            }
-
-            //console.log("starting resize");
-            this.startResize(evt as MouseEvent, cardEl, nextCardEl);
+            // We allow resizing if there's a neighbor (Balanced) 
+            // OR if there's empty space in the row (Unbalanced).
+            this.startResize(evt as MouseEvent, cardEl, neighbor);
         });
     }
 
-    private onMouseMove(evt: MouseEvent, card1El: HTMLElement, card2El: HTMLElement): void {
+    private onMouseMove(evt: MouseEvent, card1El: HTMLElement, card2El?: HTMLElement): void {
         if (!this.isDragging) return;
 
         const deltaX = evt.clientX - this.startX;
@@ -62,6 +101,14 @@ export class CardResizer {
         const containerRect = this.container.getBoundingClientRect();
         const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
         const unitDelta = (deltaX / containerRect.width) * columns;
+
+        if (!card2El) {
+            // Unbalanced resize: grow/shrink while respecting the row's column limit
+            let w = this.startWidth1 + unitDelta;
+            w = Math.round(Math.min(this.maxUnbalancedWidth, Math.max(0.3, w)) * 1000) / 1000;
+            card1El.style.setProperty('--card-width', String(w));
+            return;
+        }
 
         let w1 = this.startWidth1 + unitDelta;
         let w2 = this.startWidth2 - unitDelta;
@@ -85,23 +132,38 @@ export class CardResizer {
         card2El.style.setProperty('--card-width', String(round(w2)));
     }
 
-    private startResize(evt: MouseEvent, card1El: HTMLElement, card2El: HTMLElement): void {
+    private startResize(evt: MouseEvent, card1El: HTMLElement, card2El: HTMLElement | null): void {
         evt.preventDefault();
         this.isDragging = true;
-        this.controller.setResizing(true);  // Add this
+        this.controller.setResizing(true);
 
         this.startX = evt.clientX;
         this.card1Id = card1El.dataset.cardId || "";
-        this.card2Id = card2El.dataset.cardId || "";
+        this.card2Id = card2El?.dataset.cardId || "";
         this.startWidth1 = parseFloat(card1El.dataset.widthFraction || "1");
-        this.startWidth2 = parseFloat(card2El.dataset.widthFraction || "1");
+        this.startWidth2 = card2El ? parseFloat(card2El.dataset.widthFraction || "1") : 0;
 
-        //console.log("resize started", { card1Id: this.card1Id, card2Id: this.card2Id, startWidth1: this.startWidth1, startWidth2: this.startWidth2 });
+        // Calculate the maximum allowed width for unbalanced resizing (last card in incomplete row)
+        if (!card2El) {
+            const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
+            const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
+            const myIndex = allCards.indexOf(card1El);
+            const rowIndex = Math.floor(myIndex / columns);
+            const startOfRow = rowIndex * columns;
+
+            let sumOfPreviousInRow = 0;
+            for (let i = startOfRow; i < myIndex; i++) {
+                sumOfPreviousInRow += parseFloat((allCards[i] as HTMLElement).dataset.widthFraction || "1");
+            }
+            this.maxUnbalancedWidth = columns - sumOfPreviousInRow;
+        }
 
         card1El.classList.add("card-grid-resizing");
-        card2El.classList.add("card-grid-resizing");
+        if (card2El) {
+            card2El.classList.add("card-grid-resizing");
+        }
 
-        const onMouseMove = (e: MouseEvent) => this.onMouseMove(e, card1El, card2El);
+        const onMouseMove = (e: MouseEvent) => this.onMouseMove(e, card1El, card2El || undefined);
         const onMouseUp = () => this.onMouseUp(card1El, card2El, onMouseMove);
 
         document.addEventListener("mousemove", onMouseMove);
@@ -110,30 +172,30 @@ export class CardResizer {
 
     private onMouseUp(
         card1El: HTMLElement,
-        card2El: HTMLElement,
+        card2El: HTMLElement | null,
         onMouseMove: (e: MouseEvent) => void
     ): void {
         document.removeEventListener("mousemove", onMouseMove);
 
         if (!this.isDragging) return;
         this.isDragging = false;
-        this.controller.setResizing(false);  // Add this
+        this.controller.setResizing(false);
 
         card1El.classList.remove("card-grid-resizing");
-        card2El.classList.remove("card-grid-resizing");
+        if (card2El) {
+            card2El.classList.remove("card-grid-resizing");
+        }
 
         const newWidth1 = parseFloat(getComputedStyle(card1El).getPropertyValue('--card-width') || "1");
-        const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue('--card-width') || "1");
+        const updates = [{ id: this.card1Id, width: newWidth1 }];
 
-        //console.log("resize finished", { newWidth1, newWidth2 });
+        if (this.card2Id && card2El) {
+            const newWidth2 = parseFloat(getComputedStyle(card2El).getPropertyValue('--card-width') || "1");
+            updates.push({ id: this.card2Id, width: newWidth2 });
+        }
 
-        this.controller.updateCardWidths([
-            { id: this.card1Id, width: newWidth1 },
-            { id: this.card2Id, width: newWidth2 }
-        ]);
+        this.controller.updateCardWidths(updates);
     }
-
-
 
     destroy(): void {
         this.isDragging = false;
