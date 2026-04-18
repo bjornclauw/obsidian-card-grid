@@ -104,6 +104,43 @@
   align-items: stretch;
 }
 
+.card-grid-editor .setting-item {
+  border-top: none;
+  padding: 12px 0;
+}
+
+.card-grid-editor .setting-item-info {
+  margin-bottom: 8px;
+}
+
+.card-grid-editor .setting-item-name {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Group small inputs (colors, numbers, toggles) into two columns */
+.card-grid-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+
+/* Force wide inputs (Text, Markdown, Image) to span full width */
+.card-grid-editor .setting-item:has(input[type="text"]),
+.card-grid-editor .setting-item:has(textarea),
+.card-grid-editor .setting-item:has(.card-grid-md-preview),
+.card-grid-editor .setting-item:has(.image-picker-suggestion) {
+  grid-column: span 2;
+}
+
+.card-grid-editor .setting-item-description {
+  font-style: italic;
+  font-size: 0.8em;
+}
+
 .card-grid-md-toolbar {
   display: flex;
   gap: 8px;
@@ -114,6 +151,8 @@
   padding: 8px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
+  background-color: var(--background-primary);
+  min-height: 60px;
 }
 
 .card-grid-suggest-sub {

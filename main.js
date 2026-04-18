@@ -294,10 +294,15 @@ var flashCardType = {
   editor: {
     title: "Edit flash card",
     fields: [
+      // Group 1: Primary Content
       { kind: "text", key: "title", label: "Title" },
       { kind: "markdown", key: "text", label: "Text" },
       { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
       { kind: "image-file", key: "image", label: "Image" },
+      // Group 2: Layout
+      { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
+      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
+      // Group 3: Styling Overrides
       {
         kind: "select",
         key: "imageFit",
@@ -310,7 +315,6 @@ var flashCardType = {
           { label: "Scale-down", value: "scale-down" }
         ]
       },
-      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
       { kind: "text", key: "imagePosition", label: "Image position", placeholder: "e.g. center" },
       { kind: "number", key: "imageRadius", label: "Image radius", min: 0, step: 1 },
       {
@@ -324,13 +328,6 @@ var flashCardType = {
         key: "textColor",
         label: "Title color",
         defaultValue: "#000000"
-      },
-      {
-        kind: "number",
-        key: "width",
-        label: "Width (columns)",
-        defaultValue: 1
-        // Default to 1 column
       }
     ]
   },
@@ -409,8 +406,13 @@ var imageCardType = {
   editor: {
     title: "Edit image card",
     fields: [
+      // Content
       { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
       { kind: "image-file", key: "image", label: "Image" },
+      // Layout
+      { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
+      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
+      // Styling
       {
         kind: "select",
         key: "imageFit",
@@ -423,7 +425,6 @@ var imageCardType = {
           { label: "Scale-down", value: "scale-down" }
         ]
       },
-      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
       { kind: "text", key: "imagePosition", label: "Image position", placeholder: "e.g. center" },
       { kind: "number", key: "imageRadius", label: "Image radius", min: 0, step: 1 },
       {
@@ -431,13 +432,6 @@ var imageCardType = {
         key: "backgroundColor",
         label: "Border color",
         defaultValue: "#cccccc"
-      },
-      {
-        kind: "number",
-        key: "width",
-        label: "Width (columns)",
-        defaultValue: 1
-        // Default to 1 column
       }
     ]
   },

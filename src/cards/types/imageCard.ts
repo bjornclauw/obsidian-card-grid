@@ -14,8 +14,15 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
   editor: {
     title: "Edit image card",
     fields: [
+      // Content
       { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
       { kind: "image-file", key: "image", label: "Image" },
+
+      // Layout
+      { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
+      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
+
+      // Styling
       {
         kind: "select",
         key: "imageFit",
@@ -28,7 +35,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
           { label: "Scale-down", value: "scale-down" }
         ]
       },
-      { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
       { kind: "text", key: "imagePosition", label: "Image position", placeholder: "e.g. center" },
       { kind: "number", key: "imageRadius", label: "Image radius", min: 0, step: 1 },
       {
@@ -36,12 +42,6 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         key: "backgroundColor",
         label: "Border color",
         defaultValue: "#cccccc"
-      },
-      {
-        kind: "number",
-        key: "width",
-        label: "Width (columns)",
-        defaultValue: 1 // Default to 1 column
       }
     ]
   },
