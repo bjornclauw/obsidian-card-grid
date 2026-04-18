@@ -1830,9 +1830,6 @@ var GridController = class {
         }
         const isFullRow = row.length === columns;
         let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
-        if (!isFullRow && row.length === 1 && rowSum > 1) {
-          targetSum = 1;
-        }
         const scale = rowSum > 0 ? targetSum / rowSum : 1;
         for (const card of row) {
           const newWidth = Math.round(((_a = card.width) != null ? _a : 1) * scale * 1e3) / 1e3;

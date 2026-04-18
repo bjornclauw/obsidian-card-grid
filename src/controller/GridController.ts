@@ -310,11 +310,6 @@ export class GridController {
         const isFullRow = row.length === columns;
         let targetSum = isFullRow ? columns : Math.min(rowSum, columns);
 
-        // Reset solitary cards in incomplete rows to 1 column if they were larger 
-        // (handles cards being pushed or cloned from large cards).
-        if (!isFullRow && row.length === 1 && rowSum > 1) {
-          targetSum = 1;
-        }
 
         const scale = rowSum > 0 ? targetSum / rowSum : 1;
 
