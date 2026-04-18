@@ -1,20 +1,18 @@
 import type { CardGridData } from "./types";
 
-export const CURRENT_GRID_VERSION = 1;
-export const DEFAULT_GAP = 10;
-export const DEFAULT_RADIUS = 8;
+
 
 export function defaultGridData(id: string): CardGridData {
   return {
     id,
-    version: CURRENT_GRID_VERSION,
+    version: 1,
     columns: 3,
-    gap: DEFAULT_GAP,
-    borderRadius: DEFAULT_RADIUS,
+    gap: 10,
+    borderRadius: 8,
     imageFit: "cover",
     imageHeight: 180,
     imagePosition: "center",
-    imageRadius: 0,
+    imageRadius: 5,
     cards: []
   };
 }

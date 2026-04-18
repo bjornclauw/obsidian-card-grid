@@ -91,7 +91,7 @@
 <div class="cge-wrap">
     <div class="cge-left">
         <div class="cge-fields">
-            {#each def.editor.fields as field}
+            {#each def.editor.fields.filter((f) => f.key !== "imageEnabled") as field}
                 <div
                     class="cge-row"
                     class:cge-row-tall={field.kind === "markdown"}
@@ -207,6 +207,39 @@
                             </div>
                         {:else if field.kind === "image-file"}
                             <div class="cge-image-row">
+                                {#if def.editor.fields.some((f) => f.key === field.key + "Enabled")}
+                                    <div
+                                        class="cge-toggle-mini"
+                                        class:cge-on={draft[
+                                            field.key + "Enabled"
+                                        ] !== false}
+                                        role="checkbox"
+                                        aria-checked={draft[
+                                            field.key + "Enabled"
+                                        ] !== false}
+                                        tabindex="0"
+                                        on:click={() => {
+                                            draft[field.key + "Enabled"] =
+                                                draft[field.key + "Enabled"] ===
+                                                false;
+                                            draft = { ...draft };
+                                        }}
+                                        on:keydown={(e) => {
+                                            if (
+                                                e.key === " " ||
+                                                e.key === "Enter"
+                                            ) {
+                                                e.preventDefault();
+                                                draft[field.key + "Enabled"] =
+                                                    draft[
+                                                        field.key + "Enabled"
+                                                    ] === false;
+                                                draft = { ...draft };
+                                            }
+                                        }}
+                                        title="Show/Hide Image"
+                                    ></div>
+                                {/if}
                                 <span class="cge-path-chip"
                                     >{draft[field.key]
                                         ? draft[field.key].split("/").pop()
@@ -446,6 +479,36 @@
         font-size: 12px;
         color: var(--text-muted);
         padding-left: 44px;
+    }
+
+    /* ── Mini Toggle (Inline) ── */
+    .cge-toggle-mini {
+        width: 28px;
+        height: 16px;
+        border-radius: 8px;
+        background: var(--background-modifier-border);
+        position: relative;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background 0.15s;
+    }
+    .cge-toggle-mini.cge-on {
+        background: var(--interactive-accent);
+    }
+    .cge-toggle-mini::after {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: white;
+        transition: transform 0.15s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .cge-toggle-mini.cge-on::after {
+        transform: translateX(12px);
     }
 
     /* ── Button group (select replacement) ── */

@@ -1,5 +1,5 @@
 import type { CardGridData, CardInstance, CardTypeId, GridId } from "./types";
-import { CURRENT_GRID_VERSION, defaultGridData } from "./defaults";
+import { defaultGridData } from "./defaults";
 import type { CardTypeRegistry } from "../cards/registry";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,7 +54,7 @@ export function parseCardGridObject(
 
   const grid: CardGridData = {
     ...base,
-    version: toNumber(obj.version, CURRENT_GRID_VERSION),
+    version: toNumber(obj.version, base.version),
     columns: Math.max(1, Math.floor(toNumber(obj.columns, base.columns))),
     gap: Math.max(0, toNumber(obj.gap, base.gap)),
     borderRadius: Math.max(0, toNumber(obj.borderRadius, base.borderRadius)),
