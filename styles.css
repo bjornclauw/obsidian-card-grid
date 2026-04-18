@@ -32,6 +32,15 @@
   margin: 0;
 }
 
+/* --- Icon Card --- */
+.card-grid-card.card-type-icon {
+  border: none !important;
+}
+
+.card-grid-card.card-type-icon .icon-text p {
+  margin: 0;
+}
+
 /* --- Spacer Card --- */
 .card-grid-spacer {
   flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));

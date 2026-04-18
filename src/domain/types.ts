@@ -103,7 +103,16 @@ export interface NotifierCard extends BaseCard {
   textColor?: string;
 }
 
-export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard;
+export interface IconCard extends BaseCard {
+  type: "icon";
+  icon?: string;
+  text?: string;
+  iconSize?: number;
+  textSize?: number;
+  iconColor?: string;
+}
+
+export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard | IconCard;
 
 export interface GridBlockRef {
   sourcePath: string;

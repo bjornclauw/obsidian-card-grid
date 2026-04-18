@@ -3,50 +3,55 @@ import type { CardGridData, CardInstance, CardTypeId } from "../domain/types";
 
 export type CardEditorField =
   | {
-      kind: "text";
-      key: string;
-      label: string;
-      placeholder?: string;
-    }
+    kind: "text";
+    key: string;
+    label: string;
+    placeholder?: string;
+  }
   | {
-      kind: "markdown";
-      key: string;
-      label: string;
-      placeholder?: string;
-    }
+    kind: "markdown";
+    key: string;
+    label: string;
+    placeholder?: string;
+  }
   | {
-      kind: "number";
-      key: string;
-      label: string;
-      min?: number;
-      max?: number;
-      step?: number;
-      defaultValue?: number;
-    }
+    kind: "number";
+    key: string;
+    label: string;
+    min?: number;
+    max?: number;
+    step?: number;
+    defaultValue?: number;
+  }
   | {
-      kind: "select";
-      key: string;
-      label: string;
-      options: Array<{ label: string; value: string }>;
-      defaultValue?: string;
-    }
+    kind: "select";
+    key: string;
+    label: string;
+    options: Array<{ label: string; value: string }>;
+    defaultValue?: string;
+  }
   | {
-      kind: "toggle";
-      key: string;
-      label: string;
-      defaultValue?: boolean;
-    }
+    kind: "toggle";
+    key: string;
+    label: string;
+    defaultValue?: boolean;
+  }
   | {
-      kind: "color";
-      key: string;
-      label: string;
-      defaultValue?: string;
-    }
+    kind: "color";
+    key: string;
+    label: string;
+    defaultValue?: string;
+  }
   | {
-      kind: "image-file";
-      key: string;
-      label: string;
-    };
+    kind: "image-file";
+    key: string;
+    label: string;
+  }
+  | {
+    kind: "icon";
+    key: string;
+    label: string;
+  };
 
 export interface CardEditorSpec {
   title: string;
