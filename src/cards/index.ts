@@ -5,8 +5,8 @@ import { imageCardType } from "./types/imageCard";
 import { spacerCardType } from "./types/spacerCard";
 import { unknownCardType } from "./types/unknownCard";
 import { procedureCardType } from "./types/procedureCard";
-import { notifierCardType } from "../domain/notifierCard";
-import { iconCardType } from "../domain/iconCard";
+import { notifierCardType } from "./types/notifierCard";
+import { iconCardType } from "./types/iconCard";
 
 export function createDefaultRegistry(): CardTypeRegistry {
   const registry = new CardTypeRegistry();

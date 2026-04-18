@@ -1,7 +1,7 @@
 import { MarkdownRenderer, setIcon } from "obsidian";
-import type { IconCard } from "./types";
-import type { CardTypeDefinition, CardView, CardViewContext } from "../cards/registry";
-import { createId } from "./codec";
+import type { IconCard } from "../../domain/types";
+import type { CardTypeDefinition, CardView, CardViewContext } from "../registry";
+import { createId } from "../../domain/codec";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === "object" && !Array.isArray(value);
