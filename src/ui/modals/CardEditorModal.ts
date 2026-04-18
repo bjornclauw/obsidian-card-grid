@@ -289,6 +289,22 @@ export class CardEditorModal<TCard extends CardInstance> extends Modal {
         const card = previewWrap.createDiv("card-grid-preview-card");
         const content = card.createDiv("card-grid-preview-content");
 
+        // Apply alignment from draft if it exists (for text, icon, and notifier cards)
+        const alignment = this.draft["alignment"];
+        if (alignment === "left") {
+          previewWrap.style.alignItems = "flex-start";
+          previewWrap.style.textAlign = "left";
+          card.style.justifyContent = "flex-start";
+          card.style.alignItems = "flex-start";
+          content.style.textAlign = "left";
+        } else if (alignment === "center") {
+          previewWrap.style.alignItems = "center";
+          previewWrap.style.textAlign = "center";
+          card.style.justifyContent = "center";
+          card.style.alignItems = "center";
+          content.style.textAlign = "center";
+        }
+
         await MarkdownRenderer.render(
           this.app,
           getString() || " ",

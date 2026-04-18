@@ -1575,6 +1575,20 @@ var CardEditorModal = class extends import_obsidian12.Modal {
         previewWrap.empty();
         const card = previewWrap.createDiv("card-grid-preview-card");
         const content = card.createDiv("card-grid-preview-content");
+        const alignment = this.draft["alignment"];
+        if (alignment === "left") {
+          previewWrap.style.alignItems = "flex-start";
+          previewWrap.style.textAlign = "left";
+          card.style.justifyContent = "flex-start";
+          card.style.alignItems = "flex-start";
+          content.style.textAlign = "left";
+        } else if (alignment === "center") {
+          previewWrap.style.alignItems = "center";
+          previewWrap.style.textAlign = "center";
+          card.style.justifyContent = "center";
+          card.style.alignItems = "center";
+          content.style.textAlign = "center";
+        }
         yield import_obsidian12.MarkdownRenderer.render(
           this.app,
           getString() || " ",
