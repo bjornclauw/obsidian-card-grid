@@ -133,21 +133,28 @@ export class GridController {
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
+
+      (base as any).width = 1; // Default to standard column width
+
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
+      this.rebalanceGrid();
     }).open();
   }
 
   private deleteCard(id: CardId): void {
     this.store.dispatch({ type: "card/delete", id });
+    this.rebalanceGrid();
   }
 
   private cloneCard(id: CardId): void {
     const card = this.findCard(id);
     if (!card) return;
-    const state = this.store.getState();
-    const index = state.cards.findIndex((c) => c.id === id);
+
     const cloned = cloneCard(card, createId("card"));
+    const index = this.store.getState().cards.findIndex((c) => c.id === id);
     this.store.dispatch({ type: "card/insert", card: cloned, atIndex: index + 1 });
+
+    this.rebalanceGrid();
   }
 
   private moveCard(id: CardId, direction: "up" | "down"): void {
@@ -156,6 +163,7 @@ export class GridController {
     if (idx === -1) return;
     const toIndex = direction === "up" ? idx - 1 : idx + 1;
     this.store.dispatch({ type: "card/move", id, toIndex });
+    this.rebalanceGrid();
   }
 
   private changeType(id: CardId, type: CardTypeId): void {
@@ -164,6 +172,7 @@ export class GridController {
     const def = this.registry.get(type);
     const updated = def.normalize({ ...(existing as any), type, id });
     this.store.dispatch({ type: "card/replace", card: updated });
+    this.rebalanceGrid();
   }
 
   private editCard(id: CardId): void {
@@ -179,6 +188,7 @@ export class GridController {
     new CardEditorModal(this.app, this.plugin, this.ref.sourcePath, def as any, card as any, (updated) => {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
+      this.rebalanceGrid();
     }).open();
   }
 
@@ -187,6 +197,7 @@ export class GridController {
       type: "grid/set-options",
       patch: { columns: count }
     });
+    this.rebalanceGrid();
   }
 
   public updateCardWidths(updates: { id: CardId; width: number }[]): void {
@@ -206,6 +217,7 @@ export class GridController {
     } finally {
       this.setResizing(false);
       // Manually trigger the final update now that both cards are updated in state
+      this.rebalanceGrid();
       this.view.update(this.store.getState());
     }
   }
@@ -237,11 +249,70 @@ export class GridController {
     }
   }
 
+
   public setResizing(resizing: boolean): void {
     this.isResizing = resizing;
   }
 
   public isCurrentlyResizing(): boolean {
     return this.isResizing;
+
+  }
+  /**
+   * Performs a global reflow of the grid. It groups cards into rows and scales 
+   * widths proportionally to ensure each row exactly fills the 'columns' constraint.
+   * This naturally pushes and pulls cards between rows recursively.
+     */
+  private rebalanceGrid(): void {
+    const state = this.store.getState();
+
+    const cards = [...state.cards];
+    const columns = state.columns;
+    if (cards.length === 0) return;
+
+    this.setResizing(true);
+    try {
+      const updates: CardInstance[] = [];
+
+      let currentIndex = 0;
+
+      while (currentIndex < cards.length) {
+        const row: CardInstance[] = [];
+        let rowSum = 0;
+
+        // Group: Respect the column count strictly. Exactly 'columns' cards per row (if available).
+        // This ensures the structural truth of the grid is defined by the column count property.
+        while (currentIndex < cards.length && row.length < columns) {
+          const card = cards[currentIndex];
+          row.push(card);
+          rowSum += (card.width ?? 1);
+          currentIndex++;
+        }
+
+        // Scale: Proportionally adjust widths so the row fills exactly 'columns' units.
+        // If the row is complete (full count), we scale it to exactly fill the column capacity.
+        // If it's an incomplete last row, we maintain the natural widths (scale 1.0)
+        // to prevent isolated cards from expanding to fill the entire grid width.
+        const isFullRow = row.length === columns;
+        const targetSum = isFullRow ? columns : rowSum;
+        const scale = targetSum / rowSum;
+
+        for (const card of row) {
+          const newWidth = Math.round((card.width ?? 1) * scale * 1000) / 1000;
+          if (newWidth === card.width) continue;
+
+          const updated = { ...card, width: newWidth } as any;
+          if (updated.raw) updated.raw = { ...updated.raw, width: newWidth };
+          updates.push(updated);
+        }
+      }
+
+      for (const card of updates) {
+        this.store.dispatch({ type: "card/replace", card });
+      }
+    } finally {
+      this.setResizing(false);
+      this.view.update(this.store.getState());
+    }
   }
 }

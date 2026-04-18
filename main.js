@@ -1520,19 +1520,22 @@ var GridController = class {
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
+      base.width = 1;
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
+      this.rebalanceGrid();
     }).open();
   }
   deleteCard(id) {
     this.store.dispatch({ type: "card/delete", id });
+    this.rebalanceGrid();
   }
   cloneCard(id) {
     const card = this.findCard(id);
     if (!card) return;
-    const state = this.store.getState();
-    const index = state.cards.findIndex((c) => c.id === id);
     const cloned = cloneCard(card, createId("card"));
+    const index = this.store.getState().cards.findIndex((c) => c.id === id);
     this.store.dispatch({ type: "card/insert", card: cloned, atIndex: index + 1 });
+    this.rebalanceGrid();
   }
   moveCard(id, direction) {
     const state = this.store.getState();
@@ -1540,6 +1543,7 @@ var GridController = class {
     if (idx === -1) return;
     const toIndex = direction === "up" ? idx - 1 : idx + 1;
     this.store.dispatch({ type: "card/move", id, toIndex });
+    this.rebalanceGrid();
   }
   changeType(id, type) {
     const existing = this.findCard(id);
@@ -1547,6 +1551,7 @@ var GridController = class {
     const def = this.registry.get(type);
     const updated = def.normalize(__spreadProps(__spreadValues({}, existing), { type, id }));
     this.store.dispatch({ type: "card/replace", card: updated });
+    this.rebalanceGrid();
   }
   editCard(id) {
     const card = this.findCard(id);
@@ -1559,6 +1564,7 @@ var GridController = class {
     new CardEditorModal(this.app, this.plugin, this.ref.sourcePath, def, card, (updated) => {
       if (!updated) return;
       this.store.dispatch({ type: "card/replace", card: updated });
+      this.rebalanceGrid();
     }).open();
   }
   changeColumns(count) {
@@ -1566,6 +1572,7 @@ var GridController = class {
       type: "grid/set-options",
       patch: { columns: count }
     });
+    this.rebalanceGrid();
   }
   updateCardWidths(updates) {
     this.setResizing(true);
@@ -1580,6 +1587,7 @@ var GridController = class {
       }
     } finally {
       this.setResizing(false);
+      this.rebalanceGrid();
       this.view.update(this.store.getState());
     }
   }
@@ -1610,6 +1618,49 @@ var GridController = class {
   }
   isCurrentlyResizing() {
     return this.isResizing;
+  }
+  /**
+   * Performs a global reflow of the grid. It groups cards into rows and scales 
+   * widths proportionally to ensure each row exactly fills the 'columns' constraint.
+   * This naturally pushes and pulls cards between rows recursively.
+     */
+  rebalanceGrid() {
+    var _a, _b;
+    const state = this.store.getState();
+    const cards = [...state.cards];
+    const columns = state.columns;
+    if (cards.length === 0) return;
+    this.setResizing(true);
+    try {
+      const updates = [];
+      let currentIndex = 0;
+      while (currentIndex < cards.length) {
+        const row = [];
+        let rowSum = 0;
+        while (currentIndex < cards.length && row.length < columns) {
+          const card = cards[currentIndex];
+          row.push(card);
+          rowSum += (_a = card.width) != null ? _a : 1;
+          currentIndex++;
+        }
+        const isFullRow = row.length === columns;
+        const targetSum = isFullRow ? columns : rowSum;
+        const scale = targetSum / rowSum;
+        for (const card of row) {
+          const newWidth = Math.round(((_b = card.width) != null ? _b : 1) * scale * 1e3) / 1e3;
+          if (newWidth === card.width) continue;
+          const updated = __spreadProps(__spreadValues({}, card), { width: newWidth });
+          if (updated.raw) updated.raw = __spreadProps(__spreadValues({}, updated.raw), { width: newWidth });
+          updates.push(updated);
+        }
+      }
+      for (const card of updates) {
+        this.store.dispatch({ type: "card/replace", card });
+      }
+    } finally {
+      this.setResizing(false);
+      this.view.update(this.store.getState());
+    }
   }
 };
 
