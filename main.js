@@ -1470,6 +1470,9 @@ function text(data) {
 function space() {
   return text(" ");
 }
+function empty() {
+  return text("");
+}
 function listen(node, event, handler, options) {
   node.addEventListener(event, handler, options);
   return () => node.removeEventListener(event, handler, options);
@@ -1492,6 +1495,13 @@ function set_data(text2, data) {
 }
 function set_input_value(input, value) {
   input.value = value == null ? "" : value;
+}
+function set_style(node, key, value, important) {
+  if (value == null) {
+    node.style.removeProperty(key);
+  } else {
+    node.style.setProperty(key, value, important ? "important" : "");
+  }
 }
 function select_option(select, value, mounting) {
   for (let i = 0; i < select.options.length; i += 1) {
@@ -2050,40 +2060,45 @@ var ImagePickerModal = class extends import_obsidian11.FuzzySuggestModal {
 
 // src/ui/modals/Editor.svelte
 function add_css(target) {
-  append_styles(target, "svelte-13lc1at", '.card-grid-modal-container.svelte-13lc1at.svelte-13lc1at{display:flex;flex-direction:row;gap:20px;height:60vh}.card-grid-editor-side.svelte-13lc1at.svelte-13lc1at{flex:1.2;overflow-y:auto;padding-right:15px}.card-grid-preview-side.svelte-13lc1at.svelte-13lc1at{flex:0.8;display:flex;flex-direction:column;background:var(--background-secondary);border-radius:8px;padding:20px;border:1px solid var(--background-modifier-border);overflow:hidden;justify-content:center;align-items:center}.preview-label.svelte-13lc1at.svelte-13lc1at{font-size:0.8em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;font-weight:bold}.setting-item.svelte-13lc1at.svelte-13lc1at{display:flex;flex-direction:column;padding:12px 0;border-top:1px solid var(--background-modifier-border)}.setting-item.svelte-13lc1at.svelte-13lc1at:first-child{border-top:none}.setting-item-name.svelte-13lc1at.svelte-13lc1at{font-weight:600;margin-bottom:8px}input[type="text"].svelte-13lc1at.svelte-13lc1at,input[type="number"].svelte-13lc1at.svelte-13lc1at,select.svelte-13lc1at.svelte-13lc1at,textarea.svelte-13lc1at.svelte-13lc1at{width:100%}.image-field-row.svelte-13lc1at.svelte-13lc1at{display:flex;gap:8px;align-items:center}.path-text.svelte-13lc1at.svelte-13lc1at{flex:1;font-size:0.8em;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.modal-button-container.svelte-13lc1at.svelte-13lc1at{margin-top:20px;display:flex;justify-content:flex-end;gap:10px}.checkbox-container.svelte-13lc1at.svelte-13lc1at{background-color:var(--interactive-normal);border-radius:12px;cursor:pointer;height:24px;position:relative;transition:background-color 0.15s ease-in-out;width:45px}.checkbox-container.is-enabled.svelte-13lc1at.svelte-13lc1at{background-color:var(--interactive-accent)}.checkbox-container.svelte-13lc1at.svelte-13lc1at:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:2px}.checkbox-container.svelte-13lc1at input.svelte-13lc1at{pointer-events:none}');
+  append_styles(target, "svelte-tao351", '.cge-wrap.svelte-tao351.svelte-tao351{display:flex;gap:0;height:58vh;min-height:360px;margin:0 -16px -16px;overflow:hidden}.cge-left.svelte-tao351.svelte-tao351{flex:1.2;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--background-modifier-border)}.cge-fields.svelte-tao351.svelte-tao351{flex:1;overflow-y:auto;padding:6px 14px 0}.cge-row.svelte-tao351.svelte-tao351{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--background-modifier-border);min-height:36px}.cge-row-tall.svelte-tao351.svelte-tao351{align-items:flex-start;padding:8px 0}.cge-row.svelte-tao351.svelte-tao351:last-child{border-bottom:none}.cge-field-label.svelte-tao351.svelte-tao351{flex:0 0 100px;font-size:12px;font-weight:500;color:var(--text-muted);text-transform:capitalize;white-space:nowrap;padding-top:1px}.cge-row-tall.svelte-tao351 .cge-field-label.svelte-tao351{padding-top:6px}.cge-field-control.svelte-tao351.svelte-tao351{flex:1;min-width:0}.cge-text-input.svelte-tao351.svelte-tao351{width:100%;height:28px;padding:0 8px;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-primary);color:var(--text-normal);box-sizing:border-box;outline:none}.cge-text-input.svelte-tao351.svelte-tao351:focus{border-color:var(--interactive-accent)}.cge-number-row.svelte-tao351.svelte-tao351{display:flex;align-items:center;gap:0;width:fit-content;border:1px solid var(--background-modifier-border);border-radius:5px;overflow:hidden;background:var(--background-primary)}.cge-stepper.svelte-tao351.svelte-tao351{width:26px;height:28px;border:none;background:var(--background-secondary);color:var(--text-normal);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}.cge-stepper.svelte-tao351.svelte-tao351:hover{background:var(--background-modifier-hover)}.cge-number-input.svelte-tao351.svelte-tao351{width:52px;height:28px;border:none;border-left:1px solid var(--background-modifier-border);border-right:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;text-align:center;outline:none;padding:0;-moz-appearance:textfield}.cge-number-input.svelte-tao351.svelte-tao351::-webkit-inner-spin-button,.cge-number-input.svelte-tao351.svelte-tao351::-webkit-outer-spin-button{-webkit-appearance:none}.cge-toggle.svelte-tao351.svelte-tao351{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;width:fit-content}.cge-toggle.svelte-tao351.svelte-tao351::before{content:"";display:block;width:36px;height:20px;border-radius:10px;background:var(--background-modifier-border);position:relative;transition:background 0.18s;flex-shrink:0}.cge-toggle.cge-on.svelte-tao351.svelte-tao351::before{background:var(--interactive-accent)}.cge-thumb.svelte-tao351.svelte-tao351{display:none}.cge-toggle.svelte-tao351.svelte-tao351{position:relative}.cge-toggle.svelte-tao351.svelte-tao351::after{content:"";position:absolute;left:3px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0, 0, 0, 0.2);transition:left 0.18s;pointer-events:none}.cge-toggle.cge-on.svelte-tao351.svelte-tao351::after{left:19px}.cge-toggle-label.svelte-tao351.svelte-tao351{font-size:12px;color:var(--text-muted);padding-left:44px}.cge-btn-group.svelte-tao351.svelte-tao351{display:flex;gap:3px;flex-wrap:wrap}.cge-opt-btn.svelte-tao351.svelte-tao351{padding:3px 10px;font-size:12px;border:1px solid var(--background-modifier-border);border-radius:4px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;transition:all 0.12s;white-space:nowrap}.cge-opt-btn.svelte-tao351.svelte-tao351:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.cge-opt-active.svelte-tao351.svelte-tao351{background:var(--interactive-accent) !important;color:var(--text-on-accent) !important;border-color:var(--interactive-accent) !important}.cge-select.svelte-tao351.svelte-tao351{height:28px;padding:0 8px;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-primary);color:var(--text-normal);cursor:pointer;outline:none;max-width:200px}.cge-color-row.svelte-tao351.svelte-tao351{display:flex;align-items:center;gap:7px}.cge-color-swatch-btn.svelte-tao351.svelte-tao351{width:28px;height:28px;border-radius:5px;border:1px solid var(--background-modifier-border);cursor:pointer;flex-shrink:0;overflow:hidden;display:block}.cge-color-swatch-btn.svelte-tao351 input.svelte-tao351{opacity:0;width:100%;height:100%;cursor:pointer;padding:0;border:none}.cge-color-text.svelte-tao351.svelte-tao351{width:90px !important;font-family:var(--font-monospace);font-size:12px !important}.cge-image-row.svelte-tao351.svelte-tao351{display:flex;align-items:center;gap:6px;min-width:0}.cge-path-chip.svelte-tao351.svelte-tao351{font-size:11px;color:var(--text-muted);background:var(--background-secondary);border:1px solid var(--background-modifier-border);border-radius:4px;padding:3px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;font-family:var(--font-monospace)}.cge-action-btn.svelte-tao351.svelte-tao351{padding:3px 9px;font-size:12px;border:1px solid var(--background-modifier-border);border-radius:4px;background:var(--background-secondary);color:var(--text-normal);cursor:pointer;white-space:nowrap;flex-shrink:0}.cge-action-btn.svelte-tao351.svelte-tao351:hover{background:var(--background-modifier-hover)}.cge-danger-btn.svelte-tao351.svelte-tao351{color:var(--text-error);border-color:var(--text-error)}.cge-textarea.svelte-tao351.svelte-tao351{width:100%;padding:7px 9px;font-size:13px;font-family:var(--font-monospace);border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-primary);color:var(--text-normal);resize:none;box-sizing:border-box;outline:none;line-height:1.5}.cge-textarea.svelte-tao351.svelte-tao351:focus{border-color:var(--interactive-accent)}.cge-footer.svelte-tao351.svelte-tao351{display:flex;justify-content:flex-end;gap:7px;padding:10px 14px;border-top:1px solid var(--background-modifier-border);flex-shrink:0}.cge-foot-btn.svelte-tao351.svelte-tao351{padding:5px 16px;font-size:13px;font-weight:500;border-radius:5px;cursor:pointer;border:1px solid var(--background-modifier-border)}.cge-cancel.svelte-tao351.svelte-tao351{background:var(--background-secondary);color:var(--text-muted)}.cge-cancel.svelte-tao351.svelte-tao351:hover{color:var(--text-normal);background:var(--background-modifier-hover)}.cge-save.svelte-tao351.svelte-tao351{background:var(--interactive-accent);color:var(--text-on-accent);border-color:transparent}.cge-save.svelte-tao351.svelte-tao351:hover{opacity:0.88}.cge-preview.svelte-tao351.svelte-tao351{flex:0.9;display:flex;flex-direction:column;background:var(--background-secondary);overflow:hidden;position:relative}.cge-preview-label.svelte-tao351.svelte-tao351{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-faint);padding:10px 14px 6px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-primary);flex-shrink:0}.cge-preview-inner.svelte-tao351.svelte-tao351{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:20px 16px;overflow:hidden}');
 }
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[24] = list[i];
-  child_ctx[25] = list;
-  child_ctx[26] = i;
+  child_ctx[31] = list[i];
+  child_ctx[32] = list;
+  child_ctx[33] = i;
+  return child_ctx;
+}
+function get_each_context_2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[34] = list[i];
   return child_ctx;
 }
 function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[27] = list[i];
+  child_ctx[34] = list[i];
   return child_ctx;
 }
-function create_if_block_6(ctx) {
+function create_if_block_8(ctx) {
   let textarea;
   let textarea_placeholder_value;
   let mounted;
   let dispose;
   function textarea_input_handler() {
-    ctx[20].call(
+    ctx[25].call(
       textarea,
       /*field*/
-      ctx[24]
+      ctx[31]
     );
   }
   return {
     c() {
       var _a;
       textarea = element("textarea");
-      attr(textarea, "rows", "8");
+      attr(textarea, "class", "cge-textarea svelte-tao351");
+      attr(textarea, "rows", "5");
       attr(textarea, "placeholder", textarea_placeholder_value = /*field*/
-      (_a = ctx[24].placeholder) != null ? _a : "");
-      attr(textarea, "class", "svelte-13lc1at");
+      (_a = ctx[31].placeholder) != null ? _a : "Markdown\u2026");
     },
     m(target, anchor) {
       insert(target, textarea, anchor);
@@ -2092,7 +2107,7 @@ function create_if_block_6(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[24].key
+          ctx[31].key
         ]
       );
       if (!mounted) {
@@ -2103,19 +2118,19 @@ function create_if_block_6(ctx) {
     p(new_ctx, dirty) {
       var _a;
       ctx = new_ctx;
-      if (dirty & /*def*/
+      if (dirty[0] & /*def*/
       2 && textarea_placeholder_value !== (textarea_placeholder_value = /*field*/
-      (_a = ctx[24].placeholder) != null ? _a : "")) {
+      (_a = ctx[31].placeholder) != null ? _a : "Markdown\u2026")) {
         attr(textarea, "placeholder", textarea_placeholder_value);
       }
-      if (dirty & /*draft, def*/
+      if (dirty[0] & /*draft, def*/
       3) {
         set_input_value(
           textarea,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[24].key
+            ctx[31].key
           ]
         );
       }
@@ -2129,79 +2144,231 @@ function create_if_block_6(ctx) {
     }
   };
 }
-function create_if_block_5(ctx) {
+function create_if_block_6(ctx) {
   let div;
   let span;
   let t0_value = (
     /*draft*/
     (ctx[0][
       /*field*/
-      ctx[24].key
-    ] || "(none)") + ""
+      ctx[31].key
+    ] ? (
+      /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ].split("/").pop()
+    ) : "None") + ""
   );
   let t0;
   let t1;
-  let button0;
+  let button;
   let t3;
-  let button1;
   let mounted;
   let dispose;
-  function click_handler_1() {
+  function click_handler_4() {
     return (
-      /*click_handler_1*/
-      ctx[18](
+      /*click_handler_4*/
+      ctx[23](
         /*field*/
-        ctx[24]
+        ctx[31]
       )
     );
   }
-  function click_handler_2() {
-    return (
-      /*click_handler_2*/
-      ctx[19](
-        /*field*/
-        ctx[24]
-      )
-    );
-  }
+  let if_block = (
+    /*draft*/
+    ctx[0][
+      /*field*/
+      ctx[31].key
+    ] && create_if_block_7(ctx)
+  );
   return {
     c() {
       div = element("div");
       span = element("span");
       t0 = text(t0_value);
       t1 = space();
-      button0 = element("button");
-      button0.textContent = "Choose...";
+      button = element("button");
+      button.textContent = "Browse";
       t3 = space();
-      button1 = element("button");
-      button1.textContent = "Clear";
-      attr(span, "class", "path-text svelte-13lc1at");
-      attr(div, "class", "image-field-row svelte-13lc1at");
+      if (if_block) if_block.c();
+      attr(span, "class", "cge-path-chip svelte-tao351");
+      attr(button, "class", "cge-action-btn svelte-tao351");
+      attr(div, "class", "cge-image-row svelte-tao351");
     },
     m(target, anchor) {
       insert(target, div, anchor);
       append(div, span);
       append(span, t0);
       append(div, t1);
-      append(div, button0);
+      append(div, button);
       append(div, t3);
-      append(div, button1);
+      if (if_block) if_block.m(div, null);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_4);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*draft, def*/
+      3 && t0_value !== (t0_value = /*draft*/
+      (ctx[0][
+        /*field*/
+        ctx[31].key
+      ] ? (
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ].split("/").pop()
+      ) : "None") + "")) set_data(t0, t0_value);
+      if (
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ]
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_7(ctx);
+          if_block.c();
+          if_block.m(div, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_5(ctx) {
+  let div;
+  let label;
+  let input0;
+  let t;
+  let input1;
+  let mounted;
+  let dispose;
+  function input0_input_handler() {
+    ctx[21].call(
+      input0,
+      /*field*/
+      ctx[31]
+    );
+  }
+  function input1_input_handler() {
+    ctx[22].call(
+      input1,
+      /*field*/
+      ctx[31]
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      label = element("label");
+      input0 = element("input");
+      t = space();
+      input1 = element("input");
+      attr(input0, "type", "color");
+      attr(input0, "class", "svelte-tao351");
+      attr(label, "class", "cge-color-swatch-btn svelte-tao351");
+      set_style(
+        label,
+        "background",
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ] || "#cccccc"
+      );
+      attr(input1, "class", "cge-text-input cge-color-text svelte-tao351");
+      attr(input1, "type", "text");
+      attr(input1, "placeholder", "#cccccc");
+      attr(input1, "maxlength", "7");
+      attr(div, "class", "cge-color-row svelte-tao351");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, label);
+      append(label, input0);
+      set_input_value(
+        input0,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ]
+      );
+      append(div, t);
+      append(div, input1);
+      set_input_value(
+        input1,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ]
+      );
       if (!mounted) {
         dispose = [
-          listen(button0, "click", click_handler_1),
-          listen(button1, "click", click_handler_2)
+          listen(input0, "input", input0_input_handler),
+          listen(input1, "input", input1_input_handler)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty & /*draft, def*/
-      3 && t0_value !== (t0_value = /*draft*/
-      (ctx[0][
+      if (dirty[0] & /*draft, def*/
+      3) {
+        set_input_value(
+          input0,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ]
+        );
+      }
+      if (dirty[0] & /*draft, def*/
+      3) {
+        set_style(
+          label,
+          "background",
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ] || "#cccccc"
+        );
+      }
+      if (dirty[0] & /*draft, def*/
+      3 && input1.value !== /*draft*/
+      ctx[0][
         /*field*/
-        ctx[24].key
-      ] || "(none)") + "")) set_data(t0, t0_value);
+        ctx[31].key
+      ]) {
+        set_input_value(
+          input1,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ]
+        );
+      }
     },
     d(detaching) {
       if (detaching) {
@@ -2212,21 +2379,299 @@ function create_if_block_5(ctx) {
     }
   };
 }
-function create_if_block_4(ctx) {
-  let input;
+function create_if_block_3(ctx) {
+  let if_block_anchor;
+  function select_block_type_1(ctx2, dirty) {
+    if (
+      /*field*/
+      ctx2[31].options.length <= 5
+    ) return create_if_block_4;
+    return create_else_block;
+  }
+  let current_block_type = select_block_type_1(ctx, [-1, -1]);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_block.d(detaching);
+    }
+  };
+}
+function create_if_block_2(ctx) {
+  let div1;
+  let div0;
+  let t0;
+  let span;
+  let t1_value = (
+    /*draft*/
+    ctx[0][
+      /*field*/
+      ctx[31].key
+    ] ? "On" : "Off"
+  );
+  let t1;
+  let div1_aria_checked_value;
   let mounted;
   let dispose;
-  function input_input_handler_2() {
-    ctx[17].call(
-      input,
-      /*field*/
-      ctx[24]
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[17](
+        /*field*/
+        ctx[31]
+      )
+    );
+  }
+  function keydown_handler(...args) {
+    return (
+      /*keydown_handler*/
+      ctx[18](
+        /*field*/
+        ctx[31],
+        ...args
+      )
     );
   }
   return {
     c() {
+      div1 = element("div");
+      div0 = element("div");
+      t0 = space();
+      span = element("span");
+      t1 = text(t1_value);
+      attr(div0, "class", "cge-thumb svelte-tao351");
+      attr(span, "class", "cge-toggle-label svelte-tao351");
+      attr(div1, "class", "cge-toggle svelte-tao351");
+      attr(div1, "role", "checkbox");
+      attr(div1, "aria-checked", div1_aria_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ]);
+      attr(div1, "tabindex", "0");
+      toggle_class(
+        div1,
+        "cge-on",
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ]
+      );
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div1, t0);
+      append(div1, span);
+      append(span, t1);
+      if (!mounted) {
+        dispose = [
+          listen(div1, "click", click_handler_2),
+          listen(div1, "keydown", keydown_handler)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*draft, def*/
+      3 && t1_value !== (t1_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ] ? "On" : "Off")) set_data(t1, t1_value);
+      if (dirty[0] & /*draft, def*/
+      3 && div1_aria_checked_value !== (div1_aria_checked_value = /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ])) {
+        attr(div1, "aria-checked", div1_aria_checked_value);
+      }
+      if (dirty[0] & /*draft, def*/
+      3) {
+        toggle_class(
+          div1,
+          "cge-on",
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let div;
+  let button0;
+  let t1;
+  let input;
+  let input_step_value;
+  let input_min_value;
+  let t2;
+  let button1;
+  let mounted;
+  let dispose;
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[14](
+        /*field*/
+        ctx[31]
+      )
+    );
+  }
+  function input_input_handler_1() {
+    ctx[15].call(
+      input,
+      /*field*/
+      ctx[31]
+    );
+  }
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[16](
+        /*field*/
+        ctx[31]
+      )
+    );
+  }
+  return {
+    c() {
+      var _a, _b;
+      div = element("div");
+      button0 = element("button");
+      button0.textContent = "\u2212";
+      t1 = space();
       input = element("input");
-      attr(input, "type", "color");
+      t2 = space();
+      button1 = element("button");
+      button1.textContent = "+";
+      attr(button0, "class", "cge-stepper svelte-tao351");
+      attr(input, "class", "cge-number-input svelte-tao351");
+      attr(input, "type", "number");
+      attr(input, "step", input_step_value = /*field*/
+      (_a = ctx[31].step) != null ? _a : 1);
+      attr(input, "min", input_min_value = /*field*/
+      (_b = ctx[31].min) != null ? _b : void 0);
+      attr(button1, "class", "cge-stepper svelte-tao351");
+      attr(div, "class", "cge-number-row svelte-tao351");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(div, t1);
+      append(div, input);
+      set_input_value(
+        input,
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ]
+      );
+      append(div, t2);
+      append(div, button1);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler),
+          listen(input, "input", input_input_handler_1),
+          listen(button1, "click", click_handler_1)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      var _a, _b;
+      ctx = new_ctx;
+      if (dirty[0] & /*def*/
+      2 && input_step_value !== (input_step_value = /*field*/
+      (_a = ctx[31].step) != null ? _a : 1)) {
+        attr(input, "step", input_step_value);
+      }
+      if (dirty[0] & /*def*/
+      2 && input_min_value !== (input_min_value = /*field*/
+      (_b = ctx[31].min) != null ? _b : void 0)) {
+        attr(input, "min", input_min_value);
+      }
+      if (dirty[0] & /*draft, def*/
+      3 && to_number(input.value) !== /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ]) {
+        set_input_value(
+          input,
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block(ctx) {
+  let input;
+  let input_placeholder_value;
+  let mounted;
+  let dispose;
+  function input_input_handler() {
+    ctx[13].call(
+      input,
+      /*field*/
+      ctx[31]
+    );
+  }
+  return {
+    c() {
+      var _a;
+      input = element("input");
+      attr(input, "class", "cge-text-input svelte-tao351");
+      attr(input, "type", "text");
+      attr(input, "placeholder", input_placeholder_value = /*field*/
+      (_a = ctx[31].placeholder) != null ? _a : "");
     },
     m(target, anchor) {
       insert(target, input, anchor);
@@ -2235,24 +2680,34 @@ function create_if_block_4(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[24].key
+          ctx[31].key
         ]
       );
       if (!mounted) {
-        dispose = listen(input, "input", input_input_handler_2);
+        dispose = listen(input, "input", input_input_handler);
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
+      var _a;
       ctx = new_ctx;
-      if (dirty & /*draft, def*/
-      3) {
+      if (dirty[0] & /*def*/
+      2 && input_placeholder_value !== (input_placeholder_value = /*field*/
+      (_a = ctx[31].placeholder) != null ? _a : "")) {
+        attr(input, "placeholder", input_placeholder_value);
+      }
+      if (dirty[0] & /*draft, def*/
+      3 && input.value !== /*draft*/
+      ctx[0][
+        /*field*/
+        ctx[31].key
+      ]) {
         set_input_value(
           input,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[24].key
+            ctx[31].key
           ]
         );
       }
@@ -2266,23 +2721,61 @@ function create_if_block_4(ctx) {
     }
   };
 }
-function create_if_block_3(ctx) {
+function create_if_block_7(ctx) {
+  let button;
+  let mounted;
+  let dispose;
+  function click_handler_5() {
+    return (
+      /*click_handler_5*/
+      ctx[24](
+        /*field*/
+        ctx[31]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      button.textContent = "\u2715";
+      attr(button, "class", "cge-action-btn cge-danger-btn svelte-tao351");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_5);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_else_block(ctx) {
   let select;
   let mounted;
   let dispose;
-  let each_value_1 = ensure_array_like(
+  let each_value_2 = ensure_array_like(
     /*field*/
-    ctx[24].options
+    ctx[31].options
   );
   let each_blocks = [];
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
   }
   function select_change_handler() {
-    ctx[16].call(
+    ctx[20].call(
       select,
       /*field*/
-      ctx[24]
+      ctx[31]
     );
   }
   return {
@@ -2291,12 +2784,12 @@ function create_if_block_3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(select, "class", "svelte-13lc1at");
+      attr(select, "class", "cge-select svelte-tao351");
       if (
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[24].key
+          ctx[31].key
         ] === void 0
       ) add_render_callback(select_change_handler);
     },
@@ -2312,7 +2805,7 @@ function create_if_block_3(ctx) {
         /*draft*/
         ctx[0][
           /*field*/
-          ctx[24].key
+          ctx[31].key
         ],
         true
       );
@@ -2323,19 +2816,19 @@ function create_if_block_3(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty & /*def*/
+      if (dirty[0] & /*def*/
       2) {
-        each_value_1 = ensure_array_like(
+        each_value_2 = ensure_array_like(
           /*field*/
-          ctx[24].options
+          ctx[31].options
         );
         let i;
-        for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_1(ctx, each_value_1, i);
+        for (i = 0; i < each_value_2.length; i += 1) {
+          const child_ctx = get_each_context_2(ctx, each_value_2, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
           } else {
-            each_blocks[i] = create_each_block_1(child_ctx);
+            each_blocks[i] = create_each_block_2(child_ctx);
             each_blocks[i].c();
             each_blocks[i].m(select, null);
           }
@@ -2343,16 +2836,16 @@ function create_if_block_3(ctx) {
         for (; i < each_blocks.length; i += 1) {
           each_blocks[i].d(1);
         }
-        each_blocks.length = each_value_1.length;
+        each_blocks.length = each_value_2.length;
       }
-      if (dirty & /*draft, def*/
+      if (dirty[0] & /*draft, def*/
       3) {
         select_option(
           select,
           /*draft*/
           ctx[0][
             /*field*/
-            ctx[24].key
+            ctx[31].key
           ]
         );
       }
@@ -2367,256 +2860,69 @@ function create_if_block_3(ctx) {
     }
   };
 }
-function create_if_block_2(ctx) {
+function create_if_block_4(ctx) {
   let div;
-  let input;
-  let input_checked_value;
-  let div_aria_checked_value;
-  let mounted;
-  let dispose;
-  function click_handler() {
-    return (
-      /*click_handler*/
-      ctx[14](
-        /*field*/
-        ctx[24]
-      )
-    );
-  }
-  function keydown_handler(...args) {
-    return (
-      /*keydown_handler*/
-      ctx[15](
-        /*field*/
-        ctx[24],
-        ...args
-      )
-    );
+  let each_value_1 = ensure_array_like(
+    /*field*/
+    ctx[31].options
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
   }
   return {
     c() {
       div = element("div");
-      input = element("input");
-      attr(input, "type", "checkbox");
-      input.checked = input_checked_value = /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ];
-      attr(input, "tabindex", "-1");
-      attr(input, "class", "svelte-13lc1at");
-      attr(div, "class", "checkbox-container svelte-13lc1at");
-      attr(div, "role", "checkbox");
-      attr(div, "aria-checked", div_aria_checked_value = /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ]);
-      attr(div, "tabindex", "0");
-      toggle_class(
-        div,
-        "is-enabled",
-        /*draft*/
-        ctx[0][
-          /*field*/
-          ctx[24].key
-        ]
-      );
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div, "class", "cge-btn-group svelte-tao351");
     },
     m(target, anchor) {
       insert(target, div, anchor);
-      append(div, input);
-      if (!mounted) {
-        dispose = [
-          listen(div, "click", click_handler),
-          listen(div, "keydown", keydown_handler)
-        ];
-        mounted = true;
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div, null);
+        }
       }
     },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty & /*draft, def*/
-      3 && input_checked_value !== (input_checked_value = /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ])) {
-        input.checked = input_checked_value;
-      }
-      if (dirty & /*draft, def*/
-      3 && div_aria_checked_value !== (div_aria_checked_value = /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ])) {
-        attr(div, "aria-checked", div_aria_checked_value);
-      }
-      if (dirty & /*draft, def*/
+    p(ctx2, dirty) {
+      if (dirty[0] & /*draft, def*/
       3) {
-        toggle_class(
-          div,
-          "is-enabled",
-          /*draft*/
-          ctx[0][
-            /*field*/
-            ctx[24].key
-          ]
+        each_value_1 = ensure_array_like(
+          /*field*/
+          ctx2[31].options
         );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_1(ctx2, each_value_1, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_1(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_1.length;
       }
     },
     d(detaching) {
       if (detaching) {
         detach(div);
       }
-      mounted = false;
-      run_all(dispose);
+      destroy_each(each_blocks, detaching);
     }
   };
 }
-function create_if_block_1(ctx) {
-  let input;
-  let input_step_value;
-  let mounted;
-  let dispose;
-  function input_input_handler_1() {
-    ctx[13].call(
-      input,
-      /*field*/
-      ctx[24]
-    );
-  }
-  return {
-    c() {
-      var _a;
-      input = element("input");
-      attr(input, "type", "number");
-      attr(input, "step", input_step_value = /*field*/
-      (_a = ctx[24].step) != null ? _a : 1);
-      attr(input, "class", "svelte-13lc1at");
-    },
-    m(target, anchor) {
-      insert(target, input, anchor);
-      set_input_value(
-        input,
-        /*draft*/
-        ctx[0][
-          /*field*/
-          ctx[24].key
-        ]
-      );
-      if (!mounted) {
-        dispose = listen(input, "input", input_input_handler_1);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      var _a;
-      ctx = new_ctx;
-      if (dirty & /*def*/
-      2 && input_step_value !== (input_step_value = /*field*/
-      (_a = ctx[24].step) != null ? _a : 1)) {
-        attr(input, "step", input_step_value);
-      }
-      if (dirty & /*draft, def*/
-      3 && to_number(input.value) !== /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ]) {
-        set_input_value(
-          input,
-          /*draft*/
-          ctx[0][
-            /*field*/
-            ctx[24].key
-          ]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(input);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block(ctx) {
-  let input;
-  let input_placeholder_value;
-  let mounted;
-  let dispose;
-  function input_input_handler() {
-    ctx[12].call(
-      input,
-      /*field*/
-      ctx[24]
-    );
-  }
-  return {
-    c() {
-      var _a;
-      input = element("input");
-      attr(input, "type", "text");
-      attr(input, "placeholder", input_placeholder_value = /*field*/
-      (_a = ctx[24].placeholder) != null ? _a : "");
-      attr(input, "class", "svelte-13lc1at");
-    },
-    m(target, anchor) {
-      insert(target, input, anchor);
-      set_input_value(
-        input,
-        /*draft*/
-        ctx[0][
-          /*field*/
-          ctx[24].key
-        ]
-      );
-      if (!mounted) {
-        dispose = listen(input, "input", input_input_handler);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      var _a;
-      ctx = new_ctx;
-      if (dirty & /*def*/
-      2 && input_placeholder_value !== (input_placeholder_value = /*field*/
-      (_a = ctx[24].placeholder) != null ? _a : "")) {
-        attr(input, "placeholder", input_placeholder_value);
-      }
-      if (dirty & /*draft, def*/
-      3 && input.value !== /*draft*/
-      ctx[0][
-        /*field*/
-        ctx[24].key
-      ]) {
-        set_input_value(
-          input,
-          /*draft*/
-          ctx[0][
-            /*field*/
-            ctx[24].key
-          ]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(input);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_each_block_1(ctx) {
+function create_each_block_2(ctx) {
   let option;
   let t_value = (
     /*opt*/
-    ctx[27].label + ""
+    ctx[34].label + ""
   );
   let t;
   let option_value_value;
@@ -2625,7 +2931,7 @@ function create_each_block_1(ctx) {
       option = element("option");
       t = text(t_value);
       option.__value = option_value_value = /*opt*/
-      ctx[27].value;
+      ctx[34].value;
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -2633,12 +2939,12 @@ function create_each_block_1(ctx) {
       append(option, t);
     },
     p(ctx2, dirty) {
-      if (dirty & /*def*/
+      if (dirty[0] & /*def*/
       2 && t_value !== (t_value = /*opt*/
-      ctx2[27].label + "")) set_data(t, t_value);
-      if (dirty & /*def*/
+      ctx2[34].label + "")) set_data(t, t_value);
+      if (dirty[0] & /*def*/
       2 && option_value_value !== (option_value_value = /*opt*/
-      ctx2[27].value)) {
+      ctx2[34].value)) {
         option.__value = option_value_value;
         set_input_value(option, option.__value);
       }
@@ -2650,79 +2956,153 @@ function create_each_block_1(ctx) {
     }
   };
 }
+function create_each_block_1(ctx) {
+  let button;
+  let t_value = (
+    /*opt*/
+    ctx[34].label + ""
+  );
+  let t;
+  let mounted;
+  let dispose;
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[19](
+        /*field*/
+        ctx[31],
+        /*opt*/
+        ctx[34]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      t = text(t_value);
+      attr(button, "class", "cge-opt-btn svelte-tao351");
+      toggle_class(
+        button,
+        "cge-opt-active",
+        /*draft*/
+        ctx[0][
+          /*field*/
+          ctx[31].key
+        ] === /*opt*/
+        ctx[34].value
+      );
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, t);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_3);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*def*/
+      2 && t_value !== (t_value = /*opt*/
+      ctx[34].label + "")) set_data(t, t_value);
+      if (dirty[0] & /*draft, def*/
+      3) {
+        toggle_class(
+          button,
+          "cge-opt-active",
+          /*draft*/
+          ctx[0][
+            /*field*/
+            ctx[31].key
+          ] === /*opt*/
+          ctx[34].value
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
 function create_each_block(ctx) {
-  let div3;
-  let div1;
+  let div2;
   let div0;
   let t0_value = (
     /*field*/
-    ctx[24].label + ""
+    ctx[31].label + ""
   );
   let t0;
   let t1;
-  let div2;
+  let div1;
   let t2;
   function select_block_type(ctx2, dirty) {
     if (
       /*field*/
-      ctx2[24].kind === "text"
+      ctx2[31].kind === "text"
     ) return create_if_block;
     if (
       /*field*/
-      ctx2[24].kind === "number"
+      ctx2[31].kind === "number"
     ) return create_if_block_1;
     if (
       /*field*/
-      ctx2[24].kind === "toggle"
+      ctx2[31].kind === "toggle"
     ) return create_if_block_2;
     if (
       /*field*/
-      ctx2[24].kind === "select"
+      ctx2[31].kind === "select"
     ) return create_if_block_3;
     if (
       /*field*/
-      ctx2[24].kind === "color"
-    ) return create_if_block_4;
-    if (
-      /*field*/
-      ctx2[24].kind === "image-file"
+      ctx2[31].kind === "color"
     ) return create_if_block_5;
     if (
       /*field*/
-      ctx2[24].kind === "markdown"
+      ctx2[31].kind === "image-file"
     ) return create_if_block_6;
+    if (
+      /*field*/
+      ctx2[31].kind === "markdown"
+    ) return create_if_block_8;
   }
-  let current_block_type = select_block_type(ctx, -1);
+  let current_block_type = select_block_type(ctx, [-1, -1]);
   let if_block = current_block_type && current_block_type(ctx);
   return {
     c() {
-      div3 = element("div");
-      div1 = element("div");
+      div2 = element("div");
       div0 = element("div");
       t0 = text(t0_value);
       t1 = space();
-      div2 = element("div");
+      div1 = element("div");
       if (if_block) if_block.c();
       t2 = space();
-      attr(div0, "class", "setting-item-name svelte-13lc1at");
-      attr(div1, "class", "setting-item-info");
-      attr(div2, "class", "setting-item-control");
-      attr(div3, "class", "setting-item svelte-13lc1at");
+      attr(div0, "class", "cge-field-label svelte-tao351");
+      attr(div1, "class", "cge-field-control svelte-tao351");
+      attr(div2, "class", "cge-row svelte-tao351");
+      toggle_class(
+        div2,
+        "cge-row-tall",
+        /*field*/
+        ctx[31].kind === "markdown"
+      );
     },
     m(target, anchor) {
-      insert(target, div3, anchor);
-      append(div3, div1);
-      append(div1, div0);
+      insert(target, div2, anchor);
+      append(div2, div0);
       append(div0, t0);
-      append(div3, t1);
-      append(div3, div2);
-      if (if_block) if_block.m(div2, null);
-      append(div3, t2);
+      append(div2, t1);
+      append(div2, div1);
+      if (if_block) if_block.m(div1, null);
+      append(div2, t2);
     },
     p(ctx2, dirty) {
-      if (dirty & /*def*/
+      if (dirty[0] & /*def*/
       2 && t0_value !== (t0_value = /*field*/
-      ctx2[24].label + "")) set_data(t0, t0_value);
+      ctx2[31].label + "")) set_data(t0, t0_value);
       if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
         if_block.p(ctx2, dirty);
       } else {
@@ -2730,13 +3110,22 @@ function create_each_block(ctx) {
         if_block = current_block_type && current_block_type(ctx2);
         if (if_block) {
           if_block.c();
-          if_block.m(div2, null);
+          if_block.m(div1, null);
         }
+      }
+      if (dirty[0] & /*def*/
+      2) {
+        toggle_class(
+          div2,
+          "cge-row-tall",
+          /*field*/
+          ctx2[31].kind === "markdown"
+        );
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div3);
+        detach(div2);
       }
       if (if_block) {
         if_block.d();
@@ -2745,18 +3134,19 @@ function create_each_block(ctx) {
   };
 }
 function create_fragment(ctx) {
-  let div4;
+  let div6;
+  let div2;
   let div0;
   let t0;
-  let div3;
   let div1;
-  let t2;
-  let div2;
-  let t3;
-  let div5;
   let button0;
-  let t5;
+  let t2;
   let button1;
+  let t4;
+  let div5;
+  let div3;
+  let t6;
+  let div4;
   let mounted;
   let dispose;
   let each_value = ensure_array_like(
@@ -2769,51 +3159,56 @@ function create_fragment(ctx) {
   }
   return {
     c() {
-      div4 = element("div");
+      div6 = element("div");
+      div2 = element("div");
       div0 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
       t0 = space();
-      div3 = element("div");
       div1 = element("div");
-      div1.textContent = "Preview";
-      t2 = space();
-      div2 = element("div");
-      t3 = space();
-      div5 = element("div");
       button0 = element("button");
       button0.textContent = "Cancel";
-      t5 = space();
+      t2 = space();
       button1 = element("button");
       button1.textContent = "Save";
-      attr(div0, "class", "card-grid-editor-side svelte-13lc1at");
-      attr(div1, "class", "preview-label svelte-13lc1at");
-      attr(div2, "class", "preview-host");
-      attr(div3, "class", "card-grid-preview-side svelte-13lc1at");
-      attr(div4, "class", "card-grid-modal-container svelte-13lc1at");
-      attr(button1, "class", "mod-cta");
-      attr(div5, "class", "modal-button-container svelte-13lc1at");
+      t4 = space();
+      div5 = element("div");
+      div3 = element("div");
+      div3.textContent = "Preview";
+      t6 = space();
+      div4 = element("div");
+      attr(div0, "class", "cge-fields svelte-tao351");
+      attr(button0, "class", "cge-foot-btn cge-cancel svelte-tao351");
+      attr(button1, "class", "cge-foot-btn cge-save svelte-tao351");
+      attr(div1, "class", "cge-footer svelte-tao351");
+      attr(div2, "class", "cge-left svelte-tao351");
+      attr(div3, "class", "cge-preview-label svelte-tao351");
+      attr(div4, "class", "cge-preview-inner svelte-tao351");
+      attr(div5, "class", "cge-preview svelte-tao351");
+      attr(div6, "class", "cge-wrap svelte-tao351");
     },
     m(target, anchor) {
-      insert(target, div4, anchor);
-      append(div4, div0);
+      insert(target, div6, anchor);
+      append(div6, div2);
+      append(div2, div0);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div0, null);
         }
       }
-      append(div4, t0);
-      append(div4, div3);
-      append(div3, div1);
-      append(div3, t2);
-      append(div3, div2);
-      ctx[21](div2);
-      insert(target, t3, anchor);
-      insert(target, div5, anchor);
-      append(div5, button0);
-      append(div5, t5);
-      append(div5, button1);
+      append(div2, t0);
+      append(div2, div1);
+      append(div1, button0);
+      append(div1, t2);
+      append(div1, button1);
+      append(div6, t4);
+      append(div6, div5);
+      append(div5, div3);
+      append(div5, t6);
+      append(div5, div4);
+      ctx[27](div4);
+      ctx[28](div5);
       if (!mounted) {
         dispose = [
           listen(button0, "click", function() {
@@ -2825,17 +3220,17 @@ function create_fragment(ctx) {
           listen(
             button1,
             "click",
-            /*click_handler_3*/
-            ctx[22]
+            /*click_handler_6*/
+            ctx[26]
           )
         ];
         mounted = true;
       }
     },
-    p(new_ctx, [dirty]) {
+    p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty & /*def, draft, openImagePicker*/
-      35) {
+      if (dirty[0] & /*def, draft, openImagePicker*/
+      67) {
         each_value = ensure_array_like(
           /*def*/
           ctx[1].editor.fields
@@ -2861,12 +3256,11 @@ function create_fragment(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div4);
-        detach(t3);
-        detach(div5);
+        detach(div6);
       }
       destroy_each(each_blocks, detaching);
-      ctx[21](null);
+      ctx[27](null);
+      ctx[28](null);
       mounted = false;
       run_all(dispose);
     }
@@ -2884,32 +3278,36 @@ function instance($$self, $$props, $$invalidate) {
   let previewContainer;
   let previewView;
   let debounceTimer;
+  let previewScale = 1;
+  let previewPanelEl;
   onMount(() => {
     const ctx = { app, plugin, sourcePath, grid };
-    $$invalidate(10, previewView = def.createView(ctx));
+    $$invalidate(11, previewView = def.createView(ctx));
+    $$invalidate(11, previewView.el.style.cssText = "", previewView);
     previewContainer.appendChild(previewView.el);
     updatePreview();
   });
   function updatePreview() {
-    var _a;
-    if (!previewView) return;
+    if (!previewView || !previewPanelEl) return;
     const ctx = { app, plugin, sourcePath, grid };
-    const gridHost = document.querySelector(`[data-card-grid-id="${grid.id}"]`);
-    const gridContainer = gridHost === null || gridHost === void 0 ? void 0 : gridHost.querySelector(".card-grid-container");
-    const gridWidth = (gridContainer === null || gridContainer === void 0 ? void 0 : gridContainer.offsetWidth) || 800;
-    const columns = grid.columns || 3;
-    const gap = (_a = grid.gap) !== null && _a !== void 0 ? _a : 10;
-    const widthFraction = Number(draft.width) || 1;
-    const realPixelWidth = (gridWidth + gap) / columns * widthFraction - gap;
-    $$invalidate(10, previewView.el.style.width = `${realPixelWidth}px`, previewView);
-    $$invalidate(10, previewView.el.style.height = "auto", previewView);
-    $$invalidate(10, previewView.el.style.flex = "none", previewView);
-    const ratio = widthFraction / columns;
-    let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
-    if (def.type === "procedure" && ratio > 0.4) zoom = 0.45;
-    $$invalidate(10, previewView.el.style.zoom = String(zoom), previewView);
     const normalized = def.normalize(draft);
     previewView.update(normalized, ctx);
+    $$invalidate(11, previewView.el.style.cssText = "", previewView);
+    $$invalidate(11, previewView.el.style.width = "280px", previewView);
+    $$invalidate(11, previewView.el.style.flex = "none", previewView);
+    requestAnimationFrame(() => {
+      if (!previewPanelEl) return;
+      const panelW = previewPanelEl.offsetWidth - 48;
+      const panelH = previewPanelEl.offsetHeight - 48;
+      const cardW = previewView.el.scrollWidth || 280;
+      const cardH = previewView.el.scrollHeight || 200;
+      const scaleW = Math.min(1, panelW / cardW);
+      const scaleH = Math.min(1, panelH / cardH);
+      previewScale = Math.min(scaleW, scaleH);
+      $$invalidate(11, previewView.el.style.transformOrigin = "top center", previewView);
+      $$invalidate(11, previewView.el.style.transform = `scale(${previewScale})`, previewView);
+      $$invalidate(11, previewView.el.style.marginBottom = `${-(cardH * (1 - previewScale))}px`, previewView);
+    });
   }
   function openImagePicker(key) {
     new ImagePickerModal(
@@ -2925,34 +3323,53 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(0, draft);
     $$invalidate(1, def);
   }
+  const click_handler = (field) => {
+    var _a;
+    $$invalidate(0, draft[field.key] = (Number(draft[field.key]) || 0) - ((_a = field.step) != null ? _a : 1), draft);
+    $$invalidate(0, draft = __spreadValues({}, draft));
+  };
   function input_input_handler_1(field) {
     draft[field.key] = to_number(this.value);
     $$invalidate(0, draft);
     $$invalidate(1, def);
   }
-  const click_handler = (field) => {
+  const click_handler_1 = (field) => {
+    var _a;
+    $$invalidate(0, draft[field.key] = (Number(draft[field.key]) || 0) + ((_a = field.step) != null ? _a : 1), draft);
+    $$invalidate(0, draft = __spreadValues({}, draft));
+  };
+  const click_handler_2 = (field) => {
     $$invalidate(0, draft[field.key] = !draft[field.key], draft);
     $$invalidate(0, draft = __spreadValues({}, draft));
   };
   const keydown_handler = (field, e) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
       $$invalidate(0, draft[field.key] = !draft[field.key], draft);
       $$invalidate(0, draft = __spreadValues({}, draft));
     }
+  };
+  const click_handler_3 = (field, opt) => {
+    $$invalidate(0, draft[field.key] = opt.value, draft);
+    $$invalidate(0, draft = __spreadValues({}, draft));
   };
   function select_change_handler(field) {
     draft[field.key] = select_value(this);
     $$invalidate(0, draft);
     $$invalidate(1, def);
   }
-  function input_input_handler_2(field) {
+  function input0_input_handler(field) {
     draft[field.key] = this.value;
     $$invalidate(0, draft);
     $$invalidate(1, def);
   }
-  const click_handler_1 = (field) => openImagePicker(field.key);
-  const click_handler_2 = (field) => {
+  function input1_input_handler(field) {
+    draft[field.key] = this.value;
+    $$invalidate(0, draft);
+    $$invalidate(1, def);
+  }
+  const click_handler_4 = (field) => openImagePicker(field.key);
+  const click_handler_5 = (field) => {
     $$invalidate(0, draft[field.key] = "", draft);
     $$invalidate(0, draft = __spreadValues({}, draft));
   };
@@ -2961,31 +3378,37 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(0, draft);
     $$invalidate(1, def);
   }
-  function div2_binding($$value) {
+  const click_handler_6 = () => onSave(draft);
+  function div4_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       previewContainer = $$value;
       $$invalidate(4, previewContainer);
     });
   }
-  const click_handler_3 = () => onSave(draft);
+  function div5_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      previewPanelEl = $$value;
+      $$invalidate(5, previewPanelEl);
+    });
+  }
   $$self.$$set = ($$props2) => {
-    if ("app" in $$props2) $$invalidate(6, app = $$props2.app);
-    if ("plugin" in $$props2) $$invalidate(7, plugin = $$props2.plugin);
-    if ("grid" in $$props2) $$invalidate(8, grid = $$props2.grid);
+    if ("app" in $$props2) $$invalidate(7, app = $$props2.app);
+    if ("plugin" in $$props2) $$invalidate(8, plugin = $$props2.plugin);
+    if ("grid" in $$props2) $$invalidate(9, grid = $$props2.grid);
     if ("def" in $$props2) $$invalidate(1, def = $$props2.def);
     if ("draft" in $$props2) $$invalidate(0, draft = $$props2.draft);
-    if ("sourcePath" in $$props2) $$invalidate(9, sourcePath = $$props2.sourcePath);
+    if ("sourcePath" in $$props2) $$invalidate(10, sourcePath = $$props2.sourcePath);
     if ("onSave" in $$props2) $$invalidate(2, onSave = $$props2.onSave);
     if ("onCancel" in $$props2) $$invalidate(3, onCancel = $$props2.onCancel);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*draft, previewView, debounceTimer*/
-    3073) {
+    if ($$self.$$.dirty[0] & /*draft, previewView, debounceTimer*/
+    6145) {
       $: {
         draft;
         if (previewView) {
           clearTimeout(debounceTimer);
-          $$invalidate(11, debounceTimer = window.setTimeout(updatePreview, 100));
+          $$invalidate(12, debounceTimer = window.setTimeout(updatePreview, 80));
         }
       }
     }
@@ -2996,6 +3419,7 @@ function instance($$self, $$props, $$invalidate) {
     onSave,
     onCancel,
     previewContainer,
+    previewPanelEl,
     openImagePicker,
     app,
     plugin,
@@ -3004,16 +3428,21 @@ function instance($$self, $$props, $$invalidate) {
     previewView,
     debounceTimer,
     input_input_handler,
-    input_input_handler_1,
     click_handler,
-    keydown_handler,
-    select_change_handler,
-    input_input_handler_2,
+    input_input_handler_1,
     click_handler_1,
     click_handler_2,
+    keydown_handler,
+    click_handler_3,
+    select_change_handler,
+    input0_input_handler,
+    input1_input_handler,
+    click_handler_4,
+    click_handler_5,
     textarea_input_handler,
-    div2_binding,
-    click_handler_3
+    click_handler_6,
+    div4_binding,
+    div5_binding
   ];
 }
 var Editor = class extends SvelteComponent {
@@ -3026,16 +3455,17 @@ var Editor = class extends SvelteComponent {
       create_fragment,
       safe_not_equal,
       {
-        app: 6,
-        plugin: 7,
-        grid: 8,
+        app: 7,
+        plugin: 8,
+        grid: 9,
         def: 1,
         draft: 0,
-        sourcePath: 9,
+        sourcePath: 10,
         onSave: 2,
         onCancel: 3
       },
-      add_css
+      add_css,
+      [-1, -1]
     );
   }
 };
