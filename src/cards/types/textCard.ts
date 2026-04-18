@@ -21,20 +21,21 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         label: "Alignment",
         options: [
           { label: "Left", value: "left" },
-          { label: "Center", value: "center" }
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" }
         ]
       },
       {
         kind: "color",
         key: "backgroundColor",
         label: "Border color",
-        defaultValue: "#cccccc"
+        defaultValue: "var(--background-modifier-border)"
       },
       {
         kind: "color",
         key: "textColor",
         label: "Title color",
-        defaultValue: "#000000"
+        defaultValue: "var(--text-normal)"
       },
       {
         kind: "number",
@@ -57,7 +58,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       type: "text",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
-      alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
+      alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
       textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
@@ -91,15 +92,18 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
 
-        box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
-        titleEl.style.color = card.textColor || "#000000";
+        box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
+        titleEl.style.color = card.textColor || "var(--text-normal)";
         titleEl.style.backgroundColor = card.backgroundColor || "transparent";
 
         // Apply Alignment
-        box.style.textAlign = card.alignment === "left" ? "left" : "center";
+        box.style.textAlign = card.alignment === "left" ? "left" : card.alignment === "right" ? "right" : "center";
         if (card.alignment === "left") {
           titleEl.style.alignItems = "flex-start";
+        } else if (card.alignment === "right") {
+          titleEl.style.alignItems = "flex-end";
         } else {
+          titleEl.style.alignItems = "center";
         }
 
         void renderMarkdown(titleEl, card.title || "Untitled");
