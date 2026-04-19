@@ -2,7 +2,7 @@
 
 ## What This Is
 **Current Status: v1.0.0 Production Ready.**  
-A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text, Flash, Image, Procedure, Icon) with rich editing, and modal-based operations.
+A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text, Flash, Image, Procedure, Icon, Banner, Spacer) with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
 - **Registry Pattern**: Extensible built-in types via `cards/index.ts`
@@ -70,7 +70,8 @@ ui/
 └── modals/
     ├── CardEditorModal.ts       # Builder pattern: dynamic field rendering from specs
     ├── CardTypeSuggestModal.ts  # Type selection with suggestions
-    └── ImagePickerModal.ts      // Native file picker integration
+    ├── ImagePickerModal.ts      # Native file picker integration
+    └── LinkPickerModal.ts       # Obsidian internal link and file suggest modal
 ```
 
 ## Recent Changes
