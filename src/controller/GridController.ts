@@ -54,7 +54,7 @@ export class GridController {
     this.repository = new CardGridRepository(this.app);
 
     const rawObj = parseYamlObject(opts.codeBlockSource);
-    const initial = parseCardGridObject(rawObj, this.registry);
+    const initial = parseCardGridObject(rawObj || {}, this.registry);
 
     this.store = new GridStore(initial);
     this.view = new GridView({

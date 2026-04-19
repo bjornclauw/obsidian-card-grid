@@ -6,11 +6,8 @@
     "dev": "node esbuild.config.mjs --watch",
     "build": "node esbuild.config.mjs"
   },
-  "dependencies": {
-    "js-yaml": "^4.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.6.0",
     "esbuild": "^0.28.0",
     "esbuild-svelte": "^0.8.0",

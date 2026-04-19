@@ -9,10 +9,14 @@ export function cleanYamlSource(source: string): string {
 
 export function parseYamlObject(source: string): unknown {
   const cleaned = cleanYamlSource(source);
-  return parseYaml(cleaned);
+  try {
+    return parseYaml(cleaned) || {};
+  } catch (e) {
+    console.error("Card Grid: Failed to parse YAML block", e);
+    return {};
+  }
 }
 
 export function stringifyYamlObject(value: unknown): string {
   return stringifyYaml(value);
 }
-

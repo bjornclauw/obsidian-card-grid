@@ -406,17 +406,14 @@ After resizing between columns A and B:
 
 ## 10. Dependencies & Build Toolchain
 
-**Runtime**:
-```json
-{
-  "js-yaml": "^4.1.0"       // YAML parsing for input/output
-}
-```
+**Runtime**: 
+This plugin has **zero** external runtime dependencies. It utilizes the native Obsidian API for all core operations:
+- **YAML Parsing**: `parseYaml` / `stringifyYaml` (Obsidian Internal)
+- **Rendering**: `MarkdownRenderer` (Obsidian Internal)
 
 **Dev/Test**:
 ```json
 {
-  "@types/js-yaml",         // TypeScript definitions  
   "@types/node",            // Node typing for esbuild compatibility
   "esbuild",                // Fast bundler with tree-shaking  
   "obsidian"                // Obsidian plugin API types
