@@ -137,6 +137,18 @@
 
     // Color fields shown inline
     // Number fields shown as compact spinner
+    // Helper to check if a string is a valid hex color
+    function isValidHex(color: string): boolean {
+        if (!color || typeof color !== "string") return false;
+        return /^#[0-9A-Fa-f]{6}$/.test(color) || /^#[0-9A-Fa-f]{3}$/.test(color);
+    }
+
+    // Ensures the color picker always gets a valid hex, even if the value is a CSS var/name
+    function toHexSafe(color: any): string {
+        if (typeof color !== "string") return "#cccccc";
+        if (isValidHex(color)) return color;
+        return "#cccccc"; 
+    }
 </script>
 
 <div class="cge-wrap">
@@ -342,15 +354,18 @@
                                 >
                                     <input
                                         type="color"
-                                        bind:value={draft[field.key]}
+                                        value={toHexSafe(draft[field.key])}
+                                        on:input={(e) => {
+                                            draft[field.key] = e.currentTarget.value;
+                                            draft = { ...draft };
+                                        }}
                                     />
                                 </label>
                                 <input
                                     class="cge-text-input cge-color-text"
                                     type="text"
                                     bind:value={draft[field.key]}
-                                    placeholder="#cccccc"
-                                    maxlength="7"
+                                    placeholder="#hex or var()"
                                 />
                                 {#if draft[field.key] !== undefined && draft[field.key] !== field.defaultValue}
                                     <button
@@ -844,7 +859,7 @@
     }
 
     .cge-color-text {
-        width: 90px !important;
+        width: 180px !important;
         font-family: var(--font-monospace);
         font-size: 12px !important;
     }
