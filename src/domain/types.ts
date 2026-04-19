@@ -40,6 +40,7 @@ export interface TextCard extends CardInstance {
   type: "text";
   title: string;
   text: string;
+  titleEnabled?: boolean;
   alignment?: "left" | "center" | "right";
 }
 
@@ -47,6 +48,7 @@ export interface FlashCard extends BaseCard {
   type: "flashcard";
   title?: string;
   text?: string;
+  titleEnabled?: boolean;
   image?: string;
   imageEnabled?: boolean;
 

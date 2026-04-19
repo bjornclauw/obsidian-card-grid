@@ -136,7 +136,7 @@
 <div class="cge-wrap">
     <div class="cge-left">
         <div class="cge-fields">
-            {#each def.editor.fields.filter((f) => f.key !== "imageEnabled") as field}
+            {#each def.editor.fields.filter((f) => !["imageEnabled", "titleEnabled"].includes(f.key)) as field}
                 <div
                     class="cge-row"
                     class:cge-row-tall={field.kind === "markdown"}
@@ -144,12 +144,47 @@
                     <div class="cge-field-label">{field.label}</div>
                     <div class="cge-field-control">
                         {#if field.kind === "text"}
-                            <input
-                                class="cge-text-input"
-                                type="text"
-                                bind:value={draft[field.key]}
-                                placeholder={field.placeholder ?? ""}
-                            />
+                            <div class="cge-image-row">
+                                {#if def.editor.fields.some((f) => f.key === field.key + "Enabled")}
+                                    <div
+                                        class="cge-toggle-mini"
+                                        class:cge-on={draft[
+                                            field.key + "Enabled"
+                                        ] !== false}
+                                        role="checkbox"
+                                        aria-checked={draft[
+                                            field.key + "Enabled"
+                                        ] !== false}
+                                        tabindex="0"
+                                        on:click={() => {
+                                            draft[field.key + "Enabled"] =
+                                                draft[field.key + "Enabled"] ===
+                                                false;
+                                            draft = { ...draft };
+                                        }}
+                                        on:keydown={(e) => {
+                                            if (
+                                                e.key === " " ||
+                                                e.key === "Enter"
+                                            ) {
+                                                e.preventDefault();
+                                                draft[field.key + "Enabled"] =
+                                                    draft[
+                                                        field.key + "Enabled"
+                                                    ] === false;
+                                                draft = { ...draft };
+                                            }
+                                        }}
+                                        title="Show/Hide {field.label}"
+                                    ></div>
+                                {/if}
+                                <input
+                                    class="cge-text-input"
+                                    type="text"
+                                    bind:value={draft[field.key]}
+                                    placeholder={field.placeholder ?? ""}
+                                />
+                            </div>
                         {:else if field.kind === "number"}
                             <div class="cge-number-row">
                                 <button

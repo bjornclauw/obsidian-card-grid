@@ -17,6 +17,7 @@ export const flashCardType: CardTypeDefinition<FlashCard> = {
         fields: [
             // Primary
             { kind: "text", key: "title", label: "Title" },
+            { kind: "toggle", key: "titleEnabled", label: "Show title", defaultValue: true },
             { kind: "markdown", key: "text", label: "Text" },
 
             // Image Controls
@@ -82,6 +83,7 @@ export const flashCardType: CardTypeDefinition<FlashCard> = {
             type: "flashcard",
             title: typeof raw.title === "string" ? raw.title : "Untitled",
             text: typeof raw.text === "string" ? raw.text : "",
+            titleEnabled: typeof raw.titleEnabled === "boolean" ? raw.titleEnabled : undefined,
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
             textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
             image: typeof raw.image === "string" ? raw.image : undefined,
@@ -138,6 +140,8 @@ export const flashCardType: CardTypeDefinition<FlashCard> = {
                 } else {
                     img.style.display = "none";
                 }
+
+                titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 
                 titleEl.style.color = card.textColor || "var(--text-normal)";
                 titleEl.style.backgroundColor = card.backgroundColor || "transparent";

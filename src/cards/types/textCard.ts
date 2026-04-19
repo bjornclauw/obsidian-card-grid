@@ -14,6 +14,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
     title: "Edit text card",
     fields: [
       { kind: "text", key: "title", label: "Title" },
+      { kind: "toggle", key: "titleEnabled", label: "Show title", defaultValue: true },
       { kind: "markdown", key: "text", label: "Text" },
       {
         kind: "number",
@@ -58,6 +59,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       type: "text",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
+      titleEnabled: typeof raw.titleEnabled === "boolean" ? raw.titleEnabled : undefined,
       alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
@@ -96,6 +98,8 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         box.style.setProperty('--card-width', String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
+
+        titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 
         box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
         titleEl.style.color = card.textColor || "var(--text-normal)";
