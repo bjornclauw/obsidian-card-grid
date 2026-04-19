@@ -32,6 +32,7 @@ export class GridController {
   private readonly repository: CardGridRepository;
   private readonly store: GridStore;
   private readonly view: GridView;
+  private resizer: CardResizer | null = null;
 
   private saveTimer: number | null = null;
   private saveChain: Promise<void> = Promise.resolve();
@@ -85,13 +86,14 @@ export class GridController {
 
   mount(): void {
     this.view.update(this.store.getState());
-    new CardResizer(this.app, this.view.getContainer(), this);
+    this.resizer = new CardResizer(this.app, this.view.getContainer(), this);
     this.applyGridStyles(this.store.getState());
   }
 
   destroy(): void {
     this.destroyed = true;
     if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
+    this.resizer?.destroy();
     this.view.destroy();
   }
 

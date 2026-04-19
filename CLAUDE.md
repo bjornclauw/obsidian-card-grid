@@ -1,13 +1,13 @@
 # Obsidian Card Grid Plugin
 
 ## What This Is
-A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`~~~card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text/Flash/Image/Procedure) with rich editing, and modal-based operations.
+**Current Status: v1.0.0 Production Ready.**  
+A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text, Flash, Image, Procedure, Icon) with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
 - **Registry Pattern**: Built-in types (Text, Flash, Image, Procedure, Spacer) + extensible via `cards/index.ts`
 - **Reducer/Unidirectional Flow**: Immutable updates via `state/gridStore.ts` with typed actions
 - **Factory Rendering**: Each card type implements `createView(ctx)` returning CardView
-- **Flexbox Resizing**: Direct DOM manipulation via `ui/CardResizer.ts` (bypasses controller for performance)
 - **Grid Rebalancing**: Centralized gap configuration and grid balancing logic in `controller/GridController.ts`
 
 ## Core Files to Know
@@ -28,7 +28,7 @@ A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a cust
 1. **Adding card types**: Implement interface → register in `createDefaultRegistry()`
 2. **State updates**: Call reducer, don't mutate store directly
 3. **Resizing**: Direct DOM style changes during drag; dispatch only on release
-4. **IDs**: Generated via `crypto.randomUUID()`, clones preserve prefixes for deduplication
+4. **IDs**: Generated via `crypto.randomUUID()`, clones preserve prefixes
 
 ## File Structure
 ```
