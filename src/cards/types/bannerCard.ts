@@ -108,7 +108,7 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
                 }
 
                 const fullTitle = card.icon ? `${card.icon} ${card.title}` : (card.title || "");
-                titleEl.setText(fullTitle);
+                void renderMarkdown(titleEl, fullTitle);
                 void renderMarkdown(textEl, card.text || "");
             }
         };
