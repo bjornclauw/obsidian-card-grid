@@ -15,7 +15,7 @@ import { CardResizer } from "../ui/CardResizer";
 const MIN_WIDTH = 0.3;
 
 function cloneCard<T extends CardInstance>(card: T, newId: string): T {
-  const cloned = JSON.parse(JSON.stringify(card)) as CardInstance;
+  const cloned = structuredClone(card) as CardInstance;
   cloned.id = newId;
   // If it's an UnknownCard or has a raw property, update that ID too
   if ('raw' in cloned && typeof cloned.raw === "object" && cloned.raw !== null) {

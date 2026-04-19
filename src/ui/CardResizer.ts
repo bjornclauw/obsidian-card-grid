@@ -9,6 +9,7 @@ export class CardResizer {
     private card1Id: string = "";
     private card2Id: string = "";
     private maxUnbalancedWidth: number = 0;
+    private cachedColumns: number = 3;
 
     private boundMouseMove!: (evt: MouseEvent) => void;
     private boundMouseDown!: (evt: MouseEvent) => void;
@@ -104,8 +105,7 @@ export class CardResizer {
 
         // Calculate units based on container width and total columns for consistent sensitivity
         const containerRect = this.container.getBoundingClientRect();
-        const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
-        const unitDelta = (deltaX / containerRect.width) * columns;
+        const unitDelta = (deltaX / containerRect.width) * this.cachedColumns;
 
         if (!card2El) {
             // Unbalanced resize: grow/shrink while respecting the row's column limit
@@ -147,20 +147,20 @@ export class CardResizer {
         this.card2Id = card2El?.dataset.cardId || "";
         this.startWidth1 = parseFloat(card1El.dataset.widthFraction || "1");
         this.startWidth2 = card2El ? parseFloat(card2El.dataset.widthFraction || "1") : 0;
+        this.cachedColumns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
 
         // Calculate the maximum allowed width for unbalanced resizing (last card in incomplete row)
         if (!card2El) {
-            const columns = parseFloat(getComputedStyle(this.container).getPropertyValue('--grid-columns') || "3");
             const allCards = Array.from(this.container.querySelectorAll(".card-grid-card, .card-grid-spacer"));
             const myIndex = allCards.indexOf(card1El);
-            const rowIndex = Math.floor(myIndex / columns);
-            const startOfRow = rowIndex * columns;
+            const rowIndex = Math.floor(myIndex / this.cachedColumns);
+            const startOfRow = rowIndex * this.cachedColumns;
 
             let sumOfPreviousInRow = 0;
             for (let i = startOfRow; i < myIndex; i++) {
                 sumOfPreviousInRow += parseFloat((allCards[i] as HTMLElement).dataset.widthFraction || "1");
             }
-            this.maxUnbalancedWidth = columns - sumOfPreviousInRow;
+            this.maxUnbalancedWidth = this.cachedColumns - sumOfPreviousInRow;
         }
 
         card1El.classList.add("card-grid-resizing");
