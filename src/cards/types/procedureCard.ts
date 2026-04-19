@@ -44,13 +44,13 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 kind: "color",
                 key: "backgroundColor",
                 label: "Border color",
-                defaultValue: "#cccccc"
+                defaultValue: "var(--background-modifier-border)"
             },
             {
                 kind: "color",
                 key: "textColor",
                 label: "Title color",
-                defaultValue: "#000000"
+                defaultValue: "var(--text-normal)"
             }
         ]
     },
@@ -129,7 +129,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.style.setProperty('--card-width', String(card.width || 1));
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
-                box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
+                box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
                 titleBox.style.backgroundColor = card.backgroundColor || "transparent";
                 titleEl.style.color = card.textColor || "";

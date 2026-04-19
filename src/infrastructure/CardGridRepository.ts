@@ -55,25 +55,26 @@ export class CardGridRepository {
     const file = this.app.vault.getAbstractFileByPath(ref.sourcePath);
     if (!(file instanceof TFile)) return;
 
-    const raw = await this.app.vault.read(file);
-    const lines = raw.split("\n");
-
     const yamlObj = serializeCardGridData(data);
     const yaml = stringifyYamlObject(yamlObj).trimEnd();
     const newBlock = ["```card-grid", yaml, "```"].join("\n");
 
-    const blocks = findCardGridBlocks(lines);
-    const byId = blocks.find((b) => b.parsedId === data.id);
-    const target = byId ?? this.resolveByRef(lines, ref, blocks);
-    if (!target) return;
+    await this.app.vault.process(file, (dataStr) => {
+      const lines = dataStr.split("\n");
+      const blocks = findCardGridBlocks(lines);
+      const byId = blocks.find((b) => b.parsedId === data.id);
+      const target = byId ?? this.resolveByRef(lines, ref, blocks);
+      
+      if (!target) return dataStr;
 
-    const newLines = [
-      ...lines.slice(0, target.lineStart),
-      newBlock,
-      ...lines.slice(target.lineEnd + 1)
-    ];
-
-    await this.app.vault.modify(file, newLines.join("\n"));
+      const newLines = [
+        ...lines.slice(0, target.lineStart),
+        newBlock,
+        ...lines.slice(target.lineEnd + 1)
+      ];
+      
+      return newLines.join("\n");
+    });
   }
 
   private resolveByRef(

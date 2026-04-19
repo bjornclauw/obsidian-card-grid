@@ -34,10 +34,7 @@ function normalizeCardType(raw: Record<string, unknown>): CardTypeId {
   const explicit = toStringOrUndefined(raw.type);
   if (explicit) return explicit;
 
-  // Legacy inference.
-  if (typeof raw.image === "string" && raw.image.length > 0) return "image";
-  if (typeof raw.imageEnabled === "boolean") return "image";
-  return "text";
+  return "textCard";
 }
 
 export function parseCardGridObject(

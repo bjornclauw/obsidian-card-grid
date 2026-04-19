@@ -54,8 +54,8 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
         box.style.setProperty('--card-width', String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
-        title.style.color = "#000000";
-        box.style.border = "2px solid #ccc";
+        title.style.color = "var(--text-normal)";
+        box.style.border = "2px solid var(--background-modifier-border)";
         title.setText(`Unknown card type: ${card.type}`);
         pre.textContent = JSON.stringify(card.raw, null, 2);
       }

@@ -5,7 +5,7 @@
 A TypeScript/Obsidian plugin that renders YAML-formatted card grids using a custom code fence (`card-grid`). Features include dynamic multi-column layouts, interactive drag-to-resize between cards, specialized card types (Text, Flash, Image, Procedure, Icon) with rich editing, and modal-based operations.
 
 ## Key Architecture Patterns
-- **Registry Pattern**: Built-in types (Text, Flash, Image, Procedure, Spacer) + extensible via `cards/index.ts`
+- **Registry Pattern**: Extensible built-in types via `cards/index.ts`
 - **Reducer/Unidirectional Flow**: Immutable updates via `state/gridStore.ts` with typed actions
 - **Factory Rendering**: Each card type implements `createView(ctx)` returning CardView
 - **Grid Rebalancing**: Centralized gap configuration and grid balancing logic in `controller/GridController.ts`
@@ -43,8 +43,12 @@ cards/                           # Registry implementations (Factory pattern)
 ├── shared/imageStyle.ts         # Constraint-based styling inheritance
 └── types/
     ├── textCard.ts              # MarkdownRenderer integration
-    ├── flashCard.ts             # Multi-line rendering, fit/position constraints
-    ├── imageCard.ts             # Pure image display
+    ├── horizontalFlashCard.ts   # Side-by-side image and text layout
+    ├── verticalFlashCard.ts     # Stacked image and text layout
+    ├── galleryCard.ts           # Pure image display
+    ├── procedureCard.ts         # Step-by-step workflow layout
+    ├── bannerCard.ts            # Large centered text on background
+    ├── iconCard.ts              # Small card for icons
     ├── spacerCard.ts            # Flex basis for multi-column layout control
     └── unknownCard.ts           # Fallback preserving raw data (forward compat)
 

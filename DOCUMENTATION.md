@@ -12,7 +12,8 @@ columns: 3
 gap: 15
 
 cards:
-  - title: Hello World
+  - type: textCard
+    title: Hello World
     text: This is a text card.
     backgroundColor: "#2d2d2d"
   - type: galleryCard
@@ -23,7 +24,7 @@ cards:
 ## 🛠 Core Features
 
 - **Interactive Resizing**: Click and drag the edges of cards to adjust their width distribution dynamically.
-- **Registry Architecture**: Multiple specialized card types (Text, Image, Flashcard, Procedure).
+- **Registry Architecture**: Multiple specialized card types (Text, Flash, Gallery, Procedure, Banner, Icon, Spacer).
 - **State Persistence**: Automatic, debounced saving back to your Markdown file.
 - **Context Menus**: Right-click cards to edit, clone, move, or delete them.
 
@@ -38,16 +39,16 @@ graph TD
     B -->|Render Commands| D(GridView - DOM Renderer)
     C -->|Events Dispatched| E(Action Handlers: Edit/Clone/Delete/Reorder)
     B -->|Registry Lookup| F(CardTypeRegistry)
-    F -->|Implementation| G[TextCard]
-    F -->|Implementation| H[FlashCard]  
-    F -->|Implementation| J[ImageCard]
-    F -->|Fallback| I[UnknownCard]
+    F -->|Implementation| G[textCard]
+    F -->|Implementation| H[verticalFlashCard]  
+    F -->|Implementation| J[galleryCard]
+    F -->|Fallback| I[unknownCard]
 ```
 
 ### Key Architectural Patterns
 
 **1. Registry Pattern (Open/Closed Principle)**
-- Built-in card types: Text, Flash, Image, Spacer, Unknown (forward-compatible)
+- Built-in card types: Text, Horizontal Flash, Vertical Flash, Gallery, Procedure, Banner, Icon, Spacer, Unknown (forward-compatible)
 - Factory pattern via `CardTypeDefinition<TCard>` interface with generics
 - Central dispatcher (`registry.ts`) routes via Map-based lookup
 - Each type implements: normalize(), createView(ctx), getEditorSpec()
@@ -69,16 +70,17 @@ Each card type provides its own DOM rendering factory, enabling distinct structu
 - ID-first lookup strategy with fallback to line-range references
 - Save debouncing (250ms chain-based) prevents race conditions during rapid edits
 
-## 3. Card Types Reference
-
-| Type | Description | Key Fields |
-|------|-------------|------------|
-| **Text** | Title + markdown body | `title`, `text` (markdown), colors, custom layout overrides |
-| **Flash** | Photo with optional overlay text | `image`, `title`, extensive styling (fit/position/radius), Markdown rendering support |
-| **Image** | Pure photo display | `image`, extensive styling (fit/position/radius) |
-| **Spacer** | Empty placeholder for column control | `width` (in columns), used to span multiple cards horizontally |
-| **Unknown** | Fallback for unrecognized types | Preserves raw data structure, enables forward compatibility |
-| **Procedure**| Specialized workflow/step card | `title`, `text`, `image` |
+| Type | Identifier | Key Fields |
+|------|------------|------------|
+| **Text** | `textCard` | `title`, `text` (markdown), colors, custom layout overrides |
+| **Horizontal Flash** | `horizontalFlashCard` | Side-by-side photo with text, extensive styling (fit/position/radius), Markdown rendering support |
+| **Vertical Flash** | `verticalFlashCard` | Stacked photo with text, extensive styling, Markdown rendering support |
+| **Gallery** | `galleryCard` | Pure photo display, extensive styling |
+| **Procedure**| `procedureCard` | Specialized workflow/step card, `title`, `text`, `image` |
+| **Banner** | `bannerCard` | Large centered content over a background image |
+| **Icon** | `iconCard` | Small card for icons from the Lucide set |
+| **Spacer** | `spacerCard` | Empty placeholder for column control (`width` in columns) |
+| **Unknown** | `unknownCard` | Fallback for unrecognized types (preserves raw data) |
 
 ### Configuration Options
 
@@ -121,7 +123,12 @@ cards/                     # Registry implementations (Registry Pattern)
 ├── shared/imageStyle.ts   # Image constraint-based styling inheritance logic
 └── types/
     ├── textCard.ts        # Text card: MarkdownRenderer integration, rich content
-    ├── flashCard.ts       # Flash card: Multi-line rendering, fit/position constraints
+    ├── bannerCard.ts      # Banner card: Centered overlap text
+    ├── galleryCard.ts     # Gallery card: Advanced image styling
+    ├── horizontalFlashCard.ts # Side-by-side flashcard
+    ├── verticalFlashCard.ts   # Stacked flashcard
+    ├── procedureCard.ts   # Workflow card with steps
+    ├── iconCard.ts        # Lucide icon card
     ├── spacerCard.ts      # Spacer card: Flex basis for multi-column layout control
     └── unknownCard.ts     # Safety net preserving raw data for forward compatibility
 
@@ -239,7 +246,7 @@ export const mySpecialCardType: CardTypeDefinition<MySpecialCard> = {
 ```typescript
 export function createDefaultRegistry(): CardTypeRegistry {
   const registry = new CardTypeRegistry();
-  // Built-ins: textCard, flashCard, spacerCard, unknownCard
+  // Built-ins: textCard, horizontalFlashCard, galleryCard, etc.
   registry.register(mySpecialCardType);
   return registry;
 }
@@ -258,10 +265,10 @@ cards:
 
 | Type | Purpose | Key Fields | Editor Schema |
 |------|---------|------------|---------------|
-| **Text** | Rich content with Markdown | `title`, `text` | Text field, Markdown textarea |
-| **Flash** | Media display | `image`, `title`, styling constraints | Image picker, fit/position fields |
-| **Spacer** | Multi-column layout control | `width` (in columns) | Number input for flex basis |
-| **Unknown** | Forward compatibility safety net | Preserves raw data | Read-only metadata view
+| **textCard** | Rich content with Markdown | `title`, `text` | Text field, Markdown textarea |
+| **verticalFlashCard** | Stacked Media display | `image`, `text`, styling constraints | Image picker, fit/position fields |
+| **spacerCard** | Multi-column layout control | `width` (in columns) | Number input for flex basis |
+| **unknownCard** | Forward compatibility safety net | Preserves raw data | Read-only metadata view |
 
 ### Adding Grid Configuration Options
 
@@ -311,11 +318,13 @@ columns: 3
 gap: 20
 
 cards:
-  - title: Feature A
+  - type: textCard
+    title: Feature A
     text: Description here...
-    color: "#4A90E2"
+    textColor: "#4A90E2"
   
-  - title: Feature B  
+  - type: textCard
+    title: Feature B  
     backgroundColor: "#FFF5E6"
 \`\`\`
 ```
@@ -329,7 +338,7 @@ imageFit: contain
 imageHeight: 150
 
 cards:
-  - type: flashcard
+  - type: galleryCard
     image: https://picsum.photos/400/300
     title: Architecture Diagram
     backgroundColor: "#F8F9FA"
@@ -344,20 +353,21 @@ gap: 20
 imageFit: contain
 
 # Spacer card spans 3 columns (leaves 1 column for sidebar)
-- type: "spacer"
+- type: spacerCard
   width: 3               # Flex basis in columns
 
 # Text card with multi-line Markdown rendering
-- title: Feature Overview
+- type: textCard
+  title: Feature Overview
   text: |
     This is a **multi-line** description.
     - Bullet point one
     - Nested bullet (optional)
-  color: "#4A90E2"
+  textColor: "#4A90E2"
   backgroundColor: "#F0F7FF"
 
 # Flash card with constraint-based styling inheritance
-- type: flashcard
+- type: verticalFlashCard
   image: https://picsum.photos/800/600
   title: Architecture Diagram
   imageFit: contain      # Inherit from grid, override if needed
@@ -373,19 +383,22 @@ columns: 3
 gap: 25
 
 # Equal split (default)
-- title: Column A
+- type: textCard
+  title: Column A
   text: Card one
 
-- title: Column B  
+- type: textCard
+  title: Column B  
   text: Card two
 
-- title: Column C
+- type: textCard
+  title: Column C
   text: Card three
 ```
 After resizing between columns A and B:
 - A receives `width: 0.6` (flex basis)
 - B receives `width: 0.4`
-- Minimum constraint enforced: `Math.max(0.5, newWidth)`
+- Minimum constraint enforced: `Math.max(0.3, newWidth)`
 
 ## 9. Development Workflow
 

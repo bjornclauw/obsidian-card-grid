@@ -13,6 +13,8 @@ export class CardResizer {
 
     private boundMouseMove!: (evt: MouseEvent) => void;
     private boundMouseDown!: (evt: MouseEvent) => void;
+    private activeMoveListener: ((e: MouseEvent) => void) | null = null;
+    private activeUpListener: ((e: MouseEvent) => void) | null = null;
 
     constructor(
         private app: App,
@@ -171,6 +173,9 @@ export class CardResizer {
         const onMouseMove = (e: MouseEvent) => this.onMouseMove(e, card1El, card2El || undefined);
         const onMouseUp = () => this.onMouseUp(card1El, card2El, onMouseMove);
 
+        this.activeMoveListener = onMouseMove;
+        this.activeUpListener = onMouseUp;
+
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp, { once: true });
     }
@@ -181,6 +186,8 @@ export class CardResizer {
         onMouseMove: (e: MouseEvent) => void
     ): void {
         document.removeEventListener("mousemove", onMouseMove);
+        this.activeMoveListener = null;
+        this.activeUpListener = null;
 
         if (!this.isDragging) return;
         this.isDragging = false;
@@ -207,5 +214,14 @@ export class CardResizer {
         this.container.removeEventListener("mousemove", this.boundMouseMove);
         this.container.removeEventListener("mousedown", this.boundMouseDown);
         this.container.style.cursor = "";
+
+        if (this.activeMoveListener) {
+            document.removeEventListener("mousemove", this.activeMoveListener);
+            this.activeMoveListener = null;
+        }
+        if (this.activeUpListener) {
+            document.removeEventListener("mouseup", this.activeUpListener);
+            this.activeUpListener = null;
+        }
     }
 }
