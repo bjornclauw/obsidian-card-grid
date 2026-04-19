@@ -75,13 +75,13 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
-            iconSize: typeof raw.iconSize === "number" ? raw.iconSize : 48,
-            textSize: typeof raw.textSize === "number" ? raw.textSize : 14,
+            iconSize: typeof raw.iconSize === "number" ? Math.max(1, raw.iconSize) : 48,
+            textSize: typeof raw.textSize === "number" ? Math.max(1, raw.textSize) : 14,
             iconColor: typeof raw.iconColor === "string" ? raw.iconColor : "var(--text-normal)",
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "transparent",
             textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
-            width: typeof raw.width === "number" ? raw.width : 1,
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<IconCard> {

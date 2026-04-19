@@ -73,10 +73,10 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             image: typeof raw.image === "string" ? raw.image : undefined,
             imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as ProcedureCard["imageFit"],
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
-            imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
-            width: typeof raw.width === "number" ? raw.width : 1
+            imageRadius: typeof raw.imageRadius === "number" ? Math.max(0, raw.imageRadius) : undefined,
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1
         };
     },
     createView(ctx: CardViewContext): CardView<ProcedureCard> {

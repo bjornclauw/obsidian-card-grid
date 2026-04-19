@@ -76,10 +76,10 @@ export const verticalFlashCardType: CardTypeDefinition<VerticalFlashCard> = {
             image: typeof raw.image === "string" ? raw.image : undefined,
             imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as VerticalFlashCard["imageFit"],
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
-            imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
-            width: typeof raw.width === "number" ? raw.width : 1
+            imageRadius: typeof raw.imageRadius === "number" ? Math.max(0, raw.imageRadius) : undefined,
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1
         };
     },
     createView(ctx: CardViewContext): CardView<VerticalFlashCard> {
@@ -121,9 +121,15 @@ export const verticalFlashCardType: CardTypeDefinition<VerticalFlashCard> = {
                 titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 
+                const h = card.imageHeight ?? viewCtx.grid.imageHeight;
                 if (card.imageEnabled !== false && card.image) {
                     img.style.display = "";
                     img.src = resolveImagePath(card.image);
+
+                    if (h) img.style.height = `${h}px`;
+                    img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
+                    img.style.objectPosition = card.imagePosition || viewCtx.grid.imagePosition || "center";
+
                     applyImageStyle(img, card as any, viewCtx.grid);
                 } else {
                     img.style.display = "none";

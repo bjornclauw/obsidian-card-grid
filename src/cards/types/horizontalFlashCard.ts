@@ -89,10 +89,10 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
             verticalAlignment: (raw.verticalAlignment === "top" || raw.verticalAlignment === "center" || raw.verticalAlignment === "bottom") ? raw.verticalAlignment : "center",
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as HorizontalFlashCard["imageFit"],
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
-            imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
-            width: typeof raw.width === "number" ? raw.width : 1
+            imageRadius: typeof raw.imageRadius === "number" ? Math.max(0, raw.imageRadius) : undefined,
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1
         };
     },
     createView(ctx: CardViewContext): CardView<HorizontalFlashCard> {

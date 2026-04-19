@@ -36,7 +36,18 @@ export const galleryCardType: CardTypeDefinition<GalleryCard> = {
                     { label: "Scale-down", value: "scale-down" }
                 ]
             },
-            { kind: "text", key: "imagePosition", label: "Image position", placeholder: "e.g. center" },
+            {
+                kind: "select",
+                key: "imagePosition",
+                label: "Image position",
+                options: [
+                    { label: "Center", value: "center" },
+                    { label: "Top", value: "top" },
+                    { label: "Bottom", value: "bottom" },
+                    { label: "Left", value: "left" },
+                    { label: "Right", value: "right" }
+                ]
+            },
             { kind: "number", key: "imageRadius", label: "Image radius", min: 0, step: 1 },
             {
                 kind: "color",
@@ -62,10 +73,10 @@ export const galleryCardType: CardTypeDefinition<GalleryCard> = {
             image: typeof raw.image === "string" ? raw.image : undefined,
             imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as GalleryCard["imageFit"],
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
-            imageRadius: typeof raw.imageRadius === "number" ? raw.imageRadius : undefined,
-            width: typeof raw.width === "number" ? raw.width : 1
+            imageRadius: typeof raw.imageRadius === "number" ? Math.max(0, raw.imageRadius) : undefined,
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1
         };
     },
     createView(ctx: CardViewContext): CardView<GalleryCard> {
@@ -92,10 +103,16 @@ export const galleryCardType: CardTypeDefinition<GalleryCard> = {
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
+                const h = card.imageHeight ?? viewCtx.grid.imageHeight;
                 const enabled = card.imageEnabled !== false;
                 if (enabled && card.image) {
                     img.style.display = "";
                     img.src = resolveImagePath(card.image);
+
+                    if (h) img.style.height = `${h}px`;
+                    img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
+                    img.style.objectPosition = card.imagePosition || viewCtx.grid.imagePosition || "center";
+
                     applyImageStyle(img, card, viewCtx.grid);
                 } else {
                     img.style.display = "none";

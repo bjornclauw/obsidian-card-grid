@@ -140,14 +140,16 @@
     // Helper to check if a string is a valid hex color
     function isValidHex(color: string): boolean {
         if (!color || typeof color !== "string") return false;
-        return /^#[0-9A-Fa-f]{6}$/.test(color) || /^#[0-9A-Fa-f]{3}$/.test(color);
+        return (
+            /^#[0-9A-Fa-f]{6}$/.test(color) || /^#[0-9A-Fa-f]{3}$/.test(color)
+        );
     }
 
     // Ensures the color picker always gets a valid hex, even if the value is a CSS var/name
     function toHexSafe(color: any): string {
         if (typeof color !== "string") return "#cccccc";
         if (isValidHex(color)) return color;
-        return "#cccccc"; 
+        return "#cccccc";
     }
 </script>
 
@@ -222,6 +224,12 @@
                                                 widthConstraints.min,
                                                 Math.round(val * 100) / 100,
                                             );
+                                        } else {
+                                            if (field.min !== undefined)
+                                                val = Math.max(field.min, val);
+                                            if (field.max !== undefined)
+                                                val = Math.min(field.max, val);
+                                            val = Math.round(val * 1000) / 1000;
                                         }
                                         draft[field.key] = val;
                                         draft = { ...draft };
@@ -241,20 +249,29 @@
                                                 ? undefined
                                                 : Number(e.currentTarget.value);
 
-                                        if (
-                                            val !== undefined &&
-                                            field.key === "width"
-                                        ) {
-                                            // Clamp strictly to bounds first to prevent overshooting constraints
-                                            val = Math.min(
-                                                widthConstraints.max,
-                                                Math.max(
-                                                    widthConstraints.min,
-                                                    val,
-                                                ),
-                                            );
-                                            // Round to 0.01 precision to prevent floating point row-wrap issues
-                                            val = Math.round(val * 100) / 100;
+                                        if (val !== undefined) {
+                                            if (field.key === "width") {
+                                                val = Math.min(
+                                                    widthConstraints.max,
+                                                    Math.max(
+                                                        widthConstraints.min,
+                                                        val,
+                                                    ),
+                                                );
+                                                val =
+                                                    Math.round(val * 100) / 100;
+                                            } else {
+                                                if (field.min !== undefined)
+                                                    val = Math.max(
+                                                        field.min,
+                                                        val,
+                                                    );
+                                                if (field.max !== undefined)
+                                                    val = Math.min(
+                                                        field.max,
+                                                        val,
+                                                    );
+                                            }
                                         }
 
                                         draft[field.key] = val;
@@ -287,6 +304,12 @@
                                                 widthConstraints.max,
                                                 Math.round(val * 100) / 100,
                                             );
+                                        } else {
+                                            if (field.min !== undefined)
+                                                val = Math.max(field.min, val);
+                                            if (field.max !== undefined)
+                                                val = Math.min(field.max, val);
+                                            val = Math.round(val * 1000) / 1000;
                                         }
                                         draft[field.key] = val;
                                         draft = { ...draft };
@@ -356,7 +379,8 @@
                                         type="color"
                                         value={toHexSafe(draft[field.key])}
                                         on:input={(e) => {
-                                            draft[field.key] = e.currentTarget.value;
+                                            draft[field.key] =
+                                                e.currentTarget.value;
                                             draft = { ...draft };
                                         }}
                                     />

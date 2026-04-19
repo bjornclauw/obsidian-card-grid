@@ -60,12 +60,12 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
             text: typeof raw.text === "string" ? raw.text : "",
             icon: typeof raw.icon === "string" ? raw.icon : "⚠️",
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
-            titleSize: typeof raw.titleSize === "number" ? raw.titleSize : 28,
-            textSize: typeof raw.textSize === "number" ? raw.textSize : 16,
+            titleSize: typeof raw.titleSize === "number" ? Math.max(1, raw.titleSize) : 28,
+            textSize: typeof raw.textSize === "number" ? Math.max(1, raw.textSize) : 16,
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "var(--background-modifier-border)",
             textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
-            width: typeof raw.width === "number" ? raw.width : 1,
-            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1,
+            imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<BannerCard> {

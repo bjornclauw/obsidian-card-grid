@@ -30,8 +30,8 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
       typeof obj.type === "string" && obj.type.trim().length > 0
         ? obj.type.trim()
         : "unknown";
-    const width = typeof obj.width === "number" ? obj.width : 1;
-    const imageHeight = typeof obj.imageHeight === "number" ? obj.imageHeight : undefined;
+    const width = typeof obj.width === "number" ? Math.max(0.1, obj.width) : 1;
+    const imageHeight = typeof obj.imageHeight === "number" ? Math.max(0, obj.imageHeight) : undefined;
     return {
       id,
       type,
