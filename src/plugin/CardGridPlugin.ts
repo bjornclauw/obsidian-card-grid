@@ -48,6 +48,7 @@ export default class CardGridPlugin extends Plugin {
         const sampleGrid = `\`\`\`card-grid
 columns: ${this.settings.defaultColumns}
 gap: ${this.settings.defaultGap}
+borderRadius: ${this.settings.defaultBorderRadius}
 
 cards:
   - type: textCard
@@ -63,34 +64,28 @@ cards:
     });
 
     this.addCommand({
-      id: "open-image-picker",
-      name: "Open Image Picker",
-      editorCallback: (editor: Editor) => {
-        new ImagePickerModal(this.app, (file) => {
-          editor.replaceSelection(file.path);
-        }).open();
-      },
-    });
-
-    this.addCommand({
       id: "insert-gallery-grid",
       name: "Insert Gallery Grid",
       editorCallback: (editor: Editor) => {
         const sample = `\`\`\`card-grid
-columns: 3
-imageFit: cover
-imageHeight: 200
+columns: ${this.settings.defaultColumns}
+gap: ${this.settings.defaultGap}
+borderRadius: ${this.settings.defaultBorderRadius}
+imageFit: ${this.settings.defaultImageFit}
+imageHeight: ${this.settings.defaultImageHeight}
+imagePosition: ${this.settings.defaultImagePosition}
+imageRadius: ${this.settings.defaultImageRadius}
 
 cards:
   - type: galleryCard
     title: Image 1
-    image: path/to/image1.jpg
+    image: https://picsum.photos/200/300
   - type: galleryCard
     title: Image 2
-    image: path/to/image2.jpg
+    image: https://picsum.photos/200/300
   - type: galleryCard
     title: Image 3
-    image: path/to/image3.jpg
+    image: https://picsum.photos/200/300
 \`\`\`
 `;
         editor.replaceSelection(sample);
@@ -102,19 +97,23 @@ cards:
       name: "Insert Procedure Grid",
       editorCallback: (editor: Editor) => {
         const sample = `\`\`\`card-grid
-columns: 1
-gap: 20
+columns: ${this.settings.defaultColumns}
+gap: ${this.settings.defaultGap}
+borderRadius: ${this.settings.defaultBorderRadius}
 
 cards:
   - type: procedureCard
     title: "Step 1: Preparation"
     text: Gather all necessary materials.
+    image: https://picsum.photos/200/300
   - type: procedureCard
     title: "Step 2: Implementation"
     text: Follow the instructions carefully.
+    image: https://picsum.photos/200/300
   - type: procedureCard
     title: "Step 3: Cleanup"
     text: Store everything back in its place.
+    image: https://picsum.photos/200/300
 \`\`\`
 `;
         editor.replaceSelection(sample);
@@ -126,8 +125,9 @@ cards:
       name: "Insert Icon Grid",
       editorCallback: (editor: Editor) => {
         const sample = `\`\`\`card-grid
-columns: 4
-gap: 15
+columns: ${this.settings.defaultColumns}
+gap: ${this.settings.defaultGap}
+borderRadius: ${this.settings.defaultBorderRadius}
 
 cards:
   - type: iconCard

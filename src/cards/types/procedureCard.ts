@@ -131,7 +131,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
-                titleBox.style.backgroundColor = card.backgroundColor || "transparent";
+                titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.color = card.textColor || "";
                 void renderMarkdown(titleEl, card.title || "Untitled");
 

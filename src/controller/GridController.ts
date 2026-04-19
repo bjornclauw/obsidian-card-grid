@@ -1,5 +1,6 @@
 import type { App, Plugin } from "obsidian";
 import { Notice } from "obsidian";
+import type { CardGridSettings } from "../plugin/settings";
 import type { CardGridData, CardId, CardInstance, CardTypeId, GridBlockRef } from "../domain/types";
 import type { CardTypeRegistry } from "../cards/registry";
 import { createId, parseCardGridObject } from "../domain/codec";
@@ -54,7 +55,17 @@ export class GridController {
     this.repository = new CardGridRepository(this.app);
 
     const rawObj = parseYamlObject(opts.codeBlockSource);
-    const initial = parseCardGridObject(rawObj || {}, this.registry);
+    const settings = (opts.plugin as any).settings as CardGridSettings;
+    const initial = parseCardGridObject({
+      columns: settings?.defaultColumns,
+      gap: settings?.defaultGap,
+      borderRadius: settings?.defaultBorderRadius,
+      imageFit: settings?.defaultImageFit,
+      imageHeight: settings?.defaultImageHeight,
+      imagePosition: settings?.defaultImagePosition,
+      imageRadius: settings?.defaultImageRadius,
+      ...(rawObj as object)
+    }, this.registry);
 
     this.store = new GridStore(initial);
     this.view = new GridView({
@@ -102,6 +113,10 @@ export class GridController {
     container.style.setProperty("--grid-columns", String(data.columns));
     container.style.setProperty("--grid-gap", `${data.gap}px`);
     container.style.setProperty("--grid-border-radius", `${data.borderRadius}px`);
+
+    // Inject Obsidian theme variables as the "source of truth" for defaults
+    container.style.setProperty("--card-background-default", "var(--background-secondary)");
+    container.style.setProperty("--card-text-default", "var(--text-normal)");
   }
 
   private scheduleSave(state: CardGridData): void {
@@ -287,6 +302,7 @@ export class GridController {
       for (const card of state.cards) {
         const updated = { ...card } as any;
         updated.width = 1;
+
         delete updated.imageHeight;
 
         this.store.dispatch({

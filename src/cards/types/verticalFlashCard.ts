@@ -118,7 +118,7 @@ export const verticalFlashCardType: CardTypeDefinition<VerticalFlashCard> = {
                 titleEl.style.width = "100%";
                 titleEl.style.boxSizing = "border-box";
                 titleEl.style.color = card.textColor || "var(--text-normal)";
-                titleEl.style.backgroundColor = card.backgroundColor || "transparent";
+                titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 
                 if (card.imageEnabled !== false && card.image) {

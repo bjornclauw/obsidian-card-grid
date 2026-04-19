@@ -105,7 +105,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
 
         box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
         titleEl.style.color = card.textColor || "var(--text-normal)";
-        titleEl.style.backgroundColor = card.backgroundColor || "transparent";
+        titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
 
         // Apply Alignment
 

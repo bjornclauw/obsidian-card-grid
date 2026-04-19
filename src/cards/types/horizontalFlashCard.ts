@@ -137,7 +137,7 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
                 titleEl.style.alignItems = card.alignment === "left" ? "flex-start" : card.alignment === "right" ? "flex-end" : "center";
                 titleEl.style.color = card.textColor || "var(--text-normal)";
-                titleEl.style.backgroundColor = card.backgroundColor || "transparent";
+                titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.width = "100%";
                 titleEl.style.boxSizing = "border-box";
 
