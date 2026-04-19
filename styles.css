@@ -178,27 +178,21 @@
   touch-action: none;
 }
 
-.procedure-arrow-marker:hover {}
-
-.procedure-rotation-handle {
-  position: absolute;
-  top: -20px;
-  width: 12px;
-  height: 12px;
-  background: var(--interactive-accent);
-  border: 2px solid white;
-  border-radius: 50%;
-  cursor: grab;
+.procedure-arrow-marker .procedure-rotation-handle,
+.procedure-arrow-marker .procedure-trash-button {
+  display: none;
 }
 
-.procedure-rotation-handle:active {
-  cursor: grabbing;
+.procedure-arrow-marker.is-active {
+  outline: 2px dashed var(--interactive-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+  z-index: 10;
 }
 
-.procedure-arrow-marker svg {
-  width: 80%;
-  height: 80%;
-  pointer-events: none;
+.procedure-arrow-marker.is-active .procedure-rotation-handle,
+.procedure-arrow-marker.is-active .procedure-trash-button {
+  display: flex;
 }
 
 .procedure-arrow-marker svg {
@@ -216,6 +210,36 @@
   border: 1px solid var(--background-primary);
   border-radius: 50%;
   cursor: grab;
+}
+
+.procedure-rotation-handle:active {
+  cursor: grabbing;
+}
+
+.procedure-trash-button {
+  position: absolute;
+  bottom: -15px;
+  width: 20px;
+  height: 20px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-error);
+  box-shadow: var(--shadow-s);
+}
+
+.procedure-trash-button:hover {
+  background: var(--background-modifier-error);
+  color: white;
+}
+
+.procedure-trash-button svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 /* Banner Card: High visibility alerts */

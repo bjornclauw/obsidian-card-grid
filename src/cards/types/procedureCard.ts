@@ -51,7 +51,8 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 key: "textColor",
                 label: "Title color",
                 defaultValue: "var(--text-normal)"
-            }
+            },
+            { kind: "button", key: "add-arrow", label: "Add Annotation Arrow" }
         ]
     },
     normalize(raw: unknown): ProcedureCard {
@@ -119,6 +120,9 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         imageBox.style.overflow = "hidden";
         const img = imageBox.createEl("img");
 
+        // Track the currently selected arrow to maintain state across re-renders
+        let selectedArrowId: string | null = null;
+
         async function renderMarkdown(el: HTMLElement, markdown: string) {
             el.empty();
             await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
@@ -148,10 +152,19 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
+                // Deselect arrows when clicking the image container background
+                imageBox.onclick = (e) => {
+                    if (e.target === imageBox || e.target === img) {
+                        selectedArrowId = null;
+                        this.update(card, viewCtx);
+                    }
+                };
+
                 // Interactive Annotation: Right-click anywhere on the image area to add a new arrow.
-                // This provides precise placement and bypasses the editor UI limitation.
                 imageBox.oncontextmenu = (e: MouseEvent) => {
+                    // If we clicked an existing marker, don't add a new one
                     if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
+
                     e.preventDefault();
                     e.stopPropagation();
                     const rect = imageBox.getBoundingClientRect();
@@ -189,15 +202,28 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                             marker.style.setProperty("--arrow-y", String(arrow.y));
                             marker.style.setProperty("--arrow-rotation", String(arrow.rotation));
 
+                            if (selectedArrowId === arrow.id) {
+                                marker.classList.add("is-active");
+                            }
+
                             setIcon(marker, "arrow-right");
 
                             const handle = marker.createDiv("procedure-rotation-handle");
+                            const trash = marker.createDiv("procedure-trash-button");
+                            setIcon(trash, "trash-2");
 
-                            // Dragging logic
+                            // Selection & Dragging logic
                             marker.addEventListener("mousedown", (e: MouseEvent) => {
                                 if (e.target === handle) return;
+                                if ((e.target as HTMLElement).closest(".procedure-trash-button")) return;
                                 e.preventDefault();
                                 e.stopPropagation();
+
+                                // Set selection and trigger re-render to show handles
+                                if (selectedArrowId !== arrow.id) {
+                                    selectedArrowId = arrow.id;
+                                    this.update(card, viewCtx);
+                                }
 
                                 const startX = e.clientX;
                                 const startY = e.clientY;
@@ -256,15 +282,17 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 window.addEventListener("mouseup", onMouseUp);
                             });
 
-                            // Context menu for deletion
-                            marker.addEventListener("contextmenu", (e) => {
+                            // Deletion logic
+                            trash.onclick = (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (card.arrows && ctx.controller) {
                                     const newArrows = card.arrows.filter(a => a.id !== arrow.id);
+                                    if (selectedArrowId === arrow.id) selectedArrowId = null;
                                     ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
                                 }
-                            });
+                            };
+
                         });
                     }
 
