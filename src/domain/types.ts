@@ -29,6 +29,7 @@ export interface BaseCard {
   backgroundColor?: string;
   textColor?: string;
   width?: number;
+  imageHeight?: number;
 
   // Allow card types to add arbitrary fields without changing core types.
   [key: string]: unknown;

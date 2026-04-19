@@ -64,7 +64,8 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
             textSize: typeof raw.textSize === "number" ? raw.textSize : 16,
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "var(--background-modifier-border)",
             textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
-            width: typeof raw.width === "number" ? raw.width : 1
+            width: typeof raw.width === "number" ? raw.width : 1,
+            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<BannerCard> {

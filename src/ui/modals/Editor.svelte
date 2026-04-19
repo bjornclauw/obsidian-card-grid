@@ -81,7 +81,7 @@
     });
 
     function updatePreview() {
-        if (!previewView) return;
+        if (!previewView || !previewPanelEl) return;
         const ctx = { app, plugin, sourcePath, grid };
 
         // 1. Determine the actual width of the grid on screen to replicate layout accurately
@@ -118,6 +118,12 @@
         let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
         if (def.type === "procedureCard" && ratio > 0.4) zoom = 0.45;
 
+        // Ensure the card fits within the preview panel's available horizontal space
+        const availableWidth = previewPanelEl.offsetWidth - 40; // Subtracting padding
+        if (realPixelWidth * zoom > availableWidth) {
+            zoom = Math.floor((availableWidth / realPixelWidth) * 100) / 100;
+        }
+
         // @ts-ignore - zoom works reliably in Obsidian's Electron environment
         previewView.el.style.zoom = String(zoom);
     }
@@ -136,7 +142,7 @@
 <div class="cge-wrap">
     <div class="cge-left">
         <div class="cge-fields">
-            {#each def.editor.fields.filter((f) => !["imageEnabled", "titleEnabled"].includes(f.key)) as field}
+            {#each def.editor.fields.filter((f) => !["imageEnabled", "titleEnabled", "width", "imageHeight"].includes(f.key)) as field}
                 <div
                     class="cge-row"
                     class:cge-row-tall={field.kind === "markdown"}
@@ -424,6 +430,108 @@
                     </div>
                 </div>
             {/each}
+
+            <!-- Global Card Settings -->
+            <div class="cge-row">
+                <div class="cge-field-label">Image Height</div>
+                <div class="cge-field-control">
+                    <div class="cge-number-row">
+                        <button
+                            class="cge-stepper"
+                            on:click={() => {
+                                const base =
+                                    draft.imageHeight ??
+                                    gridAny.imageHeight ??
+                                    0;
+                                draft.imageHeight = Math.max(
+                                    0,
+                                    Number(base) - 10,
+                                );
+                                draft = { ...draft };
+                            }}>−</button
+                        >
+                        <input
+                            class="cge-number-input"
+                            type="number"
+                            value={draft.imageHeight ??
+                                gridAny.imageHeight ??
+                                ""}
+                            on:input={(e) => {
+                                draft.imageHeight =
+                                    e.currentTarget.value === ""
+                                        ? undefined
+                                        : Number(e.currentTarget.value);
+                                draft = { ...draft };
+                            }}
+                            step="10"
+                            min="0"
+                        />
+                        <button
+                            class="cge-stepper"
+                            on:click={() => {
+                                const base =
+                                    draft.imageHeight ??
+                                    gridAny.imageHeight ??
+                                    0;
+                                draft.imageHeight = Number(base) + 10;
+                                draft = { ...draft };
+                            }}>+</button
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div class="cge-row">
+                <div class="cge-field-label">Card Width</div>
+                <div class="cge-field-control">
+                    <div class="cge-number-row">
+                        <button
+                            class="cge-stepper"
+                            on:click={() => {
+                                const base = draft.width ?? 1;
+                                draft.width = Math.max(
+                                    widthConstraints.min,
+                                    Math.round((Number(base) - 0.1) * 100) /
+                                        100,
+                                );
+                                draft = { ...draft };
+                            }}>−</button
+                        >
+                        <input
+                            class="cge-number-input"
+                            type="number"
+                            value={draft.width ?? 1}
+                            on:input={(e) => {
+                                let val =
+                                    e.currentTarget.value === ""
+                                        ? 1
+                                        : Number(e.currentTarget.value);
+                                val = Math.min(
+                                    widthConstraints.max,
+                                    Math.max(widthConstraints.min, val),
+                                );
+                                draft.width = Math.round(val * 100) / 100;
+                                draft = { ...draft };
+                            }}
+                            step="0.1"
+                            min={widthConstraints.min}
+                            max={widthConstraints.max}
+                        />
+                        <button
+                            class="cge-stepper"
+                            on:click={() => {
+                                const base = draft.width ?? 1;
+                                draft.width = Math.min(
+                                    widthConstraints.max,
+                                    Math.round((Number(base) + 0.1) * 100) /
+                                        100,
+                                );
+                                draft = { ...draft };
+                            }}>+</button
+                        >
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="cge-footer">
@@ -447,7 +555,7 @@
     .cge-wrap {
         display: flex;
         gap: 0;
-        height: 58vh;
+        height: 75vh;
         min-height: 360px;
         margin: 0 -16px -16px;
         overflow: hidden;
@@ -871,6 +979,6 @@
         align-items: flex-start;
         justify-content: center;
         padding: 20px 16px;
-        overflow: hidden;
+        overflow: auto;
     }
 </style>

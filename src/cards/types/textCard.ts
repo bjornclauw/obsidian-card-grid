@@ -65,7 +65,8 @@ export const textCardType: CardTypeDefinition<TextCard> = {
       backgroundColor:
         typeof raw.backgroundColor === "string" ? raw.backgroundColor : undefined,
       textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
-      width: typeof raw.width === "number" ? raw.width : 1
+      width: typeof raw.width === "number" ? raw.width : 1,
+      imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined
     };
   },
   createView(ctx: CardViewContext): CardView<TextCard> {

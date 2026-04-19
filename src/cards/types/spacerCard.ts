@@ -36,7 +36,8 @@ export const spacerCardType: CardTypeDefinition<SpacerCard> = {
         return {
             id,
             type: "spacerCard",
-            width: typeof raw.width === "number" ? raw.width : 1
+            width: typeof raw.width === "number" ? raw.width : 1,
+            imageHeight: typeof (raw as any).imageHeight === "number" ? (raw as any).imageHeight : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<SpacerCard> {

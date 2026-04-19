@@ -80,7 +80,8 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             iconColor: typeof raw.iconColor === "string" ? raw.iconColor : "var(--text-normal)",
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "transparent",
             textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
-            width: typeof raw.width === "number" ? raw.width : 1
+            width: typeof raw.width === "number" ? raw.width : 1,
+            imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<IconCard> {

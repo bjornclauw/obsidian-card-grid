@@ -31,11 +31,13 @@ export const unknownCardType: CardTypeDefinition<UnknownCard> = {
         ? obj.type.trim()
         : "unknown";
     const width = typeof obj.width === "number" ? obj.width : 1;
+    const imageHeight = typeof obj.imageHeight === "number" ? obj.imageHeight : undefined;
     return {
       id,
       type,
       raw: obj,
-      width
+      width,
+      imageHeight
     };
   },
   createView(ctx: CardViewContext): CardView<UnknownCard> {
