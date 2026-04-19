@@ -136,8 +136,14 @@
 
         // Detect if the user just typed "[["
         if (cursor >= 2 && value.slice(cursor - 2, cursor) === "[[") {
-            new LinkPickerModal(app, (file) => {
-                const link = `[[${file.path}]]`;
+            new LinkPickerModal(app, (selected: any) => {
+                const path =
+                    typeof selected === "string" ? selected : selected.path;
+                const link =
+                    path.startsWith("http://") || path.startsWith("https://")
+                        ? path
+                        : `[[${path}]]`;
+
                 const before = value.slice(0, cursor - 2);
                 const after = value.slice(cursor);
 
@@ -160,8 +166,14 @@
         const cursor = el.selectionStart ?? value.length;
 
         if (cursor >= 2 && value.slice(cursor - 2, cursor) === "[[") {
-            new LinkPickerModal(app, (file) => {
-                const link = `[[${file.path}]]`;
+            new LinkPickerModal(app, (selected: any) => {
+                const path =
+                    typeof selected === "string" ? selected : selected.path;
+                const link =
+                    path.startsWith("http://") || path.startsWith("https://")
+                        ? path
+                        : `[[${path}]]`;
+
                 const before = value.slice(0, cursor - 2);
                 const after = value.slice(cursor);
 
@@ -175,6 +187,14 @@
                 }, 10);
             }).open();
         }
+    }
+
+    function openLinkPicker(key: string) {
+        new LinkPickerModal(app, (selected: any) => {
+            draft[key] =
+                typeof selected === "string" ? selected : selected.path;
+            draft = { ...draft };
+        }).open();
     }
 
     function openImagePicker(key: string) {
@@ -517,14 +537,22 @@
                                 placeholder={field.placeholder ?? "Markdown…"}
                             ></textarea>
                         {:else if field.kind === "link"}
-                            <input
-                                class="cge-text-input"
-                                type="text"
-                                bind:value={draft[field.key]}
-                                on:input={(e) => handleLinkInput(e, field.key)}
-                                placeholder={field.placeholder ??
-                                    "[[Note]] or https://…"}
-                            />
+                            <div class="cge-image-row">
+                                <input
+                                    class="cge-text-input"
+                                    type="text"
+                                    bind:value={draft[field.key]}
+                                    on:input={(e) =>
+                                        handleLinkInput(e, field.key)}
+                                    placeholder={field.placeholder ??
+                                        "[[Note]] or https://…"}
+                                />
+                                <button
+                                    class="cge-action-btn"
+                                    on:click={() => openLinkPicker(field.key)}
+                                    >Browse</button
+                                >
+                            </div>
                         {/if}
                     </div>
                 </div>
