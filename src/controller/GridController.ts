@@ -123,6 +123,7 @@ export class GridController {
   }
 
   private addCard(pivotId?: CardId, mode: "before" | "after" | "end" = "end"): void {
+    this.setResizing(true);
     const state = this.store.getState();
     let index: number;
 
@@ -138,6 +139,8 @@ export class GridController {
     }
 
     new CardTypeSuggestModal(this.app, this.registry, (type) => {
+      this.setResizing(false);
+      if (!type) return;
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
 
@@ -154,12 +157,14 @@ export class GridController {
 
       (base as any).width = width;
 
+      this.setResizing(true);
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
       this.rebalanceGrid();
     }).open();
   }
 
   private deleteCard(id: CardId): void {
+    this.setResizing(true);
     this.store.dispatch({ type: "card/delete", id });
     this.rebalanceGrid();
   }
@@ -168,6 +173,7 @@ export class GridController {
     const card = this.findCard(id);
     if (!card) return;
 
+    this.setResizing(true);
     const half = Math.max(MIN_WIDTH, Math.round(((card.width ?? 1) / 2) * 1000) / 1000);
     const updatedCard = { ...card, width: half } as any;
     if (updatedCard.raw) updatedCard.raw = { ...updatedCard.raw, width: half };
@@ -185,6 +191,7 @@ export class GridController {
     const idx = state.cards.findIndex((c) => c.id === id);
     if (idx === -1) return;
     const toIndex = direction === "up" ? idx - 1 : idx + 1;
+    this.setResizing(true);
     this.store.dispatch({ type: "card/move", id, toIndex });
     this.rebalanceGrid();
   }
@@ -192,6 +199,7 @@ export class GridController {
   private changeType(id: CardId, type: CardTypeId): void {
     const existing = this.findCard(id);
     if (!existing) return;
+    this.setResizing(true);
     const def = this.registry.get(type);
     const updated = def.normalize({ ...(existing as any), type, id });
     this.store.dispatch({ type: "card/replace", card: updated });
@@ -217,6 +225,7 @@ export class GridController {
       card as any,
       (updated) => {
         if (!updated) return;
+        this.setResizing(true);
         this.store.dispatch({ type: "card/replace", card: updated });
         this.rebalanceGrid();
       }).open();
@@ -247,6 +256,7 @@ export class GridController {
     } finally {
       this.setResizing(false);
       // Manually trigger the final update now that both cards are updated in state
+      // rebalanceGrid handles setResizing(false) and view.update()
       this.rebalanceGrid();
       this.view.update(this.store.getState());
     }

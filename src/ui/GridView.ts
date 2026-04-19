@@ -53,6 +53,12 @@ export class GridView {
       return;
     }
 
+    // Height Lock: Stabilize our own container height during the update
+    const currentHeight = this.container.offsetHeight;
+    if (currentHeight > 0) {
+      this.container.style.minHeight = `${currentHeight}px`;
+    }
+
     this.container.style.display = "flex";
     this.container.style.flexDirection = "row";
     this.container.style.gap = `${grid.gap}px`;
@@ -92,6 +98,11 @@ export class GridView {
       entry?.view.el.remove();
       this.cardDom.delete(id);
     }
+
+    // Release the lock in the next frame so the grid can still grow/shrink naturally
+    requestAnimationFrame(() => {
+      this.container.style.minHeight = "";
+    });
   }
 
   private ensureCard(card: CardInstance, ctx: CardViewContext): CardDomEntry {
