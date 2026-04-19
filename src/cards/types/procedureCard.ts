@@ -4,6 +4,9 @@ import type { CardTypeDefinition, CardView, CardViewContext } from "../registry"
 import { createId } from "../../domain/codec";
 import { applyImageStyle } from "../shared/imageStyle";
 
+// Module-level selection state shared across all view instances of the same card.
+// This survives view recreation by the controller.
+const selectedArrowIds = new Map<string, string | null>();
 function isRecord(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -121,8 +124,10 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         imageBox.style.overflow = "hidden";
         const img = imageBox.createEl("img");
 
-        // Track the currently selected arrow to maintain state across re-renders
-        let selectedArrowId: string | null = null;
+        // Track the currently selected arrow — stored in the module-level map so it
+        // survives view recreation. Card id is available via box.dataset.cardId at runtime.
+        const getSelected = () => selectedArrowIds.get(box.dataset.cardId ?? "") ?? null;
+        const setSelected = (id: string | null) => selectedArrowIds.set(box.dataset.cardId ?? "", id);
 
         async function renderMarkdown(el: HTMLElement, markdown: string) {
             el.empty();
@@ -145,6 +150,21 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             }
         };
 
+        let suppressNextDeselect = false;
+
+        imageBox.addEventListener("click", (e) => {
+            if (suppressNextDeselect) {
+                suppressNextDeselect = false;
+                return;
+            }
+            if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
+            if (getSelected() !== null) {
+                imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
+                    .forEach(el => el.classList.remove("is-active"));
+                setSelected(null);
+            }
+        });
+
         return {
             el: box,
             update(card: ProcedureCard, viewCtx: CardViewContext) {
@@ -152,17 +172,6 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
-
-                // Deselect arrows when clicking the image container background
-                imageBox.onclick = (e) => {
-                    if (e.target === imageBox || e.target === img) {
-                        if (selectedArrowId !== null) {
-                            imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
-                                .forEach(el => el.classList.remove("is-active"));
-                            selectedArrowId = null;
-                        }
-                    }
-                };
 
                 // Interactive Annotation: Right-click anywhere on the image area to add a new arrow.
                 imageBox.oncontextmenu = (e: MouseEvent) => {
@@ -201,16 +210,17 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     if (card.arrows) {
                         card.arrows.forEach(arrow => {
                             const marker = imageBox.createDiv("procedure-arrow-marker");
+                            marker.dataset.arrowId = arrow.id;
                             marker.style.setProperty("--arrow-x", String(arrow.x));
                             marker.style.setProperty("--arrow-y", String(arrow.y));
                             marker.style.setProperty("--arrow-rotation", String(arrow.rotation));
 
-                            if (selectedArrowId === arrow.id) {
+                            if (getSelected() === arrow.id) {
                                 marker.classList.add("is-active");
                             }
 
                             marker.style.color = arrow.color || "var(--text-accent)";
-                            if (selectedArrowId === arrow.id) {
+                            if (getSelected() === arrow.id) {
                                 marker.style.setProperty("--arrow-selection-color", arrow.color || "var(--interactive-accent)");
                             }
 
@@ -231,10 +241,10 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 e.stopPropagation();
 
                                 // Select this arrow by toggling CSS classes directly — no full re-render needed
-                                if (selectedArrowId !== arrow.id) {
+                                if (getSelected() !== arrow.id) {
                                     imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
                                         .forEach(el => el.classList.remove("is-active"));
-                                    selectedArrowId = arrow.id;
+                                    setSelected(arrow.id);
                                     marker.classList.add("is-active");
                                     marker.style.setProperty(
                                         "--arrow-selection-color",
@@ -265,6 +275,9 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
                                     const finalX = parseFloat(marker.style.getPropertyValue("--arrow-x"));
                                     const finalY = parseFloat(marker.style.getPropertyValue("--arrow-y"));
+
+                                    setSelected(arrow.id);
+                                    suppressNextDeselect = true;
                                     updateArrows(card, arrow.id, { x: finalX, y: finalY });
                                 };
 
@@ -292,6 +305,8 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                     window.removeEventListener("mouseup", onMouseUp);
 
                                     const finalRotation = parseFloat(marker.style.getPropertyValue("--arrow-rotation"));
+                                    setSelected(arrow.id);
+                                    suppressNextDeselect = true;
                                     updateArrows(card, arrow.id, { rotation: finalRotation });
                                 };
 
@@ -305,7 +320,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 e.stopPropagation();
                                 if (card.arrows && ctx.controller) {
                                     const newArrows = card.arrows.filter(a => a.id !== arrow.id);
-                                    if (selectedArrowId === arrow.id) selectedArrowId = null;
+                                    if (selectedArrowIds.get(card.id) === arrow.id) setSelected(null);
                                     ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
                                 }
                             };
@@ -364,7 +379,6 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
                                 colorInput.click();
                             });
-                            ;
                         });
                     }
 
