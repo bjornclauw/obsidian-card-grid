@@ -84,6 +84,7 @@ export interface CardViewContext {
 export interface CardView<TCard extends CardInstance = CardInstance> {
   el: HTMLElement;
   update(card: TCard, ctx: CardViewContext): void;
+  destroy?(): void;
 }
 
 export interface CardTypeDefinition<TCard extends CardInstance = CardInstance> {

@@ -43,6 +43,9 @@ export class GridView {
   }
 
   destroy(): void {
+    for (const entry of this.cardDom.values()) {
+      entry.view.destroy?.();
+    }
     this.cardDom.clear();
     this.container.empty();
   }
@@ -98,7 +101,10 @@ export class GridView {
 
     for (const id of existing) {
       const entry = this.cardDom.get(id);
-      entry?.view.el.remove();
+      if (entry) {
+        entry.view.destroy?.();
+        entry.view.el.remove();
+      }
       this.cardDom.delete(id);
     }
 
@@ -111,8 +117,11 @@ export class GridView {
   private ensureCard(card: CardInstance, ctx: CardViewContext): CardDomEntry {
     const existing = this.cardDom.get(card.id);
     if (existing && existing.type === card.type) return existing;
-
-    existing?.view.el.remove();
+    
+    if (existing) {
+      existing.view.destroy?.();
+      existing.view.el.remove();
+    }
 
     const def = this.registry.get(card.type);
     const view = def.createView(ctx);

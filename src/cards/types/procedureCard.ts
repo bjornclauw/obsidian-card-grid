@@ -7,6 +7,7 @@ import { applyImageStyle } from "../shared/imageStyle";
 // Module-level selection state shared across all view instances of the same card.
 // This survives view recreation by the controller.
 const selectedArrowIds = new Map<string, string | null>();
+
 function isRecord(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -126,10 +127,15 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
         // Track the currently selected arrow — stored in the module-level map so it
         // survives view recreation. Card id is available via box.dataset.cardId at runtime.
-        const getSelected = () => selectedArrowIds.get(box.dataset.cardId ?? "") ?? null;
-        const setSelected = (id: string | null) => selectedArrowIds.set(box.dataset.cardId ?? "", id);
+        const getSelected = (): string | null => selectedArrowIds.get(box.dataset.cardId ?? "") ?? null;
+        const setSelected = (id: string | null): void => {
+            selectedArrowIds.set(box.dataset.cardId ?? "", id);
+        };
 
-        async function renderMarkdown(el: HTMLElement, markdown: string) {
+        // Track active global listeners for cleanup.
+        const pendingCleanups = new Set<() => void>();
+
+        async function renderMarkdown(el: HTMLElement, markdown: string): Promise<void> {
             el.empty();
             await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
         }
@@ -145,12 +151,13 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         const updateArrows = (card: ProcedureCard, arrowId: string, patch: Partial<{ x: number, y: number, rotation: number, color: string }>) => {
             if (!card.arrows) return;
             const newArrows = card.arrows.map(a => a.id === arrowId ? { ...a, ...patch } : a);
-            if (ctx.controller) {
-                ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+            if (viewCtxRef.current?.controller) {
+                viewCtxRef.current.controller.updateCardProperties(card.id, { arrows: newArrows });
             }
         };
 
         let suppressNextDeselect = false;
+        const viewCtxRef: { current: CardViewContext | null } = { current: null };
 
         imageBox.addEventListener("click", (e) => {
             if (suppressNextDeselect) {
@@ -168,6 +175,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         return {
             el: box,
             update(card: ProcedureCard, viewCtx: CardViewContext) {
+                viewCtxRef.current = viewCtx;
                 box.style.setProperty('--card-width', String(card.width || 1));
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
@@ -184,7 +192,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     const x = ((e.clientX - rect.left) / rect.width) * 100;
                     const y = ((e.clientY - rect.top) / rect.height) * 100;
                     const newArrows = [...(card.arrows || []), { id: createId("arrow"), x, y, rotation: 0 }];
-                    if (ctx.controller) ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+                    if (viewCtx.controller) viewCtx.controller.updateCardProperties(card.id, { arrows: newArrows });
                 };
 
                 titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
@@ -272,6 +280,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 const onMouseUp = () => {
                                     window.removeEventListener("mousemove", onMouseMove);
                                     window.removeEventListener("mouseup", onMouseUp);
+                                    pendingCleanups.delete(cleanup);
 
                                     const finalX = parseFloat(marker.style.getPropertyValue("--arrow-x"));
                                     const finalY = parseFloat(marker.style.getPropertyValue("--arrow-y"));
@@ -281,8 +290,14 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                     updateArrows(card, arrow.id, { x: finalX, y: finalY });
                                 };
 
+                                const cleanup = () => {
+                                    window.removeEventListener("mousemove", onMouseMove);
+                                    window.removeEventListener("mouseup", onMouseUp);
+                                };
+
                                 window.addEventListener("mousemove", onMouseMove);
                                 window.addEventListener("mouseup", onMouseUp);
+                                pendingCleanups.add(cleanup);
                             });
 
                             // Rotation logic
@@ -303,6 +318,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 const onMouseUp = () => {
                                     window.removeEventListener("mousemove", onMouseMove);
                                     window.removeEventListener("mouseup", onMouseUp);
+                                    pendingCleanups.delete(cleanup);
 
                                     const finalRotation = parseFloat(marker.style.getPropertyValue("--arrow-rotation"));
                                     setSelected(arrow.id);
@@ -310,29 +326,36 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                     updateArrows(card, arrow.id, { rotation: finalRotation });
                                 };
 
+                                const cleanup = () => {
+                                    window.removeEventListener("mousemove", onMouseMove);
+                                    window.removeEventListener("mouseup", onMouseUp);
+                                };
+
                                 window.addEventListener("mousemove", onMouseMove);
                                 window.addEventListener("mouseup", onMouseUp);
+                                pendingCleanups.add(cleanup);
+                            });
+
+                            // Prevent the card context menu from showing when right-clicking the arrow
+                            marker.addEventListener("contextmenu", (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                             });
 
                             // Deletion logic
                             trash.onclick = (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                if (card.arrows && ctx.controller) {
+                                if (card.arrows && viewCtx.controller) {
                                     const newArrows = card.arrows.filter(a => a.id !== arrow.id);
                                     if (selectedArrowIds.get(card.id) === arrow.id) setSelected(null);
-                                    ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+                                    viewCtx.controller.updateCardProperties(card.id, { arrows: newArrows });
                                 }
                             };
 
                             // Color picking logic
                             colorPickerBtn.addEventListener("mousedown", (e) => {
-                                // Must stop propagation here — before the marker's mousedown handler
-                                // sees it — otherwise the marker swallows the event first.
-                                // Do NOT call preventDefault — that would block the click event needed to open the picker.
                                 e.stopPropagation();
-
-                                // Reuse an existing input if one was already appended (e.g. double-click)
                                 let colorInput = colorPickerBtn.querySelector<HTMLInputElement>("input[type=color]");
                                 if (colorInput) {
                                     colorInput.click();
@@ -343,9 +366,6 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 colorInput.type = "color";
                                 colorInput.value = arrow.color || "#705dcf";
 
-                                // Position the input to exactly cover the button so the browser
-                                // opens the OS color dialog anchored to the button, not the top-left
-                                // of the screen. This works regardless of Obsidian panel transforms.
                                 Object.assign(colorInput.style, {
                                     position: "absolute",
                                     inset: "0",
@@ -365,16 +385,19 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                     colorInput!.remove();
                                 });
 
-                                // Clean up if the user clicks elsewhere without picking a color.
-                                // Use a timeout so this listener doesn't fire on the same click that opened the picker.
                                 setTimeout(() => {
                                     const onOutside = (ev: PointerEvent) => {
                                         if (!colorPickerBtn.contains(ev.target as Node)) {
                                             colorInput!.remove();
-                                            document.removeEventListener("pointerdown", onOutside, true);
+                                            cleanup();
                                         }
                                     };
+                                    const cleanup = () => {
+                                        document.removeEventListener("pointerdown", onOutside, true);
+                                        pendingCleanups.delete(cleanup);
+                                    };
                                     document.addEventListener("pointerdown", onOutside, true);
+                                    pendingCleanups.add(cleanup);
                                 }, 0);
 
                                 colorInput.click();
@@ -387,7 +410,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     img.style.left = "0";
                     img.style.height = "100%";
                     img.style.width = "100%";
-                    img.style.minHeight = "0"; // Override browser defaults
+                    img.style.minHeight = "0";
                     img.style.maxHeight = "none";
                     img.style.flex = "1 1 auto";
                     img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
@@ -398,8 +421,16 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     imageBox.style.minHeight = "0px";
                     img.style.minHeight = "0px";
                 }
+            },
+            destroy() {
+                // Remove all pending global listeners
+                pendingCleanups.forEach(cleanup => cleanup());
+                pendingCleanups.clear();
+
+                // Note: We deliberately do NOT delete entries from selectedArrowIds here.
+                // This Map allows selection state to survive view recreation (filtering, sorting, etc).
+                // Since it only stores arrow IDs, the memory impact is negligible.
             }
         };
     }
-
 };
