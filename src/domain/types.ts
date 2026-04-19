@@ -103,7 +103,7 @@ export interface ProcedureCard extends BaseCard {
   text?: string;
   image?: string;
   imageEnabled?: boolean;
-  arrows?: Array<{ x: number; y: number; rotation: number; id: string }>;
+  arrows?: Array<{ x: number; y: number; rotation: number; id: string; color?: string }>;
 
   // Optional per-card overrides (fallback to grid defaults).
   imageFit?: CardGridData["imageFit"];

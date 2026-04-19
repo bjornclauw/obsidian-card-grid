@@ -83,7 +83,8 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     id: typeof a.id === "string" ? a.id : createId("arrow"),
                     x: typeof a.x === "number" ? a.x : 50,
                     y: typeof a.y === "number" ? a.y : 50,
-                    rotation: typeof a.rotation === "number" ? a.rotation : 0
+                    rotation: typeof a.rotation === "number" ? a.rotation : 0,
+                    color: typeof a.color === "string" ? a.color : undefined
                 }))
                 : undefined
         };
@@ -136,7 +137,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             return path;
         }
 
-        const updateArrows = (card: ProcedureCard, arrowId: string, patch: Partial<{ x: number, y: number, rotation: number }>) => {
+        const updateArrows = (card: ProcedureCard, arrowId: string, patch: Partial<{ x: number, y: number, rotation: number, color: string }>) => {
             if (!card.arrows) return;
             const newArrows = card.arrows.map(a => a.id === arrowId ? { ...a, ...patch } : a);
             if (ctx.controller) {
@@ -155,8 +156,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 // Deselect arrows when clicking the image container background
                 imageBox.onclick = (e) => {
                     if (e.target === imageBox || e.target === img) {
-                        selectedArrowId = null;
-                        this.update(card, viewCtx);
+                        if (selectedArrowId !== null) {
+                            imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
+                                .forEach(el => el.classList.remove("is-active"));
+                            selectedArrowId = null;
+                        }
                     }
                 };
 
@@ -177,7 +181,6 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.color = card.textColor || "";
                 void renderMarkdown(titleEl, card.title || "Untitled");
-
 
                 void renderMarkdown(textBox, card.text || "");
 
@@ -206,23 +209,37 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 marker.classList.add("is-active");
                             }
 
+                            marker.style.color = arrow.color || "var(--text-accent)";
+                            if (selectedArrowId === arrow.id) {
+                                marker.style.setProperty("--arrow-selection-color", arrow.color || "var(--interactive-accent)");
+                            }
+
                             setIcon(marker, "arrow-right");
 
                             const handle = marker.createDiv("procedure-rotation-handle");
                             const trash = marker.createDiv("procedure-trash-button");
+                            const colorPickerBtn = marker.createDiv("procedure-color-button");
                             setIcon(trash, "trash-2");
+                            setIcon(colorPickerBtn, "palette");
 
                             // Selection & Dragging logic
                             marker.addEventListener("mousedown", (e: MouseEvent) => {
                                 if (e.target === handle) return;
                                 if ((e.target as HTMLElement).closest(".procedure-trash-button")) return;
+                                if ((e.target as HTMLElement).closest(".procedure-color-button")) return;
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                // Set selection and trigger re-render to show handles
+                                // Select this arrow by toggling CSS classes directly — no full re-render needed
                                 if (selectedArrowId !== arrow.id) {
+                                    imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
+                                        .forEach(el => el.classList.remove("is-active"));
                                     selectedArrowId = arrow.id;
-                                    this.update(card, viewCtx);
+                                    marker.classList.add("is-active");
+                                    marker.style.setProperty(
+                                        "--arrow-selection-color",
+                                        arrow.color || "var(--interactive-accent)"
+                                    );
                                 }
 
                                 const startX = e.clientX;
@@ -293,6 +310,61 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 }
                             };
 
+                            // Color picking logic
+                            colorPickerBtn.addEventListener("mousedown", (e) => {
+                                // Must stop propagation here — before the marker's mousedown handler
+                                // sees it — otherwise the marker swallows the event first.
+                                // Do NOT call preventDefault — that would block the click event needed to open the picker.
+                                e.stopPropagation();
+
+                                // Reuse an existing input if one was already appended (e.g. double-click)
+                                let colorInput = colorPickerBtn.querySelector<HTMLInputElement>("input[type=color]");
+                                if (colorInput) {
+                                    colorInput.click();
+                                    return;
+                                }
+
+                                colorInput = document.createElement("input");
+                                colorInput.type = "color";
+                                colorInput.value = arrow.color || "#705dcf";
+
+                                // Position the input to exactly cover the button so the browser
+                                // opens the OS color dialog anchored to the button, not the top-left
+                                // of the screen. This works regardless of Obsidian panel transforms.
+                                Object.assign(colorInput.style, {
+                                    position: "absolute",
+                                    inset: "0",
+                                    width: "100%",
+                                    height: "100%",
+                                    padding: "0",
+                                    border: "none",
+                                    opacity: "0",
+                                    cursor: "pointer",
+                                });
+                                colorPickerBtn.appendChild(colorInput);
+
+                                colorInput.addEventListener("change", () => {
+                                    updateArrows(card, arrow.id, { color: colorInput!.value });
+                                    marker.style.color = colorInput!.value;
+                                    marker.style.setProperty("--arrow-selection-color", colorInput!.value);
+                                    colorInput!.remove();
+                                });
+
+                                // Clean up if the user clicks elsewhere without picking a color.
+                                // Use a timeout so this listener doesn't fire on the same click that opened the picker.
+                                setTimeout(() => {
+                                    const onOutside = (ev: PointerEvent) => {
+                                        if (!colorPickerBtn.contains(ev.target as Node)) {
+                                            colorInput!.remove();
+                                            document.removeEventListener("pointerdown", onOutside, true);
+                                        }
+                                    };
+                                    document.addEventListener("pointerdown", onOutside, true);
+                                }, 0);
+
+                                colorInput.click();
+                            });
+                            ;
                         });
                     }
 
