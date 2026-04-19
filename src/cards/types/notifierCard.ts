@@ -36,13 +36,14 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
                 label: "Alignment",
                 options: [
                     { label: "Left", value: "left" },
-                    { label: "Center", value: "center" }
+                    { label: "Center", value: "center" },
+                    { label: "Right", value: "right" }
                 ]
             },
             { kind: "number", key: "titleSize", label: "Title size (px)", defaultValue: 28 },
             { kind: "number", key: "textSize", label: "Text size (px)", defaultValue: 16 },
-            { kind: "color", key: "backgroundColor", label: "Background color", defaultValue: "#1a237e" },
-            { kind: "color", key: "textColor", label: "Text color", defaultValue: "#ffffff" },
+            { kind: "color", key: "backgroundColor", label: "Background color", defaultValue: "var(--background-modifier-border)" },
+            { kind: "color", key: "textColor", label: "Text color", defaultValue: "var(--text-normal)" },
             { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 }
         ]
     },
@@ -57,11 +58,11 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
             title: typeof raw.title === "string" ? raw.title : "Notification",
             text: typeof raw.text === "string" ? raw.text : "",
             icon: typeof raw.icon === "string" ? raw.icon : "⚠️",
-            alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
+            alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
             titleSize: typeof raw.titleSize === "number" ? raw.titleSize : 28,
             textSize: typeof raw.textSize === "number" ? raw.textSize : 16,
-            backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "#1a237e",
-            textColor: typeof raw.textColor === "string" ? raw.textColor : "#ffffff",
+            backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "var(--background-modifier-border)",
+            textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
             width: typeof raw.width === "number" ? raw.width : 1
         };
     },
@@ -95,14 +96,17 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
                 box.dataset.cardId = card.id;
 
                 // Apply Colors
-                box.style.backgroundColor = card.backgroundColor || "#1a237e";
-                box.style.color = card.textColor || "#ffffff";
-                titleEl.style.color = card.textColor || "#ffffff";
+                box.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
+                box.style.color = card.textColor || "var(--text-normal)";
+                titleEl.style.color = card.textColor || "var(--text-normal)";
 
                 // Apply Alignment
                 if (card.alignment === "left") {
                     box.style.textAlign = "left";
                     box.style.alignItems = "flex-start";
+                } else if (card.alignment === "right") {
+                    box.style.textAlign = "right";
+                    box.style.alignItems = "flex-end";
                 } else {
                     box.style.textAlign = "center";
                     box.style.alignItems = "center";

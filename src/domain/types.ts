@@ -94,7 +94,7 @@ export interface NotifierCard extends BaseCard {
   type: "notifier";
   title?: string;
   text?: string;
-  alignment?: "left" | "center";
+  alignment?: "left" | "center" | "right";
   titleSize?: number;
   textSize?: number;
   icon?: string;
@@ -111,7 +111,7 @@ export interface IconCard extends BaseCard {
   iconSize?: number;
   textSize?: number;
   iconColor?: string;
-  alignment?: "left" | "center";
+  alignment?: "left" | "center" | "right";
 }
 
 export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard | IconCard;

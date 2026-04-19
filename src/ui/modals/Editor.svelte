@@ -311,6 +311,17 @@
                                     placeholder="#cccccc"
                                     maxlength="7"
                                 />
+                                {#if draft[field.key] !== undefined && draft[field.key] !== field.defaultValue}
+                                    <button
+                                        class="cge-action-btn cge-danger-btn"
+                                        title="Reset to default"
+                                        on:click={() => {
+                                            draft[field.key] =
+                                                field.defaultValue;
+                                            draft = { ...draft };
+                                        }}>✕</button
+                                    >
+                                {/if}
                             </div>
                         {:else if field.kind === "image-file"}
                             <div class="cge-image-row">

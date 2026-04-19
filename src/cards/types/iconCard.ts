@@ -52,15 +52,16 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 label: "Alignment",
                 options: [
                     { label: "Left", value: "left" },
-                    { label: "Center", value: "center" }
+                    { label: "Center", value: "center" },
+                    { label: "Right", value: "right" }
                 ]
             },
             { kind: "number", key: "iconSize", label: "Icon size (px)", defaultValue: 48 },
             { kind: "number", key: "textSize", label: "Text size (px)", defaultValue: 14 },
+            { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
             { kind: "color", key: "backgroundColor", label: "Background color", defaultValue: "transparent" },
             { kind: "color", key: "iconColor", label: "Icon color", defaultValue: "var(--text-normal)" },
-            { kind: "color", key: "textColor", label: "Color", defaultValue: "var(--text-normal)" },
-            { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 }
+            { kind: "color", key: "textColor", label: "Text color", defaultValue: "var(--text-normal)" }
         ]
     },
     normalize(raw: unknown): IconCard {
@@ -72,10 +73,10 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             type: "icon",
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
-            alignment: (raw.alignment === "left" || raw.alignment === "center") ? raw.alignment : "center",
+            alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
             iconSize: typeof raw.iconSize === "number" ? raw.iconSize : 48,
             textSize: typeof raw.textSize === "number" ? raw.textSize : 14,
-            iconColor: typeof raw.iconColor === "string" ? raw.iconColor : undefined,
+            iconColor: typeof raw.iconColor === "string" ? raw.iconColor : "var(--text-normal)",
             backgroundColor: typeof raw.backgroundColor === "string" ? raw.backgroundColor : "transparent",
             textColor: typeof raw.textColor === "string" ? raw.textColor : "var(--text-normal)",
             width: typeof raw.width === "number" ? raw.width : 1
@@ -115,6 +116,9 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 if (card.alignment === "left") {
                     box.style.textAlign = "left";
                     box.style.alignItems = "flex-start";
+                } else if (card.alignment === "right") {
+                    box.style.textAlign = "right";
+                    box.style.alignItems = "flex-end";
                 } else {
                     box.style.textAlign = "center";
                     box.style.alignItems = "center";
@@ -128,7 +132,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                     if (svg) {
                         svg.style.width = `${card.iconSize || 48}px`;
                         svg.style.height = `${card.iconSize || 48}px`;
-                        svg.style.stroke = card.iconColor || card.textColor || "currentColor";
+                        svg.style.stroke = card.iconColor || card.textColor || "var(--text-normal)";
                     }
                 }
 

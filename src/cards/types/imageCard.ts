@@ -41,7 +41,7 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         kind: "color",
         key: "backgroundColor",
         label: "Border color",
-        defaultValue: "#cccccc"
+        defaultValue: "var(--background-modifier-border)"
       }
     ]
   },
@@ -89,7 +89,7 @@ export const imageCardType: CardTypeDefinition<ImageCard> = {
         box.style.setProperty('--card-width', String(card.width || 1));
         box.dataset.widthFraction = String(card.width || 1);
         box.dataset.cardId = card.id;
-        box.style.border = `2px solid ${card.backgroundColor || "#ccc"}`;
+        box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
         const enabled = card.imageEnabled !== false;
         if (enabled && card.image) {
