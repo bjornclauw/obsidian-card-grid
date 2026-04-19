@@ -7,12 +7,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export interface SpacerCard extends CardInstance {
-    type: "spacer";
+    type: "spacerCard";
 }
 
 export const spacerCardType: CardTypeDefinition<SpacerCard> = {
-    type: "spacer",
+    type: "spacerCard",
     displayName: "Spacer card",
+    description: "Invisible utility card used to create horizontal gaps or control column alignment.",
     editor: {
         title: "Edit spacer",
         fields: [
@@ -26,7 +27,7 @@ export const spacerCardType: CardTypeDefinition<SpacerCard> = {
     },
     normalize(raw: unknown): SpacerCard {
         if (!isRecord(raw)) {
-            return { id: createId("card"), type: "spacer" };
+            return { id: createId("card"), type: "spacerCard" };
         }
         const id =
             typeof raw.id === "string" && raw.id.trim().length > 0
@@ -34,7 +35,7 @@ export const spacerCardType: CardTypeDefinition<SpacerCard> = {
                 : createId("card");
         return {
             id,
-            type: "spacer",
+            type: "spacerCard",
             width: typeof raw.width === "number" ? raw.width : 1
         };
     },

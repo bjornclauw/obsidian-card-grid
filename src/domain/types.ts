@@ -13,7 +13,7 @@ export interface CardGridData {
   borderRadius: number;
 
   // Optional grid-level defaults used by some card types.
-  imageFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+  imageFit?: "cover" | "contain" | "fill" | "none";
   imageHeight?: number;
   imagePosition?: string;
   imageRadius?: number;
@@ -37,15 +37,15 @@ export interface BaseCard {
 export type CardInstance = BaseCard;
 
 export interface TextCard extends CardInstance {
-  type: "text";
+  type: "textCard";
   title: string;
   text: string;
   titleEnabled?: boolean;
   alignment?: "left" | "center" | "right";
 }
 
-export interface FlashCard extends BaseCard {
-  type: "flashcard";
+export interface VerticalFlashCard extends BaseCard {
+  type: "verticalFlashCard";
   title?: string;
   text?: string;
   titleEnabled?: boolean;
@@ -66,8 +66,8 @@ export interface UnknownCard extends BaseCard {
   raw: Record<string, unknown>;
 }
 
-export interface ImageCard extends BaseCard {
-  type: "image";
+export interface GalleryCard extends BaseCard {
+  type: "galleryCard";
   image?: string;
   imageEnabled?: boolean;
 
@@ -79,7 +79,7 @@ export interface ImageCard extends BaseCard {
 }
 
 export interface ProcedureCard extends BaseCard {
-  type: "procedure";
+  type: "procedureCard";
   title?: string;
   text?: string;
   image?: string;
@@ -92,8 +92,8 @@ export interface ProcedureCard extends BaseCard {
   imageRadius?: number;
 }
 
-export interface NotifierCard extends BaseCard {
-  type: "notifier";
+export interface BannerCard extends BaseCard {
+  type: "bannerCard";
   title?: string;
   text?: string;
   alignment?: "left" | "center" | "right";
@@ -107,7 +107,7 @@ export interface NotifierCard extends BaseCard {
 }
 
 export interface IconCard extends BaseCard {
-  type: "icon";
+  type: "iconCard";
   icon?: string;
   text?: string;
   iconSize?: number;
@@ -116,7 +116,20 @@ export interface IconCard extends BaseCard {
   alignment?: "left" | "center" | "right";
 }
 
-export type BuiltInCard = TextCard | FlashCard | ImageCard | UnknownCard | ProcedureCard | NotifierCard | IconCard;
+export interface SpacerCard extends BaseCard {
+  type: "spacerCard";
+  width: number;
+}
+
+export type BuiltInCard =
+  | TextCard
+  | VerticalFlashCard
+  | GalleryCard
+  | UnknownCard
+  | ProcedureCard
+  | BannerCard
+  | IconCard
+  | SpacerCard;
 
 export interface GridBlockRef {
   sourcePath: string;

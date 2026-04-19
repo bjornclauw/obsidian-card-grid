@@ -73,6 +73,7 @@ export interface CardView<TCard extends CardInstance = CardInstance> {
 export interface CardTypeDefinition<TCard extends CardInstance = CardInstance> {
   type: CardTypeId;
   displayName: string;
+  description?: string;
   editor: CardEditorSpec;
   normalize(raw: unknown): TCard;
   createView(ctx: CardViewContext): CardView<TCard>;

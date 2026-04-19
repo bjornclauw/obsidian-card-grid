@@ -1,21 +1,21 @@
 import { CardTypeRegistry } from "./registry";
 import { textCardType } from "./types/textCard";
-import { flashCardType } from "./types/flashCard";
-import { imageCardType } from "./types/imageCard";
+import { verticalFlashCardType } from "./types/verticalFlashCard";
+import { galleryCardType } from "./types/galleryCard";
 import { spacerCardType } from "./types/spacerCard";
 import { unknownCardType } from "./types/unknownCard";
 import { procedureCardType } from "./types/procedureCard";
-import { notifierCardType } from "./types/notifierCard";
+import { bannerCardType } from "./types/bannerCard";
 import { iconCardType } from "./types/iconCard";
 
 export function createDefaultRegistry(): CardTypeRegistry {
   const registry = new CardTypeRegistry();
   registry.register(textCardType);
-  registry.register(flashCardType);
-  registry.register(imageCardType);
+  registry.register(verticalFlashCardType);
+  registry.register(galleryCardType);
   registry.register(procedureCardType);
   registry.register(iconCardType);
-  registry.register(notifierCardType);
+  registry.register(bannerCardType);
   registry.register(unknownCardType);
   registry.register(spacerCardType);
   return registry;

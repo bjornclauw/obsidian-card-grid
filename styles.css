@@ -1,64 +1,9 @@
-/* ==========================================================================
-   CARD TYPE SPECIFIC STYLES
-   ========================================================================== */
-
-/* --- Procedure Card --- */
-.card-grid-card.card-type-procedure {
-  text-align: left;
-}
-
-.card-grid-card.card-type-procedure h4 {
-  align-items: flex-start;
-  justify-content: flex-start;
-  margin-top: 0;
-}
-
-.card-grid-card.card-type-procedure .procedure-text-box {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-/* --- Notifier Card --- */
-.card-grid-card.card-type-notifier {
-  justify-content: flex-start;
-  border: none !important;
-  /* Notifier usually uses solid backgrounds, not borders */
-}
-
-.card-grid-card.card-type-notifier .notifier-text p {
-  margin: 0;
-}
-
-/* --- Icon Card --- */
-.card-grid-card.card-type-icon {
-  border: none !important;
-}
-
-.card-grid-card.card-type-icon .icon-text p {
-  margin: 0;
-}
-
-/* --- Spacer Card --- */
-.card-grid-spacer {
-  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
-  min-width: 0;
-  position: relative;
-  background: var(--background-secondary-alt);
-  opacity: 0.6;
-  border: 1px dotted var(--background-modifier-border);
-  transition: flex 0.1s ease;
-  box-shadow: none;
-  min-height: 50px;
-}
-
-/* ==========================================================================
-   GENERAL GRID & LAYOUT STYLES
-   ========================================================================== */
-
-/* --- Grid Container --- */
+/**
+ * ==========================================================================
+ * 1. LAYOUT & GRID CONTAINER
+ * Controls the overall flexbox grid behavior and CSS variable inheritance.
+ * ==========================================================================
+ */
 .card-grid-container {
   display: flex;
   flex-direction: row;
@@ -66,8 +11,14 @@
   gap: var(--grid-gap, 20px);
 }
 
-/* --- Base Card Styles --- */
+/**
+ * ==========================================================================
+ * 2. BASE CARD & SPACER DEFINITIONS
+ * Shared structural styles for all cards and layout utility elements.
+ * ==========================================================================
+ */
 .card-grid-card {
+  /* Flex calculation: (100% + gap) / columns * width - gap */
   flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
   min-width: 0;
   position: relative;
@@ -81,7 +32,25 @@
   flex-direction: column;
 }
 
-/* --- Typography & Content --- */
+/* Spacer card: Used for alignment and gaps without visible content */
+.card-grid-spacer {
+  flex: 0 1 calc((100% + var(--grid-gap, 20px)) / var(--grid-columns, 3) * var(--card-width, 1) - var(--grid-gap, 20px));
+  min-width: 0;
+  position: relative;
+  background: var(--background-secondary-alt);
+  opacity: 0.6;
+  border: 1px dotted var(--background-modifier-border);
+  transition: flex 0.1s ease;
+  box-shadow: none;
+  min-height: 50px;
+}
+
+/**
+ * ==========================================================================
+ * 3. CONTENT TYPOGRAPHY
+ * Styling for Markdown content inside cards.
+ * ==========================================================================
+ */
 .card-grid-card h4,
 .card-grid-card .card-text {
   white-space: normal;
@@ -93,7 +62,6 @@
 
 .card-grid-card h4 {
   margin: 8px 0 2px 0;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -114,17 +82,85 @@
   margin-bottom: 0 !important;
 }
 
+/* Base image handling for cards with media */
 .card-grid-card img {
   width: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* --- Resizing Interactions --- */
+/**
+ * ==========================================================================
+ * 4. CARD TYPE SPECIALIZATIONS
+ * Layout overrides for specific card identities.
+ * ==========================================================================
+ */
+
+/* Text Card: Standard markdown block */
+.card-grid-card.card-type-textCard {
+  /* Custom styles for pure text cards can go here */
+}
+
+/* Gallery Card: Minimalist image-focused display */
+.card-grid-card.card-type-galleryCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Vertical Flash Card: Content stacked with background-capable images */
+.card-grid-card.card-type-verticalFlashCard {
+  /* Specific stacking or overlay logic can go here */
+}
+
+/* Procedure Card: Side-by-side workflow layout */
+.card-grid-card.card-type-procedureCard {
+  text-align: left;
+}
+
+.card-grid-card.card-type-procedureCard h4 {
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 0;
+}
+
+.card-grid-card.card-type-procedureCard .procedure-text-box {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+/* Banner Card: High visibility alerts */
+.card-grid-card.card-type-bannerCard {
+  justify-content: flex-start;
+  border: none !important;
+}
+
+.card-grid-card.card-type-bannerCard .banner-text p {
+  margin: 0;
+}
+
+/* Icon Card: Minimalistic shortcuts */
+.card-grid-card.card-type-iconCard {
+  border: none !important;
+}
+
+.card-grid-card.card-type-iconCard .icon-text p {
+  margin: 0;
+}
+
+/**
+ * ==========================================================================
+ * 5. INTERACTIVE RESIZING
+ * Styles for drag handles and active resizing states.
+ * ==========================================================================
+ */
 .card-grid-card.card-grid-resizing {
   opacity: 0.9;
 }
 
+/* The invisible divider used to capture drag events */
 :is(.card-grid-card, .card-grid-spacer):not(:last-child)::after {
   content: "";
   position: absolute;
@@ -141,7 +177,12 @@
   opacity: 0.8;
 }
 
-/* --- Editor UI & Modals --- */
+/**
+ * ==========================================================================
+ * 6. EDITOR UI & MODALS
+ * Styling for the Svelte-based card editor and pickers.
+ * ==========================================================================
+ */
 .card-grid-editor .setting-item-control {
   flex-direction: column;
   align-items: stretch;
@@ -205,10 +246,16 @@
 }
 
 /* Procedure Card Editor specific overrides for top-left alignment */
-.card-grid-editor.card-type-procedure .card-grid-md-preview {
+.card-grid-editor.card-type-procedureCard .card-grid-md-preview {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
+}
+
+.card-grid-suggest-description {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  margin-bottom: 2px;
 }
 
 .card-grid-suggest-sub {
@@ -239,9 +286,12 @@
   max-width: 150px;
 }
 
-/* ==========================================================================
-   PRINT STYLES
-   ========================================================================== */
+/**
+ * ==========================================================================
+ * 7. PRINT FORMATTING
+ * Ensures grids look clean when exported to PDF or printed.
+ * ==========================================================================
+ */
 @media print {
   .card-grid-container {
     break-inside: avoid !important;

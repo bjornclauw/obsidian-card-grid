@@ -13,7 +13,7 @@ This document provides a complete technical inventory of the **Obsidian Card Gri
 | `CardId` / `GridId` | string | Unique identifiers using UUID (fallback to timestamp/random) |
 | `CardTypeId` | string | Registry key; open-ended design allows dynamic registration |
 | `CardInstance` = BaseCard | Shared schema with id, type, optional styling (bgColor/textColor/width) + index signature for extensibility |
-| `BuiltInCard` | Union of Text\|Image\|Unknown types | Type-safe representation of card instances |
+| `BuiltInCard` | Union of Text\|Gallery\|VerticalFlash\|Banner\|Procedure\|Spacer\|Icon\|Unknown | Type-safe representation of card instances |
 
 ### Grid Data Model
 ```typescript
@@ -37,8 +37,10 @@ interface CardGridData {
 | Interface | Required Fields | Extensible Properties |
 |-----------|-----------------|--------------------|
 | `TextCard` | title, text, id, type | backgroundColor, textColor, width |
-| `ImageCard` | id, type, (optional: image/imageEnabled) | All base properties + imageFit/imageHeight/etc. |
+| `VerticalFlashCard` | id, type, image | title, text, imageFit/imageHeight/etc. |
+| `GalleryCard` | id, type, image | imageFit/imageHeight/etc. |
 | `SpacerCard` | id, type, width (columns to span) | No styling options (visual spacing only) |
+| `BannerCard` | id, type | title, text, icon, alignment |
 
 ---
 
@@ -66,15 +68,19 @@ interface CardTypeDefinition<T extends CardInstance> {
 - **Editor Fields**: Title (text), Text body (markdown with live preview toggle), Background/Title colors, Width constraint
 - **View Behavior**: Renders title as HTML (MarkdownRenderer) + text body in scrollable area; applies border styling dynamically
 
-#### ImageCard (`src/cards/types/imageCard.ts`)
-- **Purpose**: Media display with advanced styling controls
-- **Editor Fields**: Title, Text description, Show/hide toggle, Image file picker, Fit mode dropdown, Height constraint (10px steps), Positioning string, Border radius, Colors
+#### GalleryCard (`src/cards/types/galleryCard.ts`)
+- **Purpose**: Minimalist media display focused on imagery.
+- **Editor Fields**: Image file picker, Fit mode, Height, Border radius, Colors.
 - **Special Logic**: Resolves relative paths to vault resource URLs; applies `applyImageStyle()` for object-fit/object-position constraints
 
+#### VerticalFlashCard (`src/cards/types/verticalFlashCard.ts`)
+- **Purpose**: Visual storytelling card with background images and text overlays.
+
+#### BannerCard (`src/cards/types/bannerCard.ts`)
+- **Purpose**: Wide attention-grabbing banner for headers or alerts.
+
 #### SpacerCard (`src/cards/types/spacerCard.ts`)
-- **Purpose**: Layout spacing without content
-- **Implementation**: Empty div with class `.card-grid-spacer`; uses flex basis only (no height/width); print-hide modifier prevents printing
-- **Use Case**: Fill remaining column space in multi-column layouts, create breathing room between card groups
+- **Purpose**: Layout spacing utility to control column flow.
 
 #### UnknownCard (`src/cards/types/unknownCard.ts`)
 - **Purpose**: Forward compatibility safety net for unregistered types

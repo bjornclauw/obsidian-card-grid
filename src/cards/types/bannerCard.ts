@@ -1,5 +1,5 @@
 import { MarkdownRenderer } from "obsidian";
-import type { NotifierCard } from "../../domain/types";
+import type { BannerCard } from "../../domain/types";
 import type { CardTypeDefinition, CardView, CardViewContext } from "../registry";
 import { createId } from "../../domain/codec";
 
@@ -7,11 +7,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-export const notifierCardType: CardTypeDefinition<NotifierCard> = {
-    type: "notifier",
-    displayName: "Notifier card",
+export const bannerCardType: CardTypeDefinition<BannerCard> = {
+    type: "bannerCard",
+    displayName: "Banner card",
+    description: "Wide, high-visibility banner for alerts, headers, or important notices.",
     editor: {
-        title: "Edit notifier card",
+        title: "Edit banner card",
         fields: [
             { kind: "text", key: "title", label: "Title" },
             { kind: "markdown", key: "text", label: "Text" },
@@ -47,14 +48,14 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
             { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 }
         ]
     },
-    normalize(raw: unknown): NotifierCard {
+    normalize(raw: unknown): BannerCard {
         if (!isRecord(raw)) {
-            return { id: createId("card"), type: "notifier", title: "Notification", text: "" };
+            return { id: createId("card"), type: "bannerCard", title: "Notification", text: "" };
         }
         const id = typeof raw.id === "string" ? raw.id : createId("card");
         return {
             id,
-            type: "notifier",
+            type: "bannerCard",
             title: typeof raw.title === "string" ? raw.title : "Notification",
             text: typeof raw.text === "string" ? raw.text : "",
             icon: typeof raw.icon === "string" ? raw.icon : "⚠️",
@@ -66,11 +67,10 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
             width: typeof raw.width === "number" ? raw.width : 1
         };
     },
-    createView(ctx: CardViewContext): CardView<NotifierCard> {
+    createView(ctx: CardViewContext): CardView<BannerCard> {
         const box = document.createElement("div");
-        box.className = "card-grid-card card-type-notifier";
+        box.className = "card-grid-card card-type-bannerCard";
 
-        // Setup internal layout
         box.style.display = "flex";
         box.style.flexDirection = "column";
         box.style.padding = "30px";
@@ -79,9 +79,7 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
         titleEl.style.margin = "0 0 10px 0";
         titleEl.style.lineHeight = "1.2";
 
-        const textEl = box.createDiv("notifier-text");
-        textEl.style.margin = "0";
-        textEl.style.opacity = "0.95";
+        const textEl = box.createDiv("banner-text");
 
         async function renderMarkdown(el: HTMLElement, markdown: string) {
             el.empty();
@@ -90,17 +88,13 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
 
         return {
             el: box,
-            update(card: NotifierCard) {
+            update(card: BannerCard) {
                 box.style.setProperty('--card-width', String(card.width || 1));
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
-
-                // Apply Colors
                 box.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 box.style.color = card.textColor || "var(--text-normal)";
-                titleEl.style.color = card.textColor || "var(--text-normal)";
 
-                // Apply Alignment
                 if (card.alignment === "left") {
                     box.style.textAlign = "left";
                     box.style.alignItems = "flex-start";
@@ -112,14 +106,8 @@ export const notifierCardType: CardTypeDefinition<NotifierCard> = {
                     box.style.alignItems = "center";
                 }
 
-                // Apply Sizes
-                titleEl.style.fontSize = `${card.titleSize || 28}px`;
-                textEl.style.fontSize = `${card.textSize || 16}px`;
-
-                // Render Content
                 const fullTitle = card.icon ? `${card.icon} ${card.title}` : (card.title || "");
                 titleEl.setText(fullTitle);
-
                 void renderMarkdown(textEl, card.text || "");
             }
         };

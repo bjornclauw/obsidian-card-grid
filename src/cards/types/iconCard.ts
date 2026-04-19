@@ -8,8 +8,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export const iconCardType: CardTypeDefinition<IconCard> = {
-    type: "icon",
+    type: "iconCard",
     displayName: "Icon card",
+    description: "Small card for shortcuts, links, or status indicators using Lucide icons.",
     editor: {
         title: "Edit icon card",
         fields: [
@@ -66,11 +67,11 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
     },
     normalize(raw: unknown): IconCard {
         if (!isRecord(raw)) {
-            return { id: createId("card"), type: "icon", icon: "arrow-right" };
+            return { id: createId("card"), type: "iconCard", icon: "arrow-right" };
         }
         return {
             id: typeof raw.id === "string" ? raw.id : createId("card"),
-            type: "icon",
+            type: "iconCard",
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
@@ -84,7 +85,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
     },
     createView(ctx: CardViewContext): CardView<IconCard> {
         const box = document.createElement("div");
-        box.className = "card-grid-card card-type-icon";
+        box.className = "card-grid-card card-type-iconCard";
 
         box.style.display = "flex";
         box.style.flexDirection = "column";

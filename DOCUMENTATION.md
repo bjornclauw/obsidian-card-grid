@@ -15,7 +15,7 @@ cards:
   - title: Hello World
     text: This is a text card.
     backgroundColor: "#2d2d2d"
-  - type: image
+  - type: galleryCard
     image: "attachments/photo.jpg"
 ```
 ```

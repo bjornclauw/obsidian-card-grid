@@ -8,8 +8,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export const textCardType: CardTypeDefinition<TextCard> = {
-  type: "text",
+  type: "textCard",
   displayName: "Text card",
+  description: "Simple text content with Markdown support.",
   editor: {
     title: "Edit text card",
     fields: [
@@ -48,7 +49,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
   },
   normalize(raw: unknown): TextCard {
     if (!isRecord(raw)) {
-      return { id: createId("card"), type: "text", title: "Untitled", text: "" };
+      return { id: createId("card"), type: "textCard", title: "Untitled", text: "" };
     }
     const id =
       typeof raw.id === "string" && raw.id.trim().length > 0
@@ -56,7 +57,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         : createId("card");
     return {
       id,
-      type: "text",
+      type: "textCard",
       title: typeof raw.title === "string" ? raw.title : "Untitled",
       text: typeof raw.text === "string" ? raw.text : "",
       titleEnabled: typeof raw.titleEnabled === "boolean" ? raw.titleEnabled : undefined,
@@ -69,7 +70,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
   },
   createView(ctx: CardViewContext): CardView<TextCard> {
     const box = document.createElement("div");
-    box.className = "card-grid-card";
+    box.className = "card-grid-card card-type-textCard";
     box.style.padding = "0";
     box.style.overflow = "hidden";
     box.style.display = "flex";

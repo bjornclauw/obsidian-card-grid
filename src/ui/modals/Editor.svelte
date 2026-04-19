@@ -116,7 +116,7 @@
 
         const ratio = widthFraction / columns;
         let zoom = ratio > 0.8 ? 0.5 : ratio > 0.4 ? 0.6 : 0.8;
-        if (def.type === "procedure" && ratio > 0.4) zoom = 0.45;
+        if (def.type === "procedureCard" && ratio > 0.4) zoom = 0.45;
 
         // @ts-ignore - zoom works reliably in Obsidian's Electron environment
         previewView.el.style.zoom = String(zoom);

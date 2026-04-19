@@ -9,8 +9,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
-    type: "procedure",
+    type: "procedureCard",
     displayName: "Procedure card",
+    description: "Step-by-step workflow card with side-by-side text and media.",
     editor: {
         title: "Edit procedure card",
         fields: [
@@ -55,7 +56,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
     },
     normalize(raw: unknown): ProcedureCard {
         if (!isRecord(raw)) {
-            return { id: createId("card"), type: "procedure", title: "Untitled", text: "" };
+            return { id: createId("card"), type: "procedureCard", title: "Untitled", text: "" };
         }
         const id =
             typeof raw.id === "string" && raw.id.trim().length > 0
@@ -63,7 +64,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 : createId("card");
         return {
             id,
-            type: "procedure",
+            type: "procedureCard",
             title: typeof raw.title === "string" ? raw.title : "Untitled",
             text: typeof raw.text === "string" ? raw.text : "",
             backgroundColor:
@@ -80,7 +81,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
     },
     createView(ctx: CardViewContext): CardView<ProcedureCard> {
         const box = document.createElement("div");
-        box.className = "card-grid-card card-type-procedure";
+        box.className = "card-grid-card card-type-procedureCard";
 
         // Setup horizontal flex layout
         box.style.display = "flex";
