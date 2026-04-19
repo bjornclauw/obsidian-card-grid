@@ -462,7 +462,7 @@
                             <textarea
                                 class="cge-textarea"
                                 bind:value={draft[field.key]}
-                                rows="5"
+                                rows="8"
                                 placeholder={field.placeholder ?? "Markdown…"}
                             ></textarea>
                         {/if}
@@ -941,10 +941,11 @@
         border-radius: 5px;
         background: var(--background-primary);
         color: var(--text-normal);
-        resize: none;
+        resize: vertical;
         box-sizing: border-box;
         outline: none;
         line-height: 1.5;
+        min-height: 160px;
     }
 
     .cge-textarea:focus {
