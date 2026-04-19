@@ -9,6 +9,12 @@ export type CardEditorField =
     placeholder?: string;
   }
   | {
+    kind: "link";
+    key: string;
+    label: string;
+    placeholder?: string;
+  }
+  | {
     kind: "markdown";
     key: string;
     label: string;

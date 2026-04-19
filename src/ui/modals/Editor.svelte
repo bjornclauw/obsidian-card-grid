@@ -154,6 +154,29 @@
         }
     }
 
+    function handleLinkInput(e: Event, key: string) {
+        const el = e.currentTarget as HTMLInputElement;
+        const value = el.value;
+        const cursor = el.selectionStart ?? value.length;
+
+        if (cursor >= 2 && value.slice(cursor - 2, cursor) === "[[") {
+            new LinkPickerModal(app, (file) => {
+                const link = `[[${file.path}]]`;
+                const before = value.slice(0, cursor - 2);
+                const after = value.slice(cursor);
+
+                draft[key] = before + link + after;
+                draft = { ...draft };
+
+                setTimeout(() => {
+                    el.focus();
+                    const newCursor = before.length + link.length;
+                    el.setSelectionRange(newCursor, newCursor);
+                }, 10);
+            }).open();
+        }
+    }
+
     function openImagePicker(key: string) {
         new ImagePickerModal(app, (path) => {
             draft[key] = path;
@@ -493,6 +516,15 @@
                                 rows="8"
                                 placeholder={field.placeholder ?? "Markdown…"}
                             ></textarea>
+                        {:else if field.kind === "link"}
+                            <input
+                                class="cge-text-input"
+                                type="text"
+                                bind:value={draft[field.key]}
+                                on:input={(e) => handleLinkInput(e, field.key)}
+                                placeholder={field.placeholder ??
+                                    "[[Note]] or https://…"}
+                            />
                         {/if}
                     </div>
                 </div>

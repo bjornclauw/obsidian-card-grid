@@ -47,6 +47,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 defaultValue: "arrow-right"
             },
             { kind: "markdown", key: "text", label: "Text (Optional)" },
+            { kind: "link", key: "link", label: "Link (URL or Note)", placeholder: "e.g. [[Note]] or https://..." },
             {
                 kind: "select",
                 key: "alignment",
@@ -74,6 +75,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             type: "iconCard",
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
+            link: typeof raw.link === "string" ? raw.link : undefined,
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
             iconSize: typeof raw.iconSize === "number" ? Math.max(1, raw.iconSize) : 48,
             textSize: typeof raw.textSize === "number" ? Math.max(1, raw.textSize) : 14,
@@ -93,6 +95,21 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
         box.style.justifyContent = "center";
         box.style.alignItems = "center";
         box.style.padding = "20px";
+        box.style.transition = "transform 0.1s ease, background-color 0.1s ease";
+
+        let currentLink: string | undefined;
+
+        box.addEventListener("click", () => {
+            if (!currentLink) return;
+
+            if (currentLink.startsWith("http://") || currentLink.startsWith("https://")) {
+                window.open(currentLink, "_blank");
+            } else {
+                // Handle Obsidian internal links by stripping brackets if present
+                const cleanPath = currentLink.replace(/^\[\[(.*)\]\]$/, "$1");
+                ctx.app.workspace.openLinkText(cleanPath, ctx.sourcePath, false);
+            }
+        });
 
         const iconContainer = box.createDiv("icon-container");
         const textEl = box.createDiv("icon-text");
@@ -113,6 +130,10 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
 
                 box.style.backgroundColor = card.backgroundColor || "transparent";
                 box.style.color = card.textColor || "var(--text-normal)";
+
+                // Update link state and visual feedback
+                currentLink = (card as any).link;
+                box.style.cursor = currentLink ? "pointer" : "";
 
                 // Apply Alignment
                 if (card.alignment === "left") {
