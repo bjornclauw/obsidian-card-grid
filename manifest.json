@@ -3,7 +3,7 @@
   "name": "Card Grid",
   "version": "1.0.0",
   "minAppVersion": "1.5.0",
-  "description": "Render structured cards as responsive grid",
+  "description": "Render different structured cards as responsive grid",
   "author": "Bjorn Clauw",
   "authorUrl": "",
   "isDesktopOnly": false,
