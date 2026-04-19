@@ -2,7 +2,6 @@ import { Plugin, Notice, Editor, MarkdownView } from "obsidian";
 import { createDefaultRegistry } from "../cards";
 import { GridController } from "../controller/GridController";
 import { GridRenderChild } from "./GridRenderChild";
-import { ImagePickerModal } from "../ui/modals/ImagePickerModal";
 import { CardGridSettings, DEFAULT_SETTINGS } from "./settings";
 import { CardGridSettingsTab } from "../ui/settings/CardGridSettingsTab";
 
@@ -13,7 +12,6 @@ export default class CardGridPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    // Add settings tab
     this.addSettingTab(new CardGridSettingsTab(this.app, this));
 
     this.registerMarkdownCodeBlockProcessor("card-grid", (source, el, ctx) => {
@@ -38,28 +36,41 @@ export default class CardGridPlugin extends Plugin {
       ctx.addChild(new GridRenderChild(el, controller));
     });
 
+    // ── Command Palette ────────────────────────────────────────────────────
 
-
-    // Add Command Palette commands
     this.addCommand({
       id: "insert-card-grid",
       name: "Insert New Card Grid",
       editorCallback: (editor: Editor) => {
-        const sampleGrid = `\`\`\`card-grid
-columns: ${this.settings.defaultColumns}
-gap: ${this.settings.defaultGap}
-borderRadius: ${this.settings.defaultBorderRadius}
+        const s = this.settings;
+        editor.replaceSelection(
+          `\`\`\`card-grid
+columns: ${s.defaultColumns}
+gap: ${s.defaultGap}
+borderRadius: ${s.defaultBorderRadius}
 
 cards:
   - type: textCard
-    title: Hello World
-    text: This is a text card.
+    title: "🚀 Getting Started"
+    text: >
+      Edit this card to add your own content.
+      Right-click any card for options. #tag
+      **markdown compatible**
+
   - type: textCard
-    title: Another Card
-    text: Customize this grid in the editor.
+    title: "✏️ Customize Me"
+    text: >
+      You can change the title, text, color,
+      and width of every card.
+
+  - type: textCard
+    title: "➕ Add More Cards"
+    text: >
+      Right-click a card and choose
+      "Add card before" or "Add card after".
 \`\`\`
-`;
-        editor.replaceSelection(sampleGrid);
+`
+        );
       },
     });
 
@@ -67,28 +78,35 @@ cards:
       id: "insert-gallery-grid",
       name: "Insert Gallery Grid",
       editorCallback: (editor: Editor) => {
-        const sample = `\`\`\`card-grid
-columns: ${this.settings.defaultColumns}
-gap: ${this.settings.defaultGap}
-borderRadius: ${this.settings.defaultBorderRadius}
-imageFit: ${this.settings.defaultImageFit}
-imageHeight: ${this.settings.defaultImageHeight}
-imagePosition: ${this.settings.defaultImagePosition}
-imageRadius: ${this.settings.defaultImageRadius}
+        const s = this.settings;
+        editor.replaceSelection(
+          `\`\`\`card-grid
+columns: ${s.defaultColumns}
+gap: ${s.defaultGap}
+borderRadius: ${s.defaultBorderRadius}
+imageFit: ${s.defaultImageFit}
+imageHeight: ${s.defaultImageHeight}
+imagePosition: ${s.defaultImagePosition}
+imageRadius: ${s.defaultImageRadius}
 
 cards:
   - type: galleryCard
-    title: Image 1
-    image: https://picsum.photos/200/300
+    title: "Mountain Sunrise"
+    text: A breathtaking view from the peak.
+    image: https://picsum.photos/seed/mountain/600/400
+
   - type: galleryCard
-    title: Image 2
-    image: https://picsum.photos/200/300
+    title: "Ocean Calm"
+    text: Still waters at the break of dawn.
+    image: https://picsum.photos/seed/ocean/600/400
+
   - type: galleryCard
-    title: Image 3
-    image: https://picsum.photos/200/300
+    title: "Forest Path"
+    text: A quiet trail through ancient trees.
+    image: https://picsum.photos/seed/forest/600/400
 \`\`\`
-`;
-        editor.replaceSelection(sample);
+`
+        );
       }
     });
 
@@ -96,27 +114,37 @@ cards:
       id: "insert-procedure-grid",
       name: "Insert Procedure Grid",
       editorCallback: (editor: Editor) => {
-        const sample = `\`\`\`card-grid
-columns: ${this.settings.defaultColumns}
-gap: ${this.settings.defaultGap}
-borderRadius: ${this.settings.defaultBorderRadius}
+        const s = this.settings;
+        editor.replaceSelection(
+          `\`\`\`card-grid
+columns: ${s.defaultColumns}
+gap: ${s.defaultGap}
+borderRadius: ${s.defaultBorderRadius}
 
 cards:
   - type: procedureCard
-    title: "Step 1: Preparation"
-    text: Gather all necessary materials.
-    image: https://picsum.photos/200/300
+    title: "① Prepare"
+    text: >
+      Gather everything you need before
+      starting. A clean workspace helps.
+    image: https://picsum.photos/seed/step1/600/400
+
   - type: procedureCard
-    title: "Step 2: Implementation"
-    text: Follow the instructions carefully.
-    image: https://picsum.photos/200/300
+    title: "② Execute"
+    text: >
+      Follow each step carefully and
+      check your progress as you go.
+    image: https://picsum.photos/seed/step2/600/400
+
   - type: procedureCard
-    title: "Step 3: Cleanup"
-    text: Store everything back in its place.
-    image: https://picsum.photos/200/300
+    title: "③ Review"
+    text: >
+      Double-check the result and store
+      everything back in its place.
+    image: https://picsum.photos/seed/step3/600/400
 \`\`\`
-`;
-        editor.replaceSelection(sample);
+`
+        );
       }
     });
 
@@ -124,28 +152,36 @@ cards:
       id: "insert-icon-grid",
       name: "Insert Icon Grid",
       editorCallback: (editor: Editor) => {
-        const sample = `\`\`\`card-grid
-columns: ${this.settings.defaultColumns}
-gap: ${this.settings.defaultGap}
-borderRadius: ${this.settings.defaultBorderRadius}
+        const s = this.settings;
+        editor.replaceSelection(
+          `\`\`\`card-grid
+columns: ${s.defaultColumns}
+gap: ${s.defaultGap}
+borderRadius: ${s.defaultBorderRadius}
 
 cards:
   - type: iconCard
-    title: Search
+    title: "Search"
+    text: Find anything in your vault instantly.
     icon: search
-    backgroundColor: "#f0f0f0"
+
   - type: iconCard
-    title: Settings
+    title: "Bookmarks"
+    text: Save and revisit your favourite notes.
+    icon: bookmark
+
+  - type: iconCard
+    title: "Calendar"
+    text: Keep track of dates and deadlines.
+    icon: calendar
+
+  - type: iconCard
+    title: "Settings"
+    text: Tweak the plugin to suit your workflow.
     icon: settings
-  - type: iconCard
-    title: User
-    icon: user
-  - type: iconCard
-    title: Home
-    icon: home
 \`\`\`
-`;
-        editor.replaceSelection(sample);
+`
+        );
       }
     });
 
