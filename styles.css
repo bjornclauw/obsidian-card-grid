@@ -131,7 +131,6 @@
   padding: 15px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 /* Procedure Card: Side-by-side workflow layout */

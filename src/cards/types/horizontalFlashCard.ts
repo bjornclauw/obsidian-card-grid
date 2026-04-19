@@ -41,6 +41,17 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
                 ],
                 defaultValue: "center"
             },
+            {
+                kind: "select",
+                key: "verticalAlignment",
+                label: "Vertical alignment",
+                options: [
+                    { label: "Top", value: "top" },
+                    { label: "Center", value: "center" },
+                    { label: "Bottom", value: "bottom" }
+                ],
+                defaultValue: "center"
+            },
             { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
             { kind: "number", key: "imageHeight", label: "Image height", min: 0, step: 10 },
             {
@@ -76,6 +87,7 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
             imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
             imageSide: (raw.imageSide === "left" || raw.imageSide === "right") ? raw.imageSide : "left",
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
+            verticalAlignment: (raw.verticalAlignment === "top" || raw.verticalAlignment === "center" || raw.verticalAlignment === "bottom") ? raw.verticalAlignment : "center",
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as HorizontalFlashCard["imageFit"],
             imageHeight: typeof raw.imageHeight === "number" ? raw.imageHeight : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
@@ -93,6 +105,7 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
         const textBox = box.createDiv("flash-text-box");
         const titleEl = textBox.createEl("h4");
         const textEl = textBox.createDiv("card-text");
+
 
         async function renderMarkdown(el: HTMLElement, markdown: string) {
             el.empty();
@@ -120,8 +133,9 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
                 // Text Block Styling
                 textBox.style.textAlign = card.alignment || "center";
                 textBox.style.alignItems = card.alignment === "left" ? "flex-start" : card.alignment === "right" ? "flex-end" : "center";
-
+                textBox.style.justifyContent = card.verticalAlignment === "top" ? "flex-start" : card.verticalAlignment === "bottom" ? "flex-end" : "center";
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
+                titleEl.style.alignItems = card.alignment === "left" ? "flex-start" : card.alignment === "right" ? "flex-end" : "center";
                 titleEl.style.color = card.textColor || "var(--text-normal)";
                 titleEl.style.backgroundColor = card.backgroundColor || "transparent";
                 titleEl.style.width = "100%";

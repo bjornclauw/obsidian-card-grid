@@ -68,6 +68,7 @@ export interface HorizontalFlashCard extends BaseCard {
   imageEnabled?: boolean;
   imageSide?: "left" | "right";
   alignment?: "left" | "center" | "right";
+  verticalAlignment?: "top" | "center" | "bottom";
 
   // Optional per-card overrides (fallback to grid defaults).
   imageFit?: CardGridData["imageFit"];
