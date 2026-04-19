@@ -50,24 +50,42 @@ gap: ${s.defaultGap}
 borderRadius: ${s.defaultBorderRadius}
 
 cards:
-  - type: textCard
-    title: "🚀 Getting Started"
-    text: >
-      Edit this card to add your own content.
-      Right-click any card for options. #tag
-      **markdown compatible**
+  - type: bannerCard
+    title: "**Welcome to Card Grid**"
+    text: "Experience **responsive layouts** with full *Markdown* support in every field."
+    icon: "💡"
+    width: 3
+    backgroundColor: "var(--background-secondary-alt)"
 
   - type: textCard
-    title: "✏️ Customize Me"
+    title: "🏗️ **Custom Widths**"
     text: >
-      You can change the title, text, color,
-      and width of every card.
+      This card has a custom \`width: 1.8\`.
+      Combine different sizes to create unique dashboards.
+      ==Try dragging the right edge!==
+    width: 1.8
+    backgroundColor: "var(--background-modifier-border)"
 
-  - type: textCard
-    title: "➕ Add More Cards"
+  - type: verticalFlashCard
+    title: "📱 **Vertical Flash**"
+    text: "Vertical cards stack content beautifully for **portrait** imagery."
+    image: "https://picsum.photos/seed/obsidian/400/600"
+    width: 1.2
+
+  - type: horizontalFlashCard
+    title: "🖼️ **Visual Layouts**"
     text: >
-      Right-click a card and choose
-      "Add card before" or "Add card after".
+      Flash cards support **side-by-side** display.
+      Perfect for feature lists or documentation.
+    image: https://picsum.photos/seed/flash/600/400
+    width: 2
+
+  - type: iconCard
+    title: "**Settings**"
+    text: "Fully *customizable*."
+    icon: "settings"
+    width: 1
+    textColor: "var(--text-accent)"
 \`\`\`
 `
         );
@@ -91,18 +109,18 @@ imageRadius: ${s.defaultImageRadius}
 
 cards:
   - type: galleryCard
-    title: "Mountain Sunrise"
-    text: A breathtaking view from the peak.
+    title: "**Mountain** Sunrise"
+    text: "A *breathtaking* view from the peak."
     image: https://picsum.photos/seed/mountain/600/400
 
   - type: galleryCard
-    title: "Ocean Calm"
-    text: Still waters at the break of dawn.
+    title: "**Ocean** Calm"
+    text: "Still waters at the *break of dawn*."
     image: https://picsum.photos/seed/ocean/600/400
 
   - type: galleryCard
-    title: "Forest Path"
-    text: A quiet trail through ancient trees.
+    title: "**Forest** Path"
+    text: "A quiet trail through *ancient* trees."
     image: https://picsum.photos/seed/forest/600/400
 \`\`\`
 `
@@ -123,24 +141,24 @@ borderRadius: ${s.defaultBorderRadius}
 
 cards:
   - type: procedureCard
-    title: "① Prepare"
+    title: "**Step ①**: Prepare"
     text: >
-      Gather everything you need before
-      starting. A clean workspace helps.
+      Gather **everything** you need before
+      starting. A *clean workspace* helps.
     image: https://picsum.photos/seed/step1/600/400
 
   - type: procedureCard
-    title: "② Execute"
+    title: "**Step ②**: Execute"
     text: >
-      Follow each step carefully and
-      check your progress as you go.
+      Follow each step **carefully** and
+      check your *progress* as you go.
     image: https://picsum.photos/seed/step2/600/400
 
   - type: procedureCard
-    title: "③ Review"
+    title: "**Step ③**: Review"
     text: >
-      Double-check the result and store
-      everything back in its place.
+      Double-check the **result** and store
+      everything *back in its place*.
     image: https://picsum.photos/seed/step3/600/400
 \`\`\`
 `
@@ -161,23 +179,23 @@ borderRadius: ${s.defaultBorderRadius}
 
 cards:
   - type: iconCard
-    title: "Search"
-    text: Find anything in your vault instantly.
+    title: "**Search**"
+    text: "Find *anything* in your vault **instantly**."
     icon: search
 
   - type: iconCard
-    title: "Bookmarks"
-    text: Save and revisit your favourite notes.
+    title: "**Bookmarks**"
+    text: "Save and *revisit* your favourite notes."
     icon: bookmark
 
   - type: iconCard
-    title: "Calendar"
-    text: Keep track of dates and deadlines.
+    title: "**Calendar**"
+    text: "Keep track of *dates* and **deadlines**."
     icon: calendar
 
   - type: iconCard
-    title: "Settings"
-    text: Tweak the plugin to suit your workflow.
+    title: "**Settings**"
+    text: "Tweak the plugin to *suit your workflow*."
     icon: settings
 \`\`\`
 `
