@@ -59,6 +59,23 @@ export interface VerticalFlashCard extends BaseCard {
   imageRadius?: number;
 }
 
+export interface HorizontalFlashCard extends BaseCard {
+  type: "horizontalFlashCard";
+  title?: string;
+  text?: string;
+  titleEnabled?: boolean;
+  image?: string;
+  imageEnabled?: boolean;
+  imageSide?: "left" | "right";
+  alignment?: "left" | "center" | "right";
+
+  // Optional per-card overrides (fallback to grid defaults).
+  imageFit?: CardGridData["imageFit"];
+  imageHeight?: number;
+  imagePosition?: string;
+  imageRadius?: number;
+}
+
 export interface UnknownCard extends BaseCard {
   // For forward-compatibility, preserve the original type string even if
   // the type isn't registered (yet).
@@ -124,6 +141,7 @@ export interface SpacerCard extends BaseCard {
 export type BuiltInCard =
   | TextCard
   | VerticalFlashCard
+  | HorizontalFlashCard
   | GalleryCard
   | UnknownCard
   | ProcedureCard

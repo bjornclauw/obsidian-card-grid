@@ -112,6 +112,28 @@
   /* Specific stacking or overlay logic can go here */
 }
 
+/* Horizontal Flash Card: Side-by-side layout */
+.card-grid-card.card-type-horizontalFlashCard {
+  flex-direction: row;
+  padding: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.card-grid-card.card-type-horizontalFlashCard .flash-image-box {
+  flex: 0 0 40%;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-grid-card.card-type-horizontalFlashCard .flash-text-box {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 /* Procedure Card: Side-by-side workflow layout */
 .card-grid-card.card-type-procedureCard {
   text-align: left;

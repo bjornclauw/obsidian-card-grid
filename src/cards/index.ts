@@ -1,6 +1,7 @@
 import { CardTypeRegistry } from "./registry";
 import { textCardType } from "./types/textCard";
 import { verticalFlashCardType } from "./types/verticalFlashCard";
+import { horizontalFlashCardType } from "./types/horizontalFlashCard";
 import { galleryCardType } from "./types/galleryCard";
 import { spacerCardType } from "./types/spacerCard";
 import { unknownCardType } from "./types/unknownCard";
@@ -12,6 +13,7 @@ export function createDefaultRegistry(): CardTypeRegistry {
   const registry = new CardTypeRegistry();
   registry.register(textCardType);
   registry.register(verticalFlashCardType);
+  registry.register(horizontalFlashCardType);
   registry.register(galleryCardType);
   registry.register(procedureCardType);
   registry.register(iconCardType);
