@@ -71,7 +71,8 @@ export class GridView {
       app: this.app,
       plugin: this.plugin,
       sourcePath: this.sourcePath,
-      grid
+      grid,
+      controller: this.controller
     };
 
     const existing = new Set(this.cardDom.keys());

@@ -229,7 +229,7 @@ export class GridController {
     }).open();
   }
 
-  private updateCardProperties(id: CardId, patch: Partial<CardInstance>): void {
+  public updateCardProperties(id: CardId, patch: Partial<CardInstance>): void {
     const card = this.findCard(id);
     if (!card) return;
     const updated = { ...card, ...patch } as any;

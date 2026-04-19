@@ -76,7 +76,7 @@ Each card type provides its own DOM rendering factory, enabling distinct structu
 | **Horizontal Flash** | `horizontalFlashCard` | Side-by-side photo with text, extensive styling (fit/position/radius), Markdown rendering support |
 | **Vertical Flash** | `verticalFlashCard` | Stacked photo with text, extensive styling, Markdown rendering support |
 | **Gallery** | `galleryCard` | Pure photo display, extensive styling |
-| **Procedure**| `procedureCard` | Specialized workflow/step card, `title`, `text`, `image` |
+| **Procedure**| `procedureCard` | Workflow card with draggable/rotatable arrows: `title`, `text`, `image`, `arrows: {x, y, rotation}[]` |
 | **Banner** | `bannerCard` | Large centered content over a background image |
 | **Icon** | `iconCard` | Interactive button from the Lucide set with internal/external link support |
 | **Spacer** | `spacerCard` | Empty placeholder for column control (`width` in columns) |

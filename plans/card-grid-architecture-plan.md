@@ -39,8 +39,8 @@ interface CardGridData {
 | `TextCard` | title, text, id, type | backgroundColor, textColor, width |
 | `VerticalFlashCard` | id, type, image | title, text, imageFit/imageHeight/etc. |
 | `GalleryCard` | id, type, image | imageFit/imageHeight/etc. |
-| `SpacerCard` | id, type, width (columns to span) | No styling options (visual spacing only) |
-| `BannerCard` | id, type | title, text, icon, alignment |
+| `ProcedureCard` | id, type, title, text, image | arrows: {x: number, y: number}[], width |
+| `BannerCard` | id, type | title, text, icon, backgroundColor |
 
 ---
 

@@ -154,6 +154,70 @@
   align-items: flex-start;
 }
 
+.card-type-procedureCard .procedure-image-container {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.procedure-arrow-marker {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  cursor: move;
+  z-index: 5;
+  color: var(--text-accent);
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3));
+  left: calc(var(--arrow-x) * 1%);
+  top: calc(var(--arrow-y) * 1%);
+  transform: translate(-50%, -50%) rotate(calc(var(--arrow-rotation) * 1deg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.procedure-arrow-marker:hover {}
+
+.procedure-rotation-handle {
+  position: absolute;
+  top: -20px;
+  width: 12px;
+  height: 12px;
+  background: var(--interactive-accent);
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: grab;
+}
+
+.procedure-rotation-handle:active {
+  cursor: grabbing;
+}
+
+.procedure-arrow-marker svg {
+  width: 80%;
+  height: 80%;
+  pointer-events: none;
+}
+
+.procedure-arrow-marker svg {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.procedure-rotation-handle {
+  position: absolute;
+  top: -15px;
+  width: 10px;
+  height: 10px;
+  background: var(--text-accent);
+  border: 1px solid var(--background-primary);
+  border-radius: 50%;
+  cursor: grab;
+}
+
 /* Banner Card: High visibility alerts */
 .card-grid-card.card-type-bannerCard {
   justify-content: flex-start;

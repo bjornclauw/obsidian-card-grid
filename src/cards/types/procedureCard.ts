@@ -1,4 +1,4 @@
-import { MarkdownRenderer, TFile } from "obsidian";
+import { MarkdownRenderer, TFile, setIcon } from "obsidian";
 import type { ProcedureCard } from "../../domain/types";
 import type { CardTypeDefinition, CardView, CardViewContext } from "../registry";
 import { createId } from "../../domain/codec";
@@ -76,7 +76,15 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
             imageRadius: typeof raw.imageRadius === "number" ? Math.max(0, raw.imageRadius) : undefined,
-            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1
+            width: typeof raw.width === "number" ? Math.max(0.1, raw.width) : 1,
+            arrows: Array.isArray((raw as any).arrows)
+                ? (raw as any).arrows.map((a: any) => ({
+                    id: typeof a.id === "string" ? a.id : createId("arrow"),
+                    x: typeof a.x === "number" ? a.x : 50,
+                    y: typeof a.y === "number" ? a.y : 50,
+                    rotation: typeof a.rotation === "number" ? a.rotation : 0
+                }))
+                : undefined
         };
     },
     createView(ctx: CardViewContext): CardView<ProcedureCard> {
@@ -104,6 +112,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
         const imageBox = box.createDiv("procedure-image-box");
         imageBox.style.flex = "0 0 38%";
+        imageBox.classList.add("procedure-image-container");
         imageBox.style.display = "flex";
         imageBox.style.position = "relative";
         imageBox.style.flexDirection = "column";
@@ -123,6 +132,14 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             return path;
         }
 
+        const updateArrows = (card: ProcedureCard, arrowId: string, patch: Partial<{ x: number, y: number, rotation: number }>) => {
+            if (!card.arrows) return;
+            const newArrows = card.arrows.map(a => a.id === arrowId ? { ...a, ...patch } : a);
+            if (ctx.controller) {
+                ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+            }
+        };
+
         return {
             el: box,
             update(card: ProcedureCard, viewCtx: CardViewContext) {
@@ -130,6 +147,19 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
+
+                // Interactive Annotation: Right-click anywhere on the image area to add a new arrow.
+                // This provides precise placement and bypasses the editor UI limitation.
+                imageBox.oncontextmenu = (e: MouseEvent) => {
+                    if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = imageBox.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    const newArrows = [...(card.arrows || []), { id: createId("arrow"), x, y, rotation: 0 }];
+                    if (ctx.controller) ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+                };
 
                 titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.color = card.textColor || "";
@@ -147,6 +177,96 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
                     img.src = resolveImagePath(card.image);
                     applyImageStyle(img, card as any, viewCtx.grid);
+
+                    // Clear existing arrows
+                    imageBox.querySelectorAll(".procedure-arrow-marker").forEach(el => el.remove());
+
+                    // Render arrows
+                    if (card.arrows) {
+                        card.arrows.forEach(arrow => {
+                            const marker = imageBox.createDiv("procedure-arrow-marker");
+                            marker.style.setProperty("--arrow-x", String(arrow.x));
+                            marker.style.setProperty("--arrow-y", String(arrow.y));
+                            marker.style.setProperty("--arrow-rotation", String(arrow.rotation));
+
+                            setIcon(marker, "arrow-right");
+
+                            const handle = marker.createDiv("procedure-rotation-handle");
+
+                            // Dragging logic
+                            marker.addEventListener("mousedown", (e: MouseEvent) => {
+                                if (e.target === handle) return;
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const startX = e.clientX;
+                                const startY = e.clientY;
+                                const rect = imageBox.getBoundingClientRect();
+                                const startXPercent = arrow.x;
+                                const startYPercent = arrow.y;
+
+                                const onMouseMove = (moveEvent: MouseEvent) => {
+                                    const deltaX = ((moveEvent.clientX - startX) / rect.width) * 100;
+                                    const deltaY = ((moveEvent.clientY - startY) / rect.height) * 100;
+
+                                    const newX = Math.max(0, Math.min(100, startXPercent + deltaX));
+                                    const newY = Math.max(0, Math.min(100, startYPercent + deltaY));
+
+                                    marker.style.setProperty("--arrow-x", String(newX));
+                                    marker.style.setProperty("--arrow-y", String(newY));
+                                };
+
+                                const onMouseUp = () => {
+                                    window.removeEventListener("mousemove", onMouseMove);
+                                    window.removeEventListener("mouseup", onMouseUp);
+
+                                    const finalX = parseFloat(marker.style.getPropertyValue("--arrow-x"));
+                                    const finalY = parseFloat(marker.style.getPropertyValue("--arrow-y"));
+                                    updateArrows(card, arrow.id, { x: finalX, y: finalY });
+                                };
+
+                                window.addEventListener("mousemove", onMouseMove);
+                                window.addEventListener("mouseup", onMouseUp);
+                            });
+
+                            // Rotation logic
+                            handle.addEventListener("mousedown", (e: MouseEvent) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const rect = marker.getBoundingClientRect();
+                                const centerX = rect.left + rect.width / 2;
+                                const centerY = rect.top + rect.height / 2;
+
+                                const onMouseMove = (moveEvent: MouseEvent) => {
+                                    const angle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX);
+                                    const rotation = (angle * 180) / Math.PI;
+                                    marker.style.setProperty("--arrow-rotation", String(rotation));
+                                };
+
+                                const onMouseUp = () => {
+                                    window.removeEventListener("mousemove", onMouseMove);
+                                    window.removeEventListener("mouseup", onMouseUp);
+
+                                    const finalRotation = parseFloat(marker.style.getPropertyValue("--arrow-rotation"));
+                                    updateArrows(card, arrow.id, { rotation: finalRotation });
+                                };
+
+                                window.addEventListener("mousemove", onMouseMove);
+                                window.addEventListener("mouseup", onMouseUp);
+                            });
+
+                            // Context menu for deletion
+                            marker.addEventListener("contextmenu", (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (card.arrows && ctx.controller) {
+                                    const newArrows = card.arrows.filter(a => a.id !== arrow.id);
+                                    ctx.controller.updateCardProperties(card.id, { arrows: newArrows });
+                                }
+                            });
+                        });
+                    }
 
                     img.style.position = "absolute";
                     img.style.top = "0";

@@ -54,6 +54,11 @@ export type CardEditorField =
     label: string;
   }
   | {
+    kind: "button";
+    key: string;
+    label: string;
+  }
+  | {
     kind: "icon";
     key: string;
     label: string;
@@ -64,11 +69,16 @@ export interface CardEditorSpec {
   fields: CardEditorField[];
 }
 
+export interface ICardGridController {
+  updateCardProperties(id: string, patch: Record<string, any>): void;
+}
+
 export interface CardViewContext {
   app: App;
   plugin: Plugin;
   sourcePath: string;
   grid: CardGridData;
+  controller?: ICardGridController;
 }
 
 export interface CardView<TCard extends CardInstance = CardInstance> {
