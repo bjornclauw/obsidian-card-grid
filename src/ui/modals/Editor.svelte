@@ -803,11 +803,13 @@
         outline: none;
         padding: 0;
         -moz-appearance: textfield;
+        appearance: textfield;
     }
 
     .cge-number-input::-webkit-inner-spin-button,
     .cge-number-input::-webkit-outer-spin-button {
         -webkit-appearance: none;
+        appearance: none;
     }
 
     /* ── Toggle ── */

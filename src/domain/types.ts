@@ -129,10 +129,12 @@ export interface IconCard extends BaseCard {
   type: "iconCard";
   icon?: string;
   text?: string;
+  link?: string;
   iconSize?: number;
   textSize?: number;
   iconColor?: string;
   alignment?: "left" | "center" | "right";
+  openInNewWindow?: boolean;
 }
 
 export interface SpacerCard extends BaseCard {

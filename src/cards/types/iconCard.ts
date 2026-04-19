@@ -48,6 +48,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             },
             { kind: "markdown", key: "text", label: "Text (Optional)" },
             { kind: "link", key: "link", label: "Link (URL or Note)", placeholder: "e.g. [[Note]] or https://..." },
+            { kind: "toggle", key: "openInNewWindow", label: "Open in new window", defaultValue: false },
             {
                 kind: "select",
                 key: "alignment",
@@ -76,6 +77,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             icon: typeof raw.icon === "string" ? raw.icon : "arrow-right",
             text: typeof raw.text === "string" ? raw.text : "",
             link: typeof raw.link === "string" ? raw.link : undefined,
+            openInNewWindow: typeof raw.openInNewWindow === "boolean" ? raw.openInNewWindow : false,
             alignment: (raw.alignment === "left" || raw.alignment === "center" || raw.alignment === "right") ? raw.alignment : "center",
             iconSize: typeof raw.iconSize === "number" ? Math.max(1, raw.iconSize) : 48,
             textSize: typeof raw.textSize === "number" ? Math.max(1, raw.textSize) : 14,
@@ -98,6 +100,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
         box.style.transition = "transform 0.1s ease, background-color 0.1s ease";
 
         let currentLink: string | undefined;
+        let shouldOpenNewWindow = false;
 
         box.addEventListener("click", () => {
             if (!currentLink) return;
@@ -107,7 +110,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
             } else {
                 // Handle Obsidian internal links by stripping brackets if present
                 const cleanPath = currentLink.replace(/^\[\[(.*)\]\]$/, "$1");
-                ctx.app.workspace.openLinkText(cleanPath, ctx.sourcePath, false);
+                ctx.app.workspace.openLinkText(cleanPath, ctx.sourcePath, shouldOpenNewWindow);
             }
         });
 
@@ -132,7 +135,8 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 box.style.color = card.textColor || "var(--text-normal)";
 
                 // Update link state and visual feedback
-                currentLink = (card as any).link;
+                currentLink = card.link;
+                shouldOpenNewWindow = !!card.openInNewWindow;
                 box.style.cursor = currentLink ? "pointer" : "";
 
                 // Apply Alignment
