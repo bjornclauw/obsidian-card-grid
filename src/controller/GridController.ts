@@ -15,11 +15,13 @@ import { CardResizer } from "../ui/CardResizer";
 const MIN_WIDTH = 0.3;
 
 function cloneCard(card: CardInstance, newId: string): CardInstance {
-  const anyCard = card as any;
-  if (anyCard.raw && typeof anyCard.raw === "object") {
-    return { ...anyCard, id: newId, raw: { ...(anyCard.raw as any), id: newId } };
+  const cloned = JSON.parse(JSON.stringify(card)) as CardInstance;
+  cloned.id = newId;
+  // If it's an UnknownCard or has a raw property, update that ID too
+  if ((cloned as any).raw && typeof (cloned as any).raw === "object") {
+    (cloned as any).raw.id = newId;
   }
-  return { ...(card as any), id: newId } as CardInstance;
+  return cloned;
 }
 
 export class GridController {

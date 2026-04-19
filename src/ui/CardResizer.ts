@@ -10,6 +10,9 @@ export class CardResizer {
     private card2Id: string = "";
     private maxUnbalancedWidth: number = 0;
 
+    private boundMouseMove!: (evt: MouseEvent) => void;
+    private boundMouseDown!: (evt: MouseEvent) => void;
+
     constructor(
         private app: App,
         private container: HTMLElement,
@@ -20,7 +23,7 @@ export class CardResizer {
     }
 
     private setupCursorHandler(): void {
-        this.container.addEventListener("mousemove", (evt) => {
+        this.boundMouseMove = (evt: MouseEvent) => {
             if (this.isDragging) return;
 
             const target = evt.target as HTMLElement;
@@ -45,12 +48,13 @@ export class CardResizer {
             } else {
                 this.container.style.cursor = "";
             }
-        });
+        };
+        this.container.addEventListener("mousemove", this.boundMouseMove);
     }
 
     private setupDividerListeners(): void {
-        this.container.addEventListener("mousedown", (evt) => {
-            //console.log("mousedown triggered", evt.target);
+        this.boundMouseDown = (evt: MouseEvent) => {
+            if (!(evt instanceof MouseEvent)) return;
 
             // Accept both card-grid-card and card-grid-spacer
             const cardEl = (evt.target as HTMLElement).closest(".card-grid-card, .card-grid-spacer") as HTMLElement;
@@ -89,7 +93,8 @@ export class CardResizer {
             // We allow resizing if there's a neighbor (Balanced) 
             // OR if there's empty space in the row (Unbalanced).
             this.startResize(evt as MouseEvent, cardEl, neighbor);
-        });
+        };
+        this.container.addEventListener("mousedown", this.boundMouseDown);
     }
 
     private onMouseMove(evt: MouseEvent, card1El: HTMLElement, card2El?: HTMLElement): void {
@@ -199,5 +204,8 @@ export class CardResizer {
 
     destroy(): void {
         this.isDragging = false;
+        this.container.removeEventListener("mousemove", this.boundMouseMove);
+        this.container.removeEventListener("mousedown", this.boundMouseDown);
+        this.container.style.cursor = "";
     }
 }

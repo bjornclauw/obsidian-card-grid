@@ -1,15 +1,31 @@
-# Obsidian Card Grid — Complete Documentation
+# Obsidian Card Grid
 
-## 1. Purpose & Overview
+A powerful Obsidian plugin to transform YAML code blocks into beautiful, interactive, and responsive card grids.
 
-**Card Grid** is an Obsidian Markdown plugin that renders structured data as responsive CSS grid layouts using a custom code fence syntax (`\`\`\`card-grid`). It enables users to transform YAML-formatted card definitions into visual knowledge representations within any note.
+## 🚀 Getting Started
 
-### Target Users
-- **Knowledge workers** organizing concepts visually
-- **Students** using spatial learning techniques  
-- **Designers/architects** mapping relationships to grids
-- **Researchers** visualizing concept connections
-- Anyone needing quick-reference dashboards embedded in notes
+To create a grid, use the `card-grid` code fence:
+
+```yaml
+```card-grid
+columns: 3
+gap: 15
+
+cards:
+  - title: Hello World
+    text: This is a text card.
+    backgroundColor: "#2d2d2d"
+  - type: image
+    image: "attachments/photo.jpg"
+```
+```
+
+## 🛠 Core Features
+
+- **Interactive Resizing**: Click and drag the edges of cards to adjust their width distribution dynamically.
+- **Registry Architecture**: Multiple specialized card types (Text, Image, Flashcard, Procedure).
+- **State Persistence**: Automatic, debounced saving back to your Markdown file.
+- **Context Menus**: Right-click cards to edit, clone, move, or delete them.
 
 ## 2. Architecture & Design Patterns
 
@@ -53,9 +69,7 @@ Each card type provides its own DOM rendering factory, enabling distinct structu
 - ID-first lookup strategy with fallback to line-range references
 - Save debouncing (250ms chain-based) prevents race conditions during rapid edits
 
-## 3. Core Features & Capabilities
-
-### Supported Card Types
+## 3. Card Types Reference
 
 | Type | Description | Key Fields |
 |------|-------------|------------|
@@ -64,6 +78,7 @@ Each card type provides its own DOM rendering factory, enabling distinct structu
 | **Image** | Pure photo display | `image`, extensive styling (fit/position/radius) |
 | **Spacer** | Empty placeholder for column control | `width` (in columns), used to span multiple cards horizontally |
 | **Unknown** | Fallback for unrecognized types | Preserves raw data structure, enables forward compatibility |
+| **Procedure**| Specialized workflow/step card | `title`, `text`, `image` |
 
 ### Configuration Options
 
