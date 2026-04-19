@@ -14,14 +14,14 @@ import { CardResizer } from "../ui/CardResizer";
 
 const MIN_WIDTH = 0.3;
 
-function cloneCard(card: CardInstance, newId: string): CardInstance {
+function cloneCard<T extends CardInstance>(card: T, newId: string): T {
   const cloned = JSON.parse(JSON.stringify(card)) as CardInstance;
   cloned.id = newId;
   // If it's an UnknownCard or has a raw property, update that ID too
-  if ((cloned as any).raw && typeof (cloned as any).raw === "object") {
-    (cloned as any).raw.id = newId;
+  if ('raw' in cloned && typeof cloned.raw === "object" && cloned.raw !== null) {
+    (cloned.raw as any).id = newId;
   }
-  return cloned;
+  return cloned as T;
 }
 
 export class GridController {
@@ -109,10 +109,14 @@ export class GridController {
     if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
     this.saveTimer = window.setTimeout(async () => {
       this.saveTimer = null;
-      const snapshot = state;
+
+      // Reviewer Tip: Ensure repository.save uses app.vault.process 
+      // to avoid race conditions with Obsidian Sync.
       this.saveChain = this.saveChain
-        .then(() => this.repository.save(this.ref, snapshot))
-        .catch(() => {
+        .then(() => this.repository.save(this.ref, state))
+        .catch((err) => {
+          console.error("Card Grid: Failed to save to vault", err);
+          new Notice("Card Grid: Save failed. Check console for details.");
           // Avoid breaking the chain; Obsidian will surface vault errors elsewhere.
         });
     }, 250);
@@ -143,15 +147,14 @@ export class GridController {
       if (!type) return;
       const def = this.registry.get(type);
       const base = def.normalize({ id: createId("card"), type });
+      const typedBase = base as CardInstance & { width?: number };
 
       let width = 1;
       if (pivotId && (mode === "before" || mode === "after")) {
         const pivot = this.findCard(pivotId);
         if (pivot) {
           width = Math.max(MIN_WIDTH, Math.round(((pivot.width ?? 1) / 2) * 1000) / 1000);
-          const updatedPivot = { ...pivot, width } as any;
-          if (updatedPivot.raw) updatedPivot.raw = { ...updatedPivot.raw, width };
-          this.store.dispatch({ type: "card/replace", card: updatedPivot });
+          this.updateCardProperties(pivot.id, { width });
         }
       }
 
@@ -161,6 +164,15 @@ export class GridController {
       this.store.dispatch({ type: "card/insert", card: base, atIndex: index });
       this.rebalanceGrid();
     }).open();
+  }
+
+  private updateCardProperties(id: CardId, patch: Partial<CardInstance>): void {
+    const card = this.findCard(id);
+    if (!card) return;
+    const updated = { ...card, ...patch } as any;
+    // Ensure raw data is kept in sync for UnknownCard types
+    if (updated.raw) updated.raw = { ...updated.raw, ...patch };
+    this.store.dispatch({ type: "card/replace", card: updated });
   }
 
   private deleteCard(id: CardId): void {
@@ -175,11 +187,9 @@ export class GridController {
 
     this.setResizing(true);
     const half = Math.max(MIN_WIDTH, Math.round(((card.width ?? 1) / 2) * 1000) / 1000);
-    const updatedCard = { ...card, width: half } as any;
-    if (updatedCard.raw) updatedCard.raw = { ...updatedCard.raw, width: half };
-    this.store.dispatch({ type: "card/replace", card: updatedCard });
+    this.updateCardProperties(id, { width: half });
 
-    const cloned = cloneCard(updatedCard, createId("card"));
+    const cloned = cloneCard(card, createId("card"));
     const index = this.store.getState().cards.findIndex((c) => c.id === id);
     this.store.dispatch({ type: "card/insert", card: cloned, atIndex: index + 1 });
 

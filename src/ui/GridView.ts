@@ -57,6 +57,8 @@ export class GridView {
     const currentHeight = this.container.offsetHeight;
     if (currentHeight > 0) {
       this.container.style.minHeight = `${currentHeight}px`;
+    } else {
+      this.container.style.minHeight = "100px"; // Default placeholder to prevent zero-height jumps
     }
 
     this.container.style.display = "flex";
