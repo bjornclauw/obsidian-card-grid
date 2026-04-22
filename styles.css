@@ -98,10 +98,6 @@
  * ==========================================================================
  */
 
-/* Text Card: Standard markdown block */
-.card-grid-card.card-type-textCard {
-  /* Custom styles for pure text cards can go here */
-}
 
 /* Gallery Card: Minimalist image-focused display */
 .card-grid-card.card-type-galleryCard {

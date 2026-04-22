@@ -96,6 +96,9 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
                 box.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 box.style.color = card.textColor || "var(--text-normal)";
 
+                titleEl.style.fontSize = `${card.titleSize}px`;
+                textEl.style.fontSize = `${card.textSize}px`;
+
                 if (card.alignment === "left") {
                     box.style.textAlign = "left";
                     box.style.alignItems = "flex-start";
