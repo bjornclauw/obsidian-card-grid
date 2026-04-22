@@ -24,6 +24,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             { kind: "markdown", key: "text", label: "Text" },
             { kind: "toggle", key: "imageEnabled", label: "Show image", defaultValue: true },
             { kind: "image-file", key: "image", label: "Image" },
+            { kind: "toggle", key: "annotationsEnabled", label: "Enable annotations", defaultValue: false },
 
             // Group 2: Layout
             { kind: "number", key: "width", label: "Width (columns)", defaultValue: 1 },
@@ -55,8 +56,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 key: "textColor",
                 label: "Title color",
                 defaultValue: "var(--text-normal)"
-            },
-            { kind: "button", key: "add-arrow", label: "Add Annotation Arrow" }
+            }
         ]
     },
     normalize(raw: unknown): ProcedureCard {
@@ -77,6 +77,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             textColor: typeof raw.textColor === "string" ? raw.textColor : undefined,
             image: typeof raw.image === "string" ? raw.image : undefined,
             imageEnabled: typeof raw.imageEnabled === "boolean" ? raw.imageEnabled : undefined,
+            annotationsEnabled: typeof raw.annotationsEnabled === "boolean" ? raw.annotationsEnabled : false,
             imageFit: (typeof raw.imageFit === "string" ? raw.imageFit : undefined) as ProcedureCard["imageFit"],
             imageHeight: typeof raw.imageHeight === "number" ? Math.max(0, raw.imageHeight) : undefined,
             imagePosition: typeof raw.imagePosition === "string" ? raw.imagePosition : undefined,
@@ -182,18 +183,23 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
                 // Interactive Annotation: Right-click anywhere on the image area to add a new arrow.
-                imageBox.oncontextmenu = (e: MouseEvent) => {
-                    // If we clicked an existing marker, don't add a new one
-                    if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
+                if (card.annotationsEnabled) {
+                    imageBox.oncontextmenu = (e: MouseEvent) => {
+                        // If we clicked an existing marker, don't add a new one
+                        if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
 
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rect = imageBox.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    const newArrows = [...(card.arrows || []), { id: createId("arrow"), x, y, rotation: 0 }];
-                    if (viewCtx.controller) viewCtx.controller.updateCardProperties(card.id, { arrows: newArrows });
-                };
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const rect = imageBox.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width) * 100;
+                        const y = ((e.clientY - rect.top) / rect.height) * 100;
+                        const newArrows = [...(card.arrows || []), { id: createId("arrow"), x, y, rotation: 0 }];
+                        if (viewCtx.controller) viewCtx.controller.updateCardProperties(card.id, { arrows: newArrows });
+                    };
+                } else {
+                    imageBox.oncontextmenu = null;
+                    setSelected(null);
+                }
 
                 titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.color = card.textColor || "";
@@ -215,7 +221,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     imageBox.querySelectorAll(".procedure-arrow-marker").forEach(el => el.remove());
 
                     // Render arrows
-                    if (card.arrows) {
+                    if (card.annotationsEnabled && card.arrows) {
                         card.arrows.forEach(arrow => {
                             const marker = imageBox.createDiv("procedure-arrow-marker");
                             marker.dataset.arrowId = arrow.id;
