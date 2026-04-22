@@ -125,6 +125,8 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         imageBox.style.flexDirection = "column";
         imageBox.style.overflow = "hidden";
         const img = imageBox.createEl("img");
+        const addArrowBtn = imageBox.createDiv("procedure-add-arrow-btn");
+        setIcon(addArrowBtn, "plus-circle");
 
         // Track the currently selected arrow — stored in the module-level map so it
         // survives view recreation. Card id is available via box.dataset.cardId at runtime.
@@ -182,22 +184,19 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 box.dataset.cardId = card.id;
                 box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
 
-                // Interactive Annotation: Right-click anywhere on the image area to add a new arrow.
+                // Interactive Annotation: Overlay button adds a new arrow at the center.
+                imageBox.oncontextmenu = null;
                 if (card.annotationsEnabled) {
-                    imageBox.oncontextmenu = (e: MouseEvent) => {
-                        // If we clicked an existing marker, don't add a new one
-                        if ((e.target as HTMLElement).closest(".procedure-arrow-marker")) return;
-
+                    addArrowBtn.style.display = "flex";
+                    addArrowBtn.onclick = (e: MouseEvent) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        const rect = imageBox.getBoundingClientRect();
-                        const x = ((e.clientX - rect.left) / rect.width) * 100;
-                        const y = ((e.clientY - rect.top) / rect.height) * 100;
-                        const newArrows = [...(card.arrows || []), { id: createId("arrow"), x, y, rotation: 0 }];
+                        // Spawns a new arrow at the center of the image area
+                        const newArrows = [...(card.arrows || []), { id: createId("arrow"), x: 50, y: 50, rotation: 0 }];
                         if (viewCtx.controller) viewCtx.controller.updateCardProperties(card.id, { arrows: newArrows });
                     };
                 } else {
-                    imageBox.oncontextmenu = null;
+                    addArrowBtn.style.display = "none";
                     setSelected(null);
                 }
 
