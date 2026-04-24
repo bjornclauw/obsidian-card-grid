@@ -138,6 +138,73 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         // Track active global listeners for cleanup.
         const pendingCleanups = new Set<() => void>();
 
+        // ── Image-rect-aware arrow positioning ──────────────────────────
+        // Arrow x/y are stored as % of the image's NATURAL dimensions.
+        // On render we convert to pixel offsets inside imageBox, accounting
+        // for the current object-fit / object-position so they track the
+        // exact content point even when the container aspect ratio changes.
+
+        /**
+         * Compute where the image content actually renders inside imageBox,
+         * accounting for object-fit and object-position.
+         */
+        function getRenderedImageRect() {
+            const nw = img.naturalWidth;
+            const nh = img.naturalHeight;
+            const cw = imageBox.clientWidth;
+            const ch = imageBox.clientHeight;
+            if (!nw || !nh || !cw || !ch) return { x: 0, y: 0, w: cw || 0, h: ch || 0 };
+
+            const fit = img.style.objectFit || "cover";
+            const ia = nw / nh, ca = cw / ch;
+            let rw: number, rh: number;
+            switch (fit) {
+                case "contain":
+                case "scale-down":
+                    if (ia > ca) { rw = cw; rh = cw / ia; } else { rh = ch; rw = ch * ia; }
+                    if (fit === "scale-down") { rw = Math.min(rw, nw); rh = Math.min(rh, nh); }
+                    break;
+                case "cover":
+                    if (ia > ca) { rh = ch; rw = ch * ia; } else { rw = cw; rh = cw / ia; }
+                    break;
+                case "none": rw = nw; rh = nh; break;
+                default: rw = cw; rh = ch; break; // fill
+            }
+
+            const pos = (img.style.objectPosition || "center center").trim().split(/\s+/);
+            const p = (s: string) => {
+                if (s === "left" || s === "top") return 0;
+                if (s === "center") return 0.5;
+                if (s === "right" || s === "bottom") return 1;
+                if (s.endsWith("%")) return parseFloat(s) / 100;
+                return 0.5;
+            };
+            return {
+                x: (cw - rw) * p(pos[0]),
+                y: (ch - rh) * p(pos[1] || "center"),
+                w: rw, h: rh
+            };
+        }
+
+        /** Set a marker's left/top in pixels from its data-img-x/y image-% coords */
+        function positionMarker(marker: HTMLElement): void {
+            const ix = parseFloat(marker.dataset.imgX || "50");
+            const iy = parseFloat(marker.dataset.imgY || "50");
+            const r = getRenderedImageRect();
+            marker.style.left = `${r.x + (ix / 100) * r.w}px`;
+            marker.style.top = `${r.y + (iy / 100) * r.h}px`;
+        }
+
+        function repositionAllArrows(): void {
+            imageBox.querySelectorAll<HTMLElement>(".procedure-arrow-marker").forEach(positionMarker);
+        }
+
+        const resizeObserver = new ResizeObserver(() => repositionAllArrows());
+        resizeObserver.observe(imageBox);
+        img.addEventListener("load", () => repositionAllArrows());
+
+        // ────────────────────────────────────────────────────────────────
+
         async function renderMarkdown(el: HTMLElement, markdown: string): Promise<void> {
             el.empty();
             await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
@@ -224,9 +291,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                         card.arrows.forEach(arrow => {
                             const marker = imageBox.createDiv("procedure-arrow-marker");
                             marker.dataset.arrowId = arrow.id;
-                            marker.style.setProperty("--arrow-x", String(arrow.x));
-                            marker.style.setProperty("--arrow-y", String(arrow.y));
+                            // Store image-space coords for ResizeObserver repositioning
+                            marker.dataset.imgX = String(arrow.x);
+                            marker.dataset.imgY = String(arrow.y);
                             marker.style.setProperty("--arrow-rotation", String(arrow.rotation));
+                            positionMarker(marker);
 
                             if (getSelected() === arrow.id) {
                                 marker.classList.add("is-active");
@@ -253,7 +322,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                // Select this arrow by toggling CSS classes directly — no full re-render needed
+                                // Select this arrow
                                 if (getSelected() !== arrow.id) {
                                     imageBox.querySelectorAll(".procedure-arrow-marker.is-active")
                                         .forEach(el => el.classList.remove("is-active"));
@@ -267,19 +336,20 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
                                 const startX = e.clientX;
                                 const startY = e.clientY;
-                                const rect = imageBox.getBoundingClientRect();
-                                const startXPercent = arrow.x;
-                                const startYPercent = arrow.y;
+                                const startImgX = arrow.x;
+                                const startImgY = arrow.y;
 
                                 const onMouseMove = (moveEvent: MouseEvent) => {
-                                    const deltaX = ((moveEvent.clientX - startX) / rect.width) * 100;
-                                    const deltaY = ((moveEvent.clientY - startY) / rect.height) * 100;
-
-                                    const newX = Math.max(0, Math.min(100, startXPercent + deltaX));
-                                    const newY = Math.max(0, Math.min(100, startYPercent + deltaY));
-
-                                    marker.style.setProperty("--arrow-x", String(newX));
-                                    marker.style.setProperty("--arrow-y", String(newY));
+                                    // Recompute image rect each frame so mid-drag resizes work
+                                    const r = getRenderedImageRect();
+                                    const dx = ((moveEvent.clientX - startX) / r.w) * 100;
+                                    const dy = ((moveEvent.clientY - startY) / r.h) * 100;
+                                    // No clamping — arrows follow image content off-screen
+                                    const newX = startImgX + dx;
+                                    const newY = startImgY + dy;
+                                    marker.dataset.imgX = String(newX);
+                                    marker.dataset.imgY = String(newY);
+                                    positionMarker(marker);
                                 };
 
                                 const onMouseUp = () => {
@@ -287,8 +357,8 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                                     window.removeEventListener("mouseup", onMouseUp);
                                     pendingCleanups.delete(cleanup);
 
-                                    const finalX = parseFloat(marker.style.getPropertyValue("--arrow-x"));
-                                    const finalY = parseFloat(marker.style.getPropertyValue("--arrow-y"));
+                                    const finalX = parseFloat(marker.dataset.imgX || "50");
+                                    const finalY = parseFloat(marker.dataset.imgY || "50");
 
                                     setSelected(arrow.id);
                                     suppressNextDeselect = true;
@@ -420,6 +490,9 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     img.style.flex = "1 1 auto";
                     img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
                     img.style.objectPosition = card.imagePosition || viewCtx.grid.imagePosition || "center";
+
+                    // Reposition arrows now that styles are applied
+                    repositionAllArrows();
                 } else {
                     textBox.style.borderRight = "none";
                     imageBox.style.display = "none";
@@ -431,6 +504,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 // Remove all pending global listeners
                 pendingCleanups.forEach(cleanup => cleanup());
                 pendingCleanups.clear();
+                resizeObserver.disconnect();
 
                 // Note: We deliberately do NOT delete entries from selectedArrowIds here.
                 // This Map allows selection state to survive view recreation (filtering, sorting, etc).
