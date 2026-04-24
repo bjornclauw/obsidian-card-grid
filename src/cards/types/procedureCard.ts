@@ -117,6 +117,9 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         textBox.style.flex = "1";
         textBox.style.padding = "10px";
 
+        // Note: imageBox gets its height implicitly from the flex layout's
+        // `align-items: stretch` on the card container, ensuring it matches
+        // sibling columns even when the absolute-positioned img is pulled out of flow.
         const imageBox = box.createDiv("procedure-image-box");
         imageBox.style.flex = "0 0 38%";
         imageBox.classList.add("procedure-image-container");
@@ -186,13 +189,23 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
             };
         }
 
-        /** Set a marker's left/top in pixels from its data-img-x/y image-% coords */
+        /** Set a marker's left/top as % of container from its data-img-x/y image-% coords.
+         *  Using percentages instead of pixels ensures arrows scale correctly when the
+         *  container is uniformly resized (e.g. during PDF export to fit A4). */
         function positionMarker(marker: HTMLElement): void {
             const ix = parseFloat(marker.dataset.imgX || "50");
             const iy = parseFloat(marker.dataset.imgY || "50");
             const r = getRenderedImageRect();
-            marker.style.left = `${r.x + (ix / 100) * r.w}px`;
-            marker.style.top = `${r.y + (iy / 100) * r.h}px`;
+            const cw = imageBox.clientWidth;
+            const ch = imageBox.clientHeight;
+            if (cw && ch) {
+                marker.style.left = `${((r.x + (ix / 100) * r.w) / cw) * 100}%`;
+                marker.style.top = `${((r.y + (iy / 100) * r.h) / ch) * 100}%`;
+            } else {
+                // Fallback for zero-size containers (not yet laid out)
+                marker.style.left = `${ix}%`;
+                marker.style.top = `${iy}%`;
+            }
         }
 
         function repositionAllArrows(): void {
@@ -207,7 +220,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
 
         async function renderMarkdown(el: HTMLElement, markdown: string): Promise<void> {
             el.empty();
-            await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
+            try {
+                await MarkdownRenderer.render(ctx.app, markdown || " ", el, ctx.sourcePath, ctx.plugin);
+            } catch (err) {
+                console.error("Failed to render markdown:", err);
+            }
         }
 
         function resolveImagePath(path: string): string {
@@ -484,12 +501,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                     img.style.top = "0";
                     img.style.left = "0";
                     img.style.height = "100%";
-                    img.style.width = "100%";
+                    // width, objectFit, objectPosition are set by applyImageStyle
                     img.style.minHeight = "0";
+                    // Override applyImageStyle's maxHeight so absolute positioning fills the box
                     img.style.maxHeight = "none";
                     img.style.flex = "1 1 auto";
-                    img.style.objectFit = card.imageFit || viewCtx.grid.imageFit || "cover";
-                    img.style.objectPosition = card.imagePosition || viewCtx.grid.imagePosition || "center";
 
                     // Reposition arrows now that styles are applied
                     repositionAllArrows();
