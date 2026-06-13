@@ -6,7 +6,7 @@ A powerful Obsidian plugin to transform YAML code blocks into beautiful, interac
 
 To create a grid, use the `card-grid` code fence:
 
-```yaml
+
 ```card-grid
 columns: 3
 gap: 15
@@ -18,7 +18,6 @@ cards:
     backgroundColor: "#2d2d2d"
   - type: galleryCard
     image: "attachments/photo.jpg"
-```
 ```
 
 ## 🛠 Core Features
