@@ -11,7 +11,14 @@ type BlockMatch = {
 };
 
 function isFenceStart(line: string): boolean {
-  return line.trimEnd() === "```card-grid";
+  const trimmed = line.trimEnd();
+  if (!trimmed.startsWith("```card-grid")) return false;
+  // Accept the canonical form (```card-grid) AND any variant where the info
+  // string continues with a non-identifier character — e.g. ```card-grid:
+  // which Obsidian renders correctly but was previously unrecognised here,
+  // causing all saves to be silently dropped for manually-written blocks.
+  const rest = trimmed.slice("```card-grid".length);
+  return rest === "" || /^[^a-zA-Z0-9_-]/.test(rest);
 }
 
 function isFenceEnd(line: string): boolean {

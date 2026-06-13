@@ -83,6 +83,8 @@ ui/
 
 ## Recent Changes
 **Latest commits**:
+- **`isFenceStart` fence variant fix**: `findCardGridBlocks` now accepts ` ```card-grid: ` and other info-string variants (e.g. manually written blocks with a trailing colon). Previously these blocks were invisible to the repository so all saves were silently dropped — the first successful save rewrites the fence to the canonical ` ```card-grid` form, self-healing the file.
+- **`tryParseYaml` utility**: Added to `infrastructure/yaml.ts` — returns a discriminated union `{ ok, value } | { ok, error }` so callers can detect and report YAML syntax errors without swallowing them (foundation for the upcoming YAML validation feature).
 - **Synchronous mount fix**: `controller.mount()` now called inside the processor callback, not in `GridRenderChild.onload()`. Fixes card grids below the fold not rendering in Live Preview (CM6 virtual scrolling) and all card grids appearing as raw code blocks in PDF exports.
 - **Robust block resolution for saves**: `CardGridRepository` now uses three-priority lookup — id field → content match (raw YAML source captured at render time via `ref.codeBlockSource`) → line numbers. Fixes saves silently failing when using the "Collapsed Codeblocks" plugin or in documents with many card grids (where line numbers drift after previous saves).
 - **`GridBlockRef` extended**: Added `codeBlockSource?: string` to carry the original YAML source for content-based block matching.
