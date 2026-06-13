@@ -159,4 +159,9 @@ export interface GridBlockRef {
   sourcePath: string;
   lineStart?: number;
   lineEnd?: number;
+  /** Original raw YAML source of the code block (between the fences), used as a
+   *  content-based fallback when line numbers are stale (e.g. after the file was
+   *  modified by another save, or when the "Collapsed Codeblocks" plugin remounts
+   *  the block with different getSectionInfo() values). */
+  codeBlockSource?: string;
 }

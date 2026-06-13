@@ -21,7 +21,11 @@ export default class CardGridPlugin extends Plugin {
       const ref = {
         sourcePath: ctx.sourcePath,
         lineStart: sectionInfo?.lineStart,
-        lineEnd: sectionInfo?.lineEnd
+        lineEnd: sectionInfo?.lineEnd,
+        // Store the raw YAML source so the repository can use content-based
+        // matching as a fallback when line numbers become stale (large
+        // documents, Collapsed Codeblocks plugin remounting, etc.)
+        codeBlockSource: source
       };
 
       const controller = new GridController({
@@ -33,8 +37,20 @@ export default class CardGridPlugin extends Plugin {
         codeBlockSource: source
       });
 
+      // Mount synchronously here so the grid DOM is fully built inside this
+      // callback.  This is critical for two cases:
+      //   1. PDF export: Obsidian snapshots the DOM for printing without
+      //      waiting for MarkdownRenderChild.onload() — blocks that were
+      //      never in the viewport stay as raw code blocks in the PDF.
+      //   2. Live Preview virtual scrolling: CM6 may never call onload() for
+      //      blocks below the fold until the user scrolls to them.
+      // GridRenderChild.onload() is now a no-op guard; onunload() still owns
+      // the destroy lifecycle.
+      controller.mount();
+
       ctx.addChild(new GridRenderChild(el, controller));
     });
+
 
     // ── Command Palette ────────────────────────────────────────────────────
 
