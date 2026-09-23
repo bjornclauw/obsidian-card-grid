@@ -104,6 +104,7 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
 
         const textBox = box.createDiv("flash-text-box");
         const titleEl = textBox.createEl("h4");
+        titleEl.addClass("card-title");
         const textEl = textBox.createDiv("card-text");
 
 
@@ -136,7 +137,9 @@ export const horizontalFlashCardType: CardTypeDefinition<HorizontalFlashCard> = 
                 textBox.style.justifyContent = card.verticalAlignment === "top" ? "flex-start" : card.verticalAlignment === "bottom" ? "flex-end" : "center";
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
                 titleEl.style.alignItems = card.alignment === "left" ? "flex-start" : card.alignment === "right" ? "flex-end" : "center";
-                titleEl.style.color = card.textColor || "var(--text-normal)";
+                const titleColor = card.textColor || "var(--text-normal)";
+                box.style.setProperty("--card-title-color", titleColor);
+                titleEl.style.color = titleColor;
                 titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.width = "100%";
                 titleEl.style.boxSizing = "border-box";

@@ -77,6 +77,7 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
         box.style.padding = "30px";
 
         const titleEl = box.createEl("h2");
+        titleEl.addClass("card-title", "banner-title");
         titleEl.style.margin = "0 0 10px 0";
         titleEl.style.lineHeight = "1.2";
 
@@ -93,11 +94,29 @@ export const bannerCardType: CardTypeDefinition<BannerCard> = {
                 box.style.setProperty('--card-width', String(card.width || 1));
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
-                box.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
-                box.style.color = card.textColor || "var(--text-normal)";
+                const textColor = card.textColor || "var(--text-normal)";
+                const titleSize =
+                    typeof card.titleSize === "number" ? card.titleSize : 28;
+                const textSize =
+                    typeof card.textSize === "number" ? card.textSize : 16;
 
-                titleEl.style.fontSize = `${card.titleSize}px`;
-                textEl.style.fontSize = `${card.textSize}px`;
+                box.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
+                box.style.color = textColor;
+
+                // Expose the text styling as CSS variables on the card root.
+                // styles.css re-applies these with !important to the title and
+                // body descendants, so the styling survives any external plugin
+                // that rewrites or replaces the inner nodes.
+                box.style.setProperty("--card-title-color", textColor);
+                box.style.setProperty("--card-title-size", `${titleSize}px`);
+                box.style.setProperty("--card-text-color", textColor);
+                box.style.setProperty("--card-text-size", `${textSize}px`);
+
+                titleEl.style.color = textColor;
+                textEl.style.color = textColor;
+
+                titleEl.style.fontSize = `${titleSize}px`;
+                textEl.style.fontSize = `${textSize}px`;
 
                 if (card.alignment === "left") {
                     box.style.textAlign = "left";

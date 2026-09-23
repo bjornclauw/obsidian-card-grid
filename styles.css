@@ -84,6 +84,25 @@
   margin-bottom: 0 !important;
 }
 
+/*
+ * Keep each card's configured title colour/size even if another plugin
+ * rewrites or replaces the inner heading nodes (which would otherwise drop
+ * the per-element inline styles). Card views publish the values as CSS
+ * variables on the card root, which is not touched by such rewrites.
+ */
+.card-grid-card .card-title,
+.card-grid-card .card-title * {
+  color: var(--card-title-color, inherit) !important;
+}
+
+.card-grid-card .card-title {
+  font-size: var(--card-title-size, inherit) !important;
+}
+
+.card-grid-card .card-title * {
+  font-size: inherit !important;
+}
+
 /* Base image handling for cards with media */
 .card-grid-card img {
   width: 100%;
@@ -304,6 +323,21 @@
   margin: 0;
 }
 
+/*
+ * The banner paints its whole surface, so its body text (and any links inside
+ * it) must use the configured colour/size rather than the theme defaults.
+ * Values come from the card root as CSS variables.
+ */
+.card-grid-card.card-type-bannerCard,
+.card-grid-card.card-type-bannerCard * {
+  color: var(--card-text-color, inherit) !important;
+}
+
+.card-grid-card.card-type-bannerCard .banner-text,
+.card-grid-card.card-type-bannerCard .banner-text * {
+  font-size: var(--card-text-size, inherit) !important;
+}
+
 /* Icon Card: Minimalistic shortcuts */
 .card-grid-card.card-type-iconCard {
   border: none !important;
@@ -311,6 +345,13 @@
 
 .card-grid-card.card-type-iconCard .icon-text p {
   margin: 0;
+}
+
+/* Keep the icon card's configured text colour/size on DOM rewrites. */
+.card-grid-card.card-type-iconCard .icon-text,
+.card-grid-card.card-type-iconCard .icon-text * {
+  color: var(--card-text-color, inherit) !important;
+  font-size: var(--card-text-size, inherit) !important;
 }
 
 /**

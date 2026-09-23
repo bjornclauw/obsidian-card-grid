@@ -87,6 +87,7 @@ export const verticalFlashCardType: CardTypeDefinition<VerticalFlashCard> = {
         box.className = "card-grid-card card-type-verticalFlashCard";
         const img = box.createEl("img");
         const titleEl = box.createEl("h4");
+        titleEl.addClass("card-title");
         titleEl.style.marginTop = "8px";
         titleEl.style.padding = "4px";
 
@@ -117,7 +118,9 @@ export const verticalFlashCardType: CardTypeDefinition<VerticalFlashCard> = {
                 box.style.alignItems = "stretch";
                 titleEl.style.width = "100%";
                 titleEl.style.boxSizing = "border-box";
-                titleEl.style.color = card.textColor || "var(--text-normal)";
+                const titleColor = card.textColor || "var(--text-normal)";
+                box.style.setProperty("--card-title-color", titleColor);
+                titleEl.style.color = titleColor;
                 titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
                 titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 

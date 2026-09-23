@@ -112,6 +112,7 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
         titleBox.style.display = "flex";
         titleBox.style.alignItems = "flex-start";
         const titleEl = titleBox.createEl("h4");
+        titleEl.addClass("card-title");
 
         const textBox = box.createDiv("procedure-text-box");
         textBox.style.flex = "1";
@@ -285,6 +286,11 @@ export const procedureCardType: CardTypeDefinition<ProcedureCard> = {
                 }
 
                 titleBox.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
+                if (card.textColor) {
+                    box.style.setProperty("--card-title-color", card.textColor);
+                } else {
+                    box.style.removeProperty("--card-title-color");
+                }
                 titleEl.style.color = card.textColor || "";
                 void renderMarkdown(titleEl, card.title || "Untitled");
 

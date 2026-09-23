@@ -78,6 +78,7 @@ export const textCardType: CardTypeDefinition<TextCard> = {
     box.style.flexDirection = "column";
 
     const titleEl = box.createEl("h4");
+    titleEl.addClass("card-title");
     titleEl.style.margin = "0";
     titleEl.style.padding = "10px";
 
@@ -104,7 +105,9 @@ export const textCardType: CardTypeDefinition<TextCard> = {
         titleEl.style.display = card.titleEnabled !== false ? "" : "none";
 
         box.style.border = `2px solid ${card.backgroundColor || "var(--background-modifier-border)"}`;
-        titleEl.style.color = card.textColor || "var(--text-normal)";
+        const titleColor = card.textColor || "var(--text-normal)";
+        box.style.setProperty("--card-title-color", titleColor);
+        titleEl.style.color = titleColor;
         titleEl.style.backgroundColor = card.backgroundColor || "var(--background-modifier-border)";
 
         // Apply Alignment

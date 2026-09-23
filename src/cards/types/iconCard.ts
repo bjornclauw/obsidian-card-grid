@@ -131,8 +131,13 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 box.dataset.widthFraction = String(card.width || 1);
                 box.dataset.cardId = card.id;
 
+                const textColor = card.textColor || "var(--text-normal)";
+                const textSize =
+                    typeof card.textSize === "number" ? card.textSize : 14;
                 box.style.backgroundColor = card.backgroundColor || "transparent";
-                box.style.color = card.textColor || "var(--text-normal)";
+                box.style.color = textColor;
+                box.style.setProperty("--card-text-color", textColor);
+                box.style.setProperty("--card-text-size", `${textSize}px`);
 
                 // Update link state and visual feedback
                 currentLink = card.link;
@@ -164,7 +169,7 @@ export const iconCardType: CardTypeDefinition<IconCard> = {
                 }
 
                 // Update Text
-                textEl.style.fontSize = `${card.textSize || 14}px`;
+                textEl.style.fontSize = `${textSize}px`;
                 void renderMarkdown(textEl, card.text || "");
             }
         };
